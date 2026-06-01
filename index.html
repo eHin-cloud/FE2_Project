@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#050816">
-  <meta name="description" content="Portfolio 3D của Nguyễn Thanh Hiền - Sinh viên CNTT trường TDC, Front-End Developer & QA Software Tester.">
-  <meta name="keywords" content="frontend, backend, qa, testing, laravel, php, mysql, tdc, portfolio, three.js">
+  <meta name="description"
+    content="Portfolio 3D của Nguyễn Thanh Hiền - Thực tập sinh Web Developer & UI-focused Fullstack.">
+  <meta name="keywords" content="frontend, backend, fullstack, web, ui, three.js, portfolio">
   <meta name="author" content="Nguyễn Thanh Hiền">
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./css/style.css">
-  
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <title>Thanh Hiền | Portfolio & QA Specialist</title>
+
+  <title>Nguyễn Thanh Hiền | Trạm Không Gian</title>
 </head>
+
 <body class="bg-[#050816] text-white">
 
   <!-- ==========================================================================
@@ -29,16 +32,22 @@
     <!-- Scanline effect -->
     <div class="scanlines absolute inset-0 pointer-events-none"></div>
 
-    <div class="max-w-5xl w-full mx-4 p-6 md:p-10 rounded-2xl bg-[#030511]/90 border border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden flex flex-col justify-between min-h-[500px]">
-      
+    <div
+      class="max-w-5xl w-full mx-4 p-6 md:p-10 rounded-2xl bg-[#030511]/90 border border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+
       <!-- Tech framing corner brackets -->
-      <div class="absolute top-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">┌── [SECURE_LINK]</div>
-      <div class="absolute top-3 right-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">[NODE_097] ──┐</div>
-      <div class="absolute bottom-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">└── [SYS_INITIAL]</div>
-      <div class="absolute bottom-3 right-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">[VER_9.8.4] ──┘</div>
+      <div class="absolute top-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">┌──
+        [SECURE_LINK]</div>
+      <div class="absolute top-3 right-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">
+        [NODE_097] ──┐</div>
+      <div class="absolute bottom-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">└──
+        [SYS_INITIAL]</div>
+      <div class="absolute bottom-3 right-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">
+        [VER_9.8.4] ──┘</div>
 
       <!-- Top Dashboard Status Bar -->
-      <div class="flex flex-wrap justify-between items-center border-b border-cyan-500/10 pb-4 mb-4 font-mono text-[10px] sm:text-xs text-cyan-400/80 gap-2">
+      <div
+        class="flex flex-wrap justify-between items-center border-b border-cyan-500/10 pb-4 mb-4 font-mono text-[10px] sm:text-xs text-cyan-400/80 gap-2">
         <div class="flex items-center gap-4">
           <span class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
@@ -58,17 +67,20 @@
         <!-- Left Side: Terminal Diagnostics Console -->
         <div class="md:col-span-7 flex flex-col justify-between min-h-[300px]">
           <div>
-            <h2 class="text-2xl md:text-3xl font-black font-display tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 loader-glow-text mb-1 uppercase">
+            <h2
+              class="text-2xl md:text-3xl font-black font-display tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 loader-glow-text mb-1 uppercase">
               NGUYỄN THANH HIỀN
             </h2>
-            <p class="text-zinc-500 text-xs font-mono mb-4 tracking-wider">A.I. NEURAL CORE INITIALIZATION // DIALOGS v3.5</p>
-            
+            <p class="text-zinc-500 text-xs font-mono mb-4 tracking-wider">A.I. NEURAL CORE INITIALIZATION // DIALOGS
+              v3.5</p>
+
             <!-- Terminal Output Box -->
-            <div id="loader-terminal-logs" class="space-y-1.5 bg-[#02030a]/80 p-4 rounded-xl border border-cyan-500/20 shadow-inner h-52 overflow-y-auto font-mono text-xs text-cyan-300 scrollbar-none">
+            <div id="loader-terminal-logs"
+              class="space-y-1.5 bg-[#02030a]/80 p-4 rounded-xl border border-cyan-500/20 shadow-inner h-52 overflow-y-auto font-mono text-xs text-cyan-300 scrollbar-none">
               <!-- Dynamically populated via js/app.js -->
             </div>
           </div>
-          
+
           <!-- Boot Percentage & Core Stabilizer Details -->
           <div class="flex justify-between items-end mt-6">
             <div class="flex flex-col font-mono">
@@ -77,12 +89,15 @@
                 <span id="loader-percentage" class="text-3xl font-bold text-cyan-400">0%</span>
                 <!-- Progress Bar HUD -->
                 <div class="w-32 h-2 bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-500/30">
-                  <div id="loader-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-75" style="width: 0%"></div>
+                  <div id="loader-progress-bar"
+                    class="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-75"
+                    style="width: 0%"></div>
                 </div>
               </div>
             </div>
-            
-            <button id="loader-start-btn" class="hidden px-6 py-2.5 bg-transparent border-2 border-cyan-400 hover:bg-cyan-400/20 active:scale-95 text-cyan-400 font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] flex items-center gap-2 font-mono uppercase tracking-widest text-xs">
+
+            <button id="loader-start-btn"
+              class="hidden px-6 py-2.5 bg-transparent border-2 border-cyan-400 hover:bg-cyan-400/20 active:scale-95 text-cyan-400 font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] flex items-center gap-2 font-mono uppercase tracking-widest text-xs">
               <i class="fa-solid fa-bolt text-xs animate-pulse"></i> ENGAGE LINK
             </button>
           </div>
@@ -92,30 +107,40 @@
         <div class="hidden md:flex justify-center items-center relative p-4 md:col-span-5">
           <!-- Multi-ring HUD visual -->
           <div class="relative w-64 h-64 flex justify-center items-center">
-            
+
             <!-- Outer dotted rotating ring -->
-            <svg class="absolute w-full h-full animate-[spin_20s_linear_infinite] text-cyan-500/30" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="1" stroke-dasharray="2, 4" fill="none" />
+            <svg class="absolute w-full h-full animate-[spin_20s_linear_infinite] text-cyan-500/30"
+              viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="1" stroke-dasharray="2, 4"
+                fill="none" />
             </svg>
-            
+
             <!-- Mid solid segmented rotating ring -->
-            <svg class="absolute w-[85%] h-[85%] animate-[spin_12s_linear_infinite_reverse] text-purple-500/40" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="1.5" stroke-dasharray="15, 8, 45, 12" fill="none" />
+            <svg class="absolute w-[85%] h-[85%] animate-[spin_12s_linear_infinite_reverse] text-purple-500/40"
+              viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="1.5" stroke-dasharray="15, 8, 45, 12"
+                fill="none" />
             </svg>
-            
+
             <!-- Inner crosshair scanning ring -->
-            <svg class="absolute w-[70%] h-[70%] animate-[spin_6s_linear_infinite] text-cyan-400/60" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="0.75" stroke-dasharray="50, 10" fill="none" />
+            <svg class="absolute w-[70%] h-[70%] animate-[spin_6s_linear_infinite] text-cyan-400/60"
+              viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="0.75" stroke-dasharray="50, 10"
+                fill="none" />
               <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2, 2" />
               <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2, 2" />
             </svg>
 
             <!-- Tech Radar Sweeper (scanning glow) -->
-            <div class="absolute w-[60%] h-[60%] rounded-full border border-cyan-500/20 overflow-hidden flex justify-center items-center">
-              <div class="absolute inset-0 bg-[conic-gradient(from_0deg,rgba(6,182,212,0.15),transparent_60%)] animate-[spin_3s_linear_infinite]"></div>
-              
+            <div
+              class="absolute w-[60%] h-[60%] rounded-full border border-cyan-500/20 overflow-hidden flex justify-center items-center">
+              <div
+                class="absolute inset-0 bg-[conic-gradient(from_0deg,rgba(6,182,212,0.15),transparent_60%)] animate-[spin_3s_linear_infinite]">
+              </div>
+
               <!-- Center glowing orb / neural node -->
-              <div class="w-8 h-8 rounded-full bg-cyan-400/20 border border-cyan-400 flex justify-center items-center shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
+              <div
+                class="w-8 h-8 rounded-full bg-cyan-400/20 border border-cyan-400 flex justify-center items-center shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
                 <i class="fa-solid fa-atom text-cyan-400 text-xs animate-[spin_4s_linear_infinite]"></i>
               </div>
             </div>
@@ -130,7 +155,8 @@
       </div>
 
       <!-- Bottom Tech Data Readouts -->
-      <div class="border-t border-cyan-500/10 pt-4 mt-4 flex flex-wrap justify-between items-center text-[9px] sm:text-[10px] font-mono text-zinc-500">
+      <div
+        class="border-t border-cyan-500/10 pt-4 mt-4 flex flex-wrap justify-between items-center text-[9px] sm:text-[10px] font-mono text-zinc-500">
         <div class="flex gap-4">
           <span>MEM_ALLOC: 4.81 GB / 16.00 GB</span>
           <span class="hidden sm:inline">|</span>
@@ -147,37 +173,108 @@
   <!-- Three.js Starfield Canvas Background -->
   <canvas id="canvas-bg"></canvas>
 
+  <!-- 3D Interactive Cyber-Oasis Container -->
+  <div id="game-container" class="fixed inset-0 w-full h-full z-20 bg-[#050816] hidden select-none">
+    <!-- Game Canvas -->
+    <canvas id="canvas-game-3d" class="w-full h-full block"></canvas>
+
+    <!-- On-screen controls & HUD -->
+    <!-- Virtual Joystick (Left) -->
+    <div id="joystick-zone"
+      class="absolute bottom-8 left-8 w-32 h-32 rounded-full border border-cyan-500/20 bg-cyan-900/10 flex justify-center items-center backdrop-blur-sm z-30 touch-none pointer-events-auto">
+      <div id="joystick-handle"
+        class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-400 to-purple-500 shadow-lg shadow-cyan-500/30 transform transition-all duration-75">
+      </div>
+    </div>
+
+    <!-- Instructions HUD overlay (Right) -->
+    <div id="instructions-hud"
+      class="absolute bottom-8 right-8 p-4 rounded-2xl glass-panel border border-purple-500/20 bg-[#0c102b]/80 max-w-xs font-mono text-[10px] text-zinc-400 pointer-events-auto z-30 flex flex-col transition-all duration-300 select-none">
+      <div id="hud-header" class="flex justify-between items-center cursor-pointer gap-4">
+        <div class="text-cyan-400 font-bold text-xs uppercase tracking-widest flex items-center gap-1.5">
+          <i class="fa-solid fa-gamepad"></i>
+          <span data-vi="ĐIỀU KHIỂN NHÂN VẬT" data-en="CHARACTER CONTROLS">ĐIỀU KHIỂN NHÂN VẬT</span>
+        </div>
+        <i id="hud-toggle-icon" class="fa-solid fa-chevron-down text-cyan-400/80 text-xs transition-transform duration-300"></i>
+      </div>
+      <div id="hud-content" class="flex flex-col gap-2 mt-2.5 transition-all duration-300">
+        <div data-vi="• WASD / Phím mũi tên để di chuyển" data-en="• WASD / Arrow Keys to move">• WASD / Phím mũi tên để di chuyển</div>
+        <div data-vi="• Click chuột phải để di chuyển" data-en="• Right-Click to move">• Click chuột phải để di chuyển</div>
+        <div data-vi="• Chuột trái & Kéo để xoay camera" data-en="• Left-Click & Drag to rotate camera">• Chuột trái & Kéo để xoay camera</div>
+        <div data-vi="• Đến gần các địa danh để xem thông tin" data-en="• Approach nodes to view info">• Đến gần các địa danh để xem thông tin</div>
+      </div>
+    </div>
+
+    <!-- Live Interaction HUD Banner (Center Top) -->
+    <div id="interaction-hud"
+      class="absolute top-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl border border-cyan-400/30 bg-[#02030a]/90 text-cyan-400 font-mono text-xs uppercase tracking-widest pointer-events-none z-30 animate-pulse hidden">
+      <span id="interaction-text" data-vi="ĐẾN GẦN ĐỊA DANH ĐỂ KẾT NỐI..." data-en="APPROACH A NODE TO CONNECT...">ĐẾN
+        GẦN ĐỊA DANH ĐỂ KẾT NỐI...</span>
+    </div>
+  </div>
+
+  <!-- 3D Node Interaction Modal Overlay -->
+  <div id="game-modal"
+    class="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/75 backdrop-blur-md hidden opacity-0 transition-all duration-300">
+    <div
+      class="glass-panel w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-3xl border border-cyan-500/30 bg-[#050816]/95 shadow-[0_0_50px_rgba(6,182,212,0.3)] relative">
+      <!-- Modal header close button -->
+      <button id="game-modal-close"
+        class="absolute top-6 right-6 w-10 h-10 rounded-full border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/30 text-rose-400 flex justify-center items-center transition-all">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <!-- Modal body content injection -->
+      <div id="game-modal-content" class="p-8 md:p-12"></div>
+    </div>
+  </div>
+
+
   <!-- ==========================================================================
        HEADER & NAVIGATION BAR
        ========================================================================== -->
-  <nav class="w-full fixed top-0 z-40 bg-[#050816]/75 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-16 flex justify-between items-center">
+  <nav
+    class="w-full fixed top-0 z-40 bg-[#050816]/75 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-16 flex justify-between items-center">
     <div class="flex items-center gap-2">
       <!-- Minimalist code icon logo -->
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#915eff] to-[#f43f5e] flex justify-center items-center text-white font-bold text-lg shadow-md shadow-purple-900/50">
+      <div
+        class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#915eff] to-[#f43f5e] flex justify-center items-center text-white font-bold text-lg shadow-md shadow-purple-900/50">
         H
       </div>
       <a href="#" class="text-white text-lg font-bold font-display cursor-pointer flex">
-        Thanh Hiền&nbsp;<span class="sm:block hidden text-[#915eff]">| Dev & QA</span>
+        Thanh Hiền&nbsp;<span class="sm:block hidden text-[#915eff]">| Vibe Coder</span>
       </a>
     </div>
 
     <!-- Desktop menu links -->
     <ul class="hidden md:flex gap-10 text-secondary text-base font-medium tracking-wide">
-      <li class="hover:text-white transition-colors"><a href="#about" data-vi="Giới thiệu" data-en="About">Giới thiệu</a></li>
-      <li class="hover:text-white transition-colors"><a href="#experience" data-vi="Kinh nghiệm" data-en="Experience">Kinh nghiệm</a></li>
-      <li class="hover:text-white transition-colors"><a href="#projects" data-vi="Sản phẩm" data-en="Projects">Sản phẩm</a></li>
-      <li class="hover:text-white transition-colors"><a href="#contact" data-vi="Liên hệ" data-en="Contact">Liên hệ</a></li>
+      <li class="hover:text-white transition-colors"><a href="#about" data-vi="Giới thiệu" data-en="About">Giới
+          thiệu</a></li>
+      <li class="hover:text-white transition-colors"><a href="#experience" data-vi="Kinh nghiệm"
+          data-en="Experience">Kinh nghiệm</a></li>
+      <li class="hover:text-white transition-colors"><a href="#projects" data-vi="Sản phẩm" data-en="Projects">Sản
+          phẩm</a></li>
+      <li class="hover:text-white transition-colors"><a href="#contact" data-vi="Liên hệ" data-en="Contact">Liên hệ</a>
+      </li>
     </ul>
 
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-3">
+      <!-- View Mode Toggle button -->
+      <button id="view-mode-btn"
+        class="px-3 py-1.5 rounded-xl border border-purple-500/20 hover:border-purple-500/50 text-xs font-mono font-bold tracking-widest text-purple-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
+        <i class="fa-solid fa-gamepad text-[10px]"></i>
+        <span id="view-mode-text" data-vi="📄 CHẾ ĐỘ THƯỜNG" data-en="📄 LIST VIEW">📄 CHẾ ĐỘ THƯỜNG</span>
+      </button>
+
       <!-- Lang Toggle button -->
-      <button id="lang-toggle-btn" class="px-3 py-1.5 rounded-xl border border-cyan-500/20 hover:border-cyan-500/50 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
+      <button id="lang-toggle-btn"
+        class="px-3 py-1.5 rounded-xl border border-cyan-500/20 hover:border-cyan-500/50 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
         <i class="fa-solid fa-globe text-[10px]"></i>
         <span id="lang-text">VI</span>
       </button>
 
       <div class="hidden md:block">
-        <a href="https://github.com/eHin-cloud" target="_blank" class="px-5 py-2 rounded-xl bg-[#1d1836] border border-purple-500/20 hover:border-purple-500/50 text-white font-semibold transition-all">
+        <a href="https://github.com/eHin-cloud" target="_blank"
+          class="px-5 py-2 rounded-xl bg-[#1d1836] border border-purple-500/20 hover:border-purple-500/50 text-white font-semibold transition-all">
           <i class="fa-brands fa-github mr-2"></i>GitHub
         </a>
       </div>
@@ -190,404 +287,552 @@
     </div>
 
     <!-- Mobile menu dropdown -->
-    <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#050816] border-b border-purple-900/30 p-6 flex flex-col gap-4 shadow-xl z-30 font-mono text-sm">
-      <a href="#about" data-vi="Giới thiệu" data-en="About" class="text-zinc-300 hover:text-white text-lg">Giới thiệu</a>
-      <a href="#experience" data-vi="Kinh nghiệm" data-en="Experience" class="text-zinc-300 hover:text-white text-lg">Kinh nghiệm</a>
-      <a href="#projects" data-vi="Sản phẩm" data-en="Projects" class="text-zinc-300 hover:text-white text-lg">Sản phẩm</a>
+    <div id="mobile-menu"
+      class="hidden absolute top-full left-0 w-full bg-[#050816] border-b border-purple-900/30 p-6 flex flex-col gap-4 shadow-xl z-30 font-mono text-sm">
+      <a href="#about" data-vi="Giới thiệu" data-en="About" class="text-zinc-300 hover:text-white text-lg">Giới
+        thiệu</a>
+      <a href="#experience" data-vi="Kinh nghiệm" data-en="Experience"
+        class="text-zinc-300 hover:text-white text-lg">Kinh nghiệm</a>
+      <a href="#projects" data-vi="Sản phẩm" data-en="Projects" class="text-zinc-300 hover:text-white text-lg">Sản
+        phẩm</a>
       <a href="#contact" data-vi="Liên hệ" data-en="Contact" class="text-zinc-300 hover:text-white text-lg">Liên hệ</a>
-      <a href="https://github.com/eHin-cloud" target="_blank" class="text-zinc-300 hover:text-white text-lg"><i class="fa-brands fa-github mr-2"></i>GitHub</a>
+      <a href="https://github.com/eHin-cloud" target="_blank" class="text-zinc-300 hover:text-white text-lg"><i
+          class="fa-brands fa-github mr-2"></i>GitHub</a>
     </div>
   </nav>
 
-  <!-- ==========================================================================
+  <div id="main-content">
+    <!-- ==========================================================================
        HERO SECTION
        ========================================================================== -->
-  <section class="min-h-screen pt-24 md:pt-32 flex items-center relative max-w-7xl mx-auto px-6 md:px-16" id="hero">
-    <div class="grid md:grid-cols-12 gap-8 w-full items-center z-10">
-      
-      <!-- Text details -->
-      <div class="md:col-span-7 flex flex-row items-start gap-5">
-        <!-- Neon vertical line helper -->
-        <div class="flex flex-col justify-center items-center mt-5">
-          <div class="w-5 h-5 rounded-full bg-[#915eff] shadow-lg shadow-purple-500/50"></div>
-          <div class="w-1 h-40 md:h-80 violet-gradient"></div>
-        </div>
+    <section class="min-h-screen pt-24 md:pt-32 flex items-center relative max-w-7xl mx-auto px-6 md:px-16" id="hero">
+      <div class="grid md:grid-cols-12 gap-8 w-full items-center z-10">
 
-        <div>
-          <h1 class="text-white text-4xl md:text-6xl font-bold tracking-tight font-display leading-tight">
-            <span data-vi="Xin chào, tôi là " data-en="Hello, I'm ">Xin chào, tôi là </span><span class="text-[#915eff]">Thanh Hiền</span>
-          </h1>
-          <p id="typing-desc" class="mt-4 text-[#dfd9ff] text-base md:text-xl font-medium leading-relaxed max-w-xl min-h-[60px]">
-            <!-- Written dynamically by js/app.js typing animation -->
-          </p>
-          
-          <div class="mt-8 flex flex-wrap gap-4">
-            <a href="#projects" data-vi="Xem dự án" data-en="View Projects" class="px-6 py-3 bg-[#915eff] hover:bg-[#a855f7] text-white font-bold rounded-xl shadow-lg shadow-purple-900/40 hover:-translate-y-1 transition-all">
-              Xem dự án
-            </a>
-            <a href="#contact" data-vi="Liên hệ với tôi" data-en="Contact Me" class="px-6 py-3 border border-white/20 hover:border-white/50 text-white font-bold rounded-xl hover:-translate-y-1 transition-all">
-              Liên hệ với tôi
-            </a>
+        <!-- Text details -->
+        <div class="md:col-span-7 flex flex-row items-start gap-5">
+          <!-- Neon vertical line helper -->
+          <div class="flex flex-col justify-center items-center mt-5">
+            <div class="w-5 h-5 rounded-full bg-[#915eff] shadow-lg shadow-purple-500/50"></div>
+            <div class="w-1 h-40 md:h-80 violet-gradient"></div>
+          </div>
+
+          <div>
+            <h1 class="text-white text-4xl md:text-6xl font-bold tracking-tight font-display leading-tight">
+              <span data-vi="Xin chào, tôi là " data-en="Hello, I'm ">Xin chào, tôi là </span><span
+                class="text-[#915eff]">Thanh Hiền</span>
+            </h1>
+            <p id="typing-desc"
+              class="mt-4 text-[#dfd9ff] text-base md:text-xl font-medium leading-relaxed max-w-xl min-h-[60px]">
+              <!-- Written dynamically by js/app.js typing animation -->
+            </p>
+
+            <div class="mt-8 flex flex-wrap gap-4">
+              <a href="#projects" data-vi="Xem dự án" data-en="View Projects"
+                class="px-6 py-3 bg-[#915eff] hover:bg-[#a855f7] text-white font-bold rounded-xl shadow-lg shadow-purple-900/40 hover:-translate-y-1 transition-all">
+                Xem dự án
+              </a>
+              <a href="#contact" data-vi="Liên hệ với tôi" data-en="Contact Me"
+                class="px-6 py-3 border border-white/20 hover:border-white/50 text-white font-bold rounded-xl hover:-translate-y-1 transition-all">
+                Liên hệ với tôi
+              </a>
+            </div>
           </div>
         </div>
+
+        <!-- Right 3D Object Canvas -->
+        <div class="md:col-span-5 flex justify-center items-center relative h-[300px] md:h-[450px]">
+          <canvas id="canvas-hero-3d" class="w-full h-full max-w-[400px] max-h-[400px]"></canvas>
+        </div>
+
       </div>
 
-      <!-- Right 3D Object Canvas -->
-      <div class="md:col-span-5 flex justify-center items-center relative h-[300px] md:h-[450px]">
-        <canvas id="canvas-hero-3d" class="w-full h-full max-w-[400px] max-h-[400px]"></canvas>
+      <!-- Animated bounce down icon -->
+      <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex justify-center items-center">
+        <a href="#about" class="w-9 h-16 rounded-3xl border-4 border-zinc-600 flex justify-center items-start p-2">
+          <div class="w-3.5 h-3.5 rounded-full bg-zinc-400 animate-bounce"></div>
+        </a>
       </div>
+    </section>
 
-    </div>
-
-    <!-- Animated bounce down icon -->
-    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex justify-center items-center">
-      <a href="#about" class="w-9 h-16 rounded-3xl border-4 border-zinc-600 flex justify-center items-start p-2">
-        <div class="w-3.5 h-3.5 rounded-full bg-zinc-400 animate-bounce"></div>
-      </a>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        ABOUT & SERVICES SECTION
        ========================================================================== -->
-  <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="about">
-    <div>
-      <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Giới thiệu chung" data-en="Overview">Giới thiệu chung</p>
-      <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Tổng quan." data-en="Overview.">Tổng quan.</h2>
-    </div>
+    <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="about">
+      <div>
+        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Giới thiệu chung"
+          data-en="Overview">Giới thiệu chung</p>
+        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Tổng quan."
+          data-en="Overview.">Tổng quan.</h2>
+      </div>
 
-    <p class="mt-4 text-secondary text-base md:text-lg max-w-3xl leading-relaxed text-zinc-400" data-vi="Tôi là sinh viên chuyên ngành Công nghệ thông tin tại Trường Cao đẳng Công nghệ Thủ Đức (TDC). Với nền tảng lập trình web Backend vững chắc (PHP/Laravel/MySQL) kết hợp cùng kỹ năng kiểm thử phần mềm (QA / Manual Testing / API Postman) và lập trình giao diện Front-End, tôi tập trung tạo ra những trang web hiệu quả, có cấu trúc chuẩn hóa, code sạch và luôn đảm bảo chất lượng vận hành cao nhất thông qua quy trình test chặt chẽ." data-en="I am an Information Technology student at Thu Duc College of Technology (TDC). With a solid foundation in Backend web development (PHP/Laravel/MySQL) combined with software testing skills (QA / Manual Testing / API Postman) and Front-End development, I focus on building efficient, standardized, clean code websites and always ensuring the highest operational quality through rigorous testing processes.">
-      Tôi là sinh viên chuyên ngành Công nghệ thông tin tại Trường Cao đẳng Công nghệ Thủ Đức (TDC). 
-      Với nền tảng lập trình web Backend vững chắc (PHP/Laravel/MySQL) kết hợp cùng kỹ năng 
-      kiểm thử phần mềm (QA / Manual Testing / API Postman) và lập trình giao diện Front-End, 
-      tôi tập trung tạo ra những trang web hiệu quả, có cấu trúc chuẩn hóa, code sạch và 
-      luôn đảm bảo chất lượng vận hành cao nhất thông qua quy trình test chặt chẽ.
-    </p>
+      <div class="grid md:grid-cols-12 gap-8 items-start mt-8">
+        <!-- Left side: Description -->
+        <div class="md:col-span-7">
+          <p class="text-secondary text-base md:text-lg leading-relaxed text-zinc-400"
+            data-vi="Tôi là Thực tập sinh Web Developer & UI-focused Fullstack. Tôi đam mê xây dựng những giao diện người dùng đẹp mắt, mượt mà kết hợp với kiến trúc hệ thống vững chắc. Với tư duy tối ưu hóa hiệu năng và chất lượng sản phẩm, tôi hướng tới việc mang lại những sản phẩm web hoàn hảo nhất cho người sử dụng."
+            data-en="I am a Web Developer Intern & UI-focused Fullstack developer. I love building beautiful, smooth user interfaces combined with solid system architectures. With a focus on performance optimization and product quality, I strive to deliver perfect web applications.">
+            Tôi là Thực tập sinh Web Developer & UI-focused Fullstack. Tôi đam mê xây dựng những giao diện người dùng
+            đẹp mắt, mượt mà kết hợp với kiến trúc hệ thống vững chắc. Với tư duy tối ưu hóa hiệu năng và chất lượng sản
+            phẩm, tôi hướng tới việc mang lại những sản phẩm web hoàn hảo nhất cho người sử dụng.
+          </p>
+        </div>
 
-    <!-- Services Grid cards -->
-    <div class="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      
-      <!-- Card 1 -->
-      <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
-        <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
-          <div class="w-16 h-16 rounded-2xl bg-purple-500/10 flex justify-center items-center text-[#915eff] text-3xl mb-6">
-            <i class="fa-solid fa-laptop-code"></i>
+        <!-- Right side: Basic Info Card -->
+        <div
+          class="md:col-span-5 glass-panel p-6 rounded-2xl border border-cyan-500/20 bg-[#0c102b]/60 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+          <h3
+            class="text-cyan-400 font-bold font-display text-sm tracking-widest uppercase mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-address-card text-cyan-400"></i>
+            <span data-vi="Thông tin cơ bản" data-en="Basic Info">Thông tin cơ bản</span>
+          </h3>
+
+          <div class="space-y-4 font-mono text-xs text-zinc-300">
+            <div class="flex flex-col border-b border-white/5 pb-2">
+              <span class="text-zinc-500 uppercase tracking-wider text-[10px]" data-vi="NƠI Ở" data-en="LOCATION">NƠI
+                Ở</span>
+              <span class="text-white mt-1 font-semibold text-sm">Thủ Đức, TP.HCM</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-zinc-500 uppercase tracking-wider text-[10px]" data-vi="DẠNG LÀM VIỆC"
+                data-en="JOB TYPE">DẠNG LÀM VIỆC</span>
+              <span class="text-white mt-1 font-semibold text-sm" data-vi="Thực tập / Fulltime"
+                data-en="Internship / Fulltime">Thực tập / Fulltime</span>
+            </div>
           </div>
-          <h3 class="text-white text-xl font-bold" data-vi="Front-End Developer" data-en="Front-End Developer">Front-End Developer</h3>
         </div>
       </div>
 
-      <!-- Card 2 -->
-      <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
-        <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
-          <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 flex justify-center items-center text-[#06b6d4] text-3xl mb-6">
-            <i class="fa-solid fa-bug"></i>
+      <!-- Services Grid cards -->
+      <div class="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        <!-- Card 1 -->
+        <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
+          <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
+            <div
+              class="w-16 h-16 rounded-2xl bg-purple-500/10 flex justify-center items-center text-[#915eff] text-3xl mb-6">
+              <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <h3 class="text-white text-xl font-bold" data-vi="Front-End Developer" data-en="Front-End Developer">
+              Front-End Developer</h3>
           </div>
-          <h3 class="text-white text-xl font-bold" data-vi="QA / Manual Tester" data-en="QA / Manual Tester">QA / Manual Tester</h3>
         </div>
-      </div>
 
-      <!-- Card 3 -->
-      <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
-        <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
-          <div class="w-16 h-16 rounded-2xl bg-rose-500/10 flex justify-center items-center text-[#f43f5e] text-3xl mb-6">
-            <i class="fa-solid fa-server"></i>
+        <!-- Card 2 -->
+        <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
+          <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
+            <div
+              class="w-16 h-16 rounded-2xl bg-cyan-500/10 flex justify-center items-center text-[#06b6d4] text-3xl mb-6">
+              <i class="fa-solid fa-bug"></i>
+            </div>
+            <h3 class="text-white text-xl font-bold" data-vi="QA / Manual Tester" data-en="QA / Manual Tester">QA /
+              Manual Tester</h3>
           </div>
-          <h3 class="text-white text-xl font-bold" data-vi="PHP & Laravel Backend" data-en="PHP & Laravel Backend">PHP & Laravel Backend</h3>
         </div>
-      </div>
 
-      <!-- Card 4 -->
-      <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
-        <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
-          <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex justify-center items-center text-[#10b981] text-3xl mb-6">
-            <i class="fa-solid fa-database"></i>
+        <!-- Card 3 -->
+        <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
+          <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
+            <div
+              class="w-16 h-16 rounded-2xl bg-rose-500/10 flex justify-center items-center text-[#f43f5e] text-3xl mb-6">
+              <i class="fa-solid fa-server"></i>
+            </div>
+            <h3 class="text-white text-xl font-bold" data-vi="PHP & Laravel Backend" data-en="PHP & Laravel Backend">PHP
+              & Laravel Backend</h3>
           </div>
-          <h3 class="text-white text-xl font-bold" data-vi="Kiến trúc Cơ sở dữ liệu" data-en="Database Architect">Database Architect</h3>
         </div>
+
+        <!-- Card 4 -->
+        <div class="glass-panel p-[1px] rounded-3xl hover:-translate-y-2">
+          <div class="bg-[#151030] p-8 rounded-3xl min-h-[280px] flex flex-col justify-center items-center text-center">
+            <div
+              class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex justify-center items-center text-[#10b981] text-3xl mb-6">
+              <i class="fa-solid fa-database"></i>
+            </div>
+            <h3 class="text-white text-xl font-bold" data-vi="Kiến trúc Cơ sở dữ liệu" data-en="Database Architect">
+              Database Architect</h3>
+          </div>
+        </div>
+
       </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        EDUCATION & EXPERIENCE SECTION
        ========================================================================== -->
-  <section class="py-24 bg-[#0c102b]/40" id="experience">
-    <div class="max-w-7xl mx-auto px-6 md:px-16">
-      <div class="text-center mb-16">
-        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Chặng đường học tập & phát triển" data-en="Academic & Professional Journey">Chặng đường học tập & phát triển</p>
-        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Học vấn & Kinh nghiệm." data-en="Education & Experience.">Học vấn & Kinh nghiệm.</h2>
+    <section class="py-24 bg-[#0c102b]/40" id="experience">
+      <div class="max-w-7xl mx-auto px-6 md:px-16">
+        <div class="text-center mb-16">
+          <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono"
+            data-vi="Chặng đường học tập & phát triển" data-en="Academic & Professional Journey">Chặng đường học tập &
+            phát triển</p>
+          <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Học vấn & Kinh nghiệm."
+            data-en="Education & Experience.">Học vấn & Kinh nghiệm.</h2>
+        </div>
+
+        <!-- Timeline Wrapper -->
+        <div class="timeline-container">
+
+          <!-- Timeline Item 1 -->
+          <div class="timeline-item left-item">
+            <div class="timeline-content">
+              <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 1 (2023 - 2024)"
+                data-en="Year 1 (2023 - 2024)">Năm 1 (2023 - 2024)</span>
+              <h3 class="text-white text-xl font-bold mt-1" data-vi="Sinh viên CNTT - Nhập môn & Tư duy Thuật toán"
+                data-en="IT Student - Introduction & Algorithmic Thinking">Sinh viên CNTT - Nhập môn & Tư duy Thuật toán
+              </h3>
+              <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)"
+                data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+              <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
+                <li data-vi="Lập trình hướng cấu trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java."
+                  data-en="Basic structured programming and algorithmic thinking in C++ & Java.">Lập trình hướng cấu
+                  trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java.</li>
+                <li data-vi="Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF)."
+                  data-en="Relational MySQL database design, database normalization (3NF).">Thiết kế cơ sở dữ liệu quan
+                  hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF).</li>
+                <li data-vi="Đạt GPA 3.1 và nhận học bổng khuyến học khuyến tài của nhà trường."
+                  data-en="Achieved GPA 3.1 and received academic encouragement scholarships.">Đạt GPA 3.1 và nhận học
+                  bổng khuyến học khuyến tài của nhà trường.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Timeline Item 2 -->
+          <div class="timeline-item right-item">
+            <div class="timeline-content">
+              <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 2 (2024 - 2025)"
+                data-en="Year 2 (2024 - 2025)">Năm 2 (2024 - 2025)</span>
+              <h3 class="text-white text-xl font-bold mt-1" data-vi="Web Developer - Lập trình Web PHP/Laravel"
+                data-en="Web Developer - PHP/Laravel Web Development">Web Developer - Lập trình Web PHP/Laravel</h3>
+              <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)"
+                data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+              <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
+                <li data-vi="Xây dựng hoàn chỉnh các ứng dụng web dạng MVC sử dụng Laravel framework."
+                  data-en="Built fully functional MVC web applications using the Laravel framework.">Xây dựng hoàn chỉnh
+                  các ứng dụng web dạng MVC sử dụng Laravel framework.</li>
+                <li data-vi="Thiết kế quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn."
+                  data-en="Designed MySQL database relations (One-to-Many, Many-to-Many), optimized queries.">Thiết kế
+                  quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn.</li>
+                <li data-vi="Lập trình RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa."
+                  data-en="Developed RESTful APIs, clean routing structures and standardized JSON payloads.">Lập trình
+                  RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Timeline Item 3 -->
+          <div class="timeline-item left-item">
+            <div class="timeline-content">
+              <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 3 (2025 - 2026)"
+                data-en="Year 3 (2025 - 2026)">Năm 3 (2025 - 2026)</span>
+              <h3 class="text-white text-xl font-bold mt-1" data-vi="Kiểm thử Phần mềm & Thực tập Tốt nghiệp"
+                data-en="Software Testing & Graduation Internship">Kiểm thử Phần mềm & Thực tập Tốt nghiệp</h3>
+              <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)"
+                data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+              <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
+                <li data-vi="Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi."
+                  data-en="Wrote Test Plan documentation, designed detailed Test Cases covering edge cases.">Viết tài
+                  liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi.</li>
+                <li data-vi="Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman."
+                  data-en="Automated and manual testing of backend API endpoints via Postman.">Kiểm thử tự động và thủ
+                  công các endpoint API backend thông qua Postman.</li>
+                <li data-vi="Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit."
+                  data-en="Managed source code and resolved branch conflicts (Git conflicts) using SmartGit.">Quản lý mã
+                  nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit.</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
       </div>
+    </section>
 
-      <!-- Timeline Wrapper -->
-      <div class="timeline-container">
-        
-        <!-- Timeline Item 1 -->
-        <div class="timeline-item left-item">
-          <div class="timeline-content">
-            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 1 (2023 - 2024)" data-en="Year 1 (2023 - 2024)">Năm 1 (2023 - 2024)</span>
-            <h3 class="text-white text-xl font-bold mt-1" data-vi="Sinh viên CNTT - Nhập môn & Tư duy Thuật toán" data-en="IT Student - Introduction & Algorithmic Thinking">Sinh viên CNTT - Nhập môn & Tư duy Thuật toán</h3>
-            <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
-            <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-              <li data-vi="Lập trình hướng cấu trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java." data-en="Basic structured programming and algorithmic thinking in C++ & Java.">Lập trình hướng cấu trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java.</li>
-              <li data-vi="Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF)." data-en="Relational MySQL database design, database normalization (3NF).">Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF).</li>
-              <li data-vi="Đạt GPA 3.1 và nhận học bổng khuyến học khuyến tài của nhà trường." data-en="Achieved GPA 3.1 and received academic encouragement scholarships.">Đạt GPA 3.1 và nhận học bổng khuyến học khuyến tài của nhà trường.</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Timeline Item 2 -->
-        <div class="timeline-item right-item">
-          <div class="timeline-content">
-            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 2 (2024 - 2025)" data-en="Year 2 (2024 - 2025)">Năm 2 (2024 - 2025)</span>
-            <h3 class="text-white text-xl font-bold mt-1" data-vi="Web Developer - Lập trình Web PHP/Laravel" data-en="Web Developer - PHP/Laravel Web Development">Web Developer - Lập trình Web PHP/Laravel</h3>
-            <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
-            <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-              <li data-vi="Xây dựng hoàn chỉnh các ứng dụng web dạng MVC sử dụng Laravel framework." data-en="Built fully functional MVC web applications using the Laravel framework.">Xây dựng hoàn chỉnh các ứng dụng web dạng MVC sử dụng Laravel framework.</li>
-              <li data-vi="Thiết kế quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn." data-en="Designed MySQL database relations (One-to-Many, Many-to-Many), optimized queries.">Thiết kế quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn.</li>
-              <li data-vi="Lập trình RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa." data-en="Developed RESTful APIs, clean routing structures and standardized JSON payloads.">Lập trình RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa.</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Timeline Item 3 -->
-        <div class="timeline-item left-item">
-          <div class="timeline-content">
-            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 3 (2025 - 2026)" data-en="Year 3 (2025 - 2026)">Năm 3 (2025 - 2026)</span>
-            <h3 class="text-white text-xl font-bold mt-1" data-vi="Kiểm thử Phần mềm & Thực tập Tốt nghiệp" data-en="Software Testing & Graduation Internship">Kiểm thử Phần mềm & Thực tập Tốt nghiệp</h3>
-            <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
-            <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-              <li data-vi="Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi." data-en="Wrote Test Plan documentation, designed detailed Test Cases covering edge cases.">Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi.</li>
-              <li data-vi="Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman." data-en="Automated and manual testing of backend API endpoints via Postman.">Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman.</li>
-              <li data-vi="Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit." data-en="Managed source code and resolved branch conflicts (Git conflicts) using SmartGit.">Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit.</li>
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        PROJECTS SECTION
        ========================================================================== -->
-  <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="projects">
-    <div>
-      <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Dự án tiêu biểu" data-en="Featured Projects">Dự án tiêu biểu</p>
-      <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Sản phẩm thực tế." data-en="Real Products.">Sản phẩm thực tế.</h2>
-      <p class="mt-4 text-zinc-400 text-base md:text-lg max-w-3xl leading-relaxed" data-vi="Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả." data-en="The projects below showcase my skills and experience through practical examples. Each product is briefly described along with a GitHub source link. This demonstrates my ability to solve complex problems, work with diverse technologies, and manage product quality effectively.">
-        Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả.
-      </p>
-    </div>
-
-    <!-- Projects Grid -->
-    <div class="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      
-      <!-- Project 1 -->
-      <div class="bg-[#151030] p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all flex flex-col justify-between">
-        <div>
-          <!-- Card Image Container -->
-          <div class="relative w-full h-[210px] rounded-2xl overflow-hidden card-img-hover-trigger">
-            <!-- Project Image fallback gradient or placeholder -->
-            <div class="w-full h-full bg-gradient-to-tr from-[#1f1a4a] to-[#915eff]/50 flex justify-center items-center text-white">
-              <i class="fa-solid fa-cart-shopping text-5xl opacity-80"></i>
-            </div>
-            
-            <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
-              <a href="https://github.com/eHin-cloud/ThuongMaiDienTu" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
-                <i class="fa-brands fa-github text-lg"></i>
-              </a>
-            </div>
-          </div>
-
-          <h3 class="text-white text-xl font-bold mt-5" data-vi="Website Thương Mại Điện Tử" data-en="E-Commerce Website">Website Thương Mại Điện Tử</h3>
-          <p class="text-zinc-400 text-sm mt-2 leading-relaxed" data-vi="Ứng dụng web mua sắm trực tuyến toàn diện được lập trình trên Laravel & MySQL, tích hợp quy trình đặt hàng, giỏ hàng, bình luận sản phẩm và trang quản trị Admin." data-en="Comprehensive online shopping web application developed on Laravel & MySQL, integrating checkout, shopping cart, product comments, and Admin dashboard.">
-            Ứng dụng web mua sắm trực tuyến toàn diện được lập trình trên Laravel & MySQL, tích hợp quy trình đặt hàng, giỏ hàng, bình luận sản phẩm và trang quản trị Admin.
-          </p>
-        </div>
-
-        <div class="mt-6 flex flex-wrap gap-2">
-          <span class="text-xs font-semibold text-blue-400">#laravel</span>
-          <span class="text-xs font-semibold text-green-400">#mysql</span>
-          <span class="text-xs font-semibold text-pink-400">#bootstrap</span>
-        </div>
+    <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="projects">
+      <div>
+        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Dự án tiêu biểu"
+          data-en="Featured Projects">Dự án tiêu biểu</p>
+        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Sản phẩm thực tế."
+          data-en="Real Products.">Sản phẩm thực tế.</h2>
+        <p class="mt-4 text-zinc-400 text-base md:text-lg max-w-3xl leading-relaxed"
+          data-vi="Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả."
+          data-en="The projects below showcase my skills and experience through practical examples. Each product is briefly described along with a GitHub source link. This demonstrates my ability to solve complex problems, work with diverse technologies, and manage product quality effectively.">
+          Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả
+          ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với
+          nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả.
+        </p>
       </div>
 
-      <!-- Project 2 -->
-      <div class="bg-[#151030] p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all flex flex-col justify-between">
-        <div>
-          <!-- Card Image Container -->
-          <div class="relative w-full h-[210px] rounded-2xl overflow-hidden card-img-hover-trigger">
-            <div class="w-full h-full bg-gradient-to-tr from-[#1f1a4a] to-[#f43f5e]/50 flex justify-center items-center text-white">
-              <i class="fa-solid fa-comments text-5xl opacity-80"></i>
+      <!-- Projects Grid -->
+      <div class="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <!-- Project 1 -->
+        <div
+          class="bg-[#151030] p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all flex flex-col justify-between">
+          <div>
+            <!-- Card Image Container -->
+            <div class="relative w-full h-[210px] rounded-2xl overflow-hidden card-img-hover-trigger">
+              <!-- Project Image fallback gradient or placeholder -->
+              <div
+                class="w-full h-full bg-gradient-to-tr from-[#1f1a4a] to-[#915eff]/50 flex justify-center items-center text-white">
+                <i class="fa-solid fa-cart-shopping text-5xl opacity-80"></i>
+              </div>
+
+              <div
+                class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
+                <a href="https://github.com/eHin-cloud/ThuongMaiDienTu" target="_blank"
+                  class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
+                  <i class="fa-brands fa-github text-lg"></i>
+                </a>
+              </div>
             </div>
-            
-            <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
-              <a href="https://github.com/eHin-cloud/ehin.github.io" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
-                <i class="fa-brands fa-github text-lg"></i>
-              </a>
-            </div>
+
+            <h3 class="text-white text-xl font-bold mt-5" data-vi="Website Thương Mại Điện Tử"
+              data-en="E-Commerce Website">Website Thương Mại Điện Tử</h3>
+            <p class="text-zinc-400 text-sm mt-2 leading-relaxed"
+              data-vi="Ứng dụng web mua sắm trực tuyến toàn diện được lập trình trên Laravel & MySQL, tích hợp quy trình đặt hàng, giỏ hàng, bình luận sản phẩm và trang quản trị Admin."
+              data-en="Comprehensive online shopping web application developed on Laravel & MySQL, integrating checkout, shopping cart, product comments, and Admin dashboard.">
+              Ứng dụng web mua sắm trực tuyến toàn diện được lập trình trên Laravel & MySQL, tích hợp quy trình đặt
+              hàng, giỏ hàng, bình luận sản phẩm và trang quản trị Admin.
+            </p>
           </div>
 
-          <h3 class="text-white text-xl font-bold mt-5" data-vi="Trợ Lý Chatbot Đa Ngôn Ngữ" data-en="Multilingual Chatbot Assistant">Trợ Lý Chatbot Đa Ngôn Ngữ</h3>
-          <p class="text-zinc-400 text-sm mt-2 leading-relaxed" data-vi="Hộp thoại tư vấn hỗ trợ khách hàng tự động với hai chế độ ngôn ngữ Tiếng Việt & Tiếng Anh, liên kết trực tiếp link sản phẩm và nhận diện lỗi thông minh." data-en="Automated customer support chat dialog with dual Vietnamese & English language modes, direct product links, and smart error detection.">
-            Hộp thoại tư vấn hỗ trợ khách hàng tự động với hai chế độ ngôn ngữ Tiếng Việt & Tiếng Anh, liên kết trực tiếp link sản phẩm và nhận diện lỗi thông minh.
-          </p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="text-xs font-semibold text-blue-400">#laravel</span>
+            <span class="text-xs font-semibold text-green-400">#mysql</span>
+            <span class="text-xs font-semibold text-pink-400">#bootstrap</span>
+          </div>
         </div>
 
-        <div class="mt-6 flex flex-wrap gap-2">
-          <span class="text-xs font-semibold text-blue-400">#javascript</span>
-          <span class="text-xs font-semibold text-green-400">#rest-api</span>
-          <span class="text-xs font-semibold text-pink-400">#css</span>
-        </div>
-      </div>
+        <!-- Project 2 -->
+        <div
+          class="bg-[#151030] p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all flex flex-col justify-between">
+          <div>
+            <!-- Card Image Container -->
+            <div class="relative w-full h-[210px] rounded-2xl overflow-hidden card-img-hover-trigger">
+              <div
+                class="w-full h-full bg-gradient-to-tr from-[#1f1a4a] to-[#f43f5e]/50 flex justify-center items-center text-white">
+                <i class="fa-solid fa-comments text-5xl opacity-80"></i>
+              </div>
 
-      <!-- Project 3 -->
-      <div class="bg-[#151030] p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all flex flex-col justify-between">
-        <div>
-          <!-- Card Image Container -->
-          <div class="relative w-full h-[210px] rounded-2xl overflow-hidden card-img-hover-trigger">
-            <div class="w-full h-full bg-gradient-to-tr from-[#1f1a4a] to-[#10b981]/50 flex justify-center items-center text-white">
-              <i class="fa-solid fa-list-check text-5xl opacity-80"></i>
+              <div
+                class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
+                <a href="https://github.com/eHin-cloud/ehin.github.io" target="_blank"
+                  class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
+                  <i class="fa-brands fa-github text-lg"></i>
+                </a>
+              </div>
             </div>
-            
-            <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
-              <a href="https://github.com/eHin-cloud" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
-                <i class="fa-brands fa-github text-lg"></i>
-              </a>
-            </div>
+
+            <h3 class="text-white text-xl font-bold mt-5" data-vi="Trợ Lý Chatbot Đa Ngôn Ngữ"
+              data-en="Multilingual Chatbot Assistant">Trợ Lý Chatbot Đa Ngôn Ngữ</h3>
+            <p class="text-zinc-400 text-sm mt-2 leading-relaxed"
+              data-vi="Hộp thoại tư vấn hỗ trợ khách hàng tự động với hai chế độ ngôn ngữ Tiếng Việt & Tiếng Anh, liên kết trực tiếp link sản phẩm và nhận diện lỗi thông minh."
+              data-en="Automated customer support chat dialog with dual Vietnamese & English language modes, direct product links, and smart error detection.">
+              Hộp thoại tư vấn hỗ trợ khách hàng tự động với hai chế độ ngôn ngữ Tiếng Việt & Tiếng Anh, liên kết trực
+              tiếp link sản phẩm và nhận diện lỗi thông minh.
+            </p>
           </div>
 
-          <h3 class="text-white text-xl font-bold mt-5" data-vi="Kịch Bản Test & Diagnostic Suite" data-en="Test Cases & Diagnostic Suite">Kịch Bản Test & Diagnostic Suite</h3>
-          <p class="text-zinc-400 text-sm mt-2 leading-relaxed" data-vi="Hệ thống kiểm thử chất lượng, thiết kế Test Cases chi tiết và chạy phân tích các API endpoint tự động để phát hiện lỗi logic hệ thống." data-en="Quality assurance system, designing detailed Test Cases and running automated API endpoint diagnostics to detect system logic issues.">
-            Hệ thống kiểm thử chất lượng, thiết kế Test Cases chi tiết và chạy phân tích các API endpoint tự động để phát hiện lỗi logic hệ thống.
-          </p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="text-xs font-semibold text-blue-400">#javascript</span>
+            <span class="text-xs font-semibold text-green-400">#rest-api</span>
+            <span class="text-xs font-semibold text-pink-400">#css</span>
+          </div>
         </div>
 
-        <div class="mt-6 flex flex-wrap gap-2">
-          <span class="text-xs font-semibold text-blue-400">#postman</span>
-          <span class="text-xs font-semibold text-green-400">#manual-testing</span>
-          <span class="text-xs font-semibold text-pink-400">#git</span>
+        <!-- Project 3 -->
+        <div
+          class="bg-[#151030] p-5 rounded-2xl border border-white/5 hover:border-purple-500/30 transition-all flex flex-col justify-between">
+          <div>
+            <!-- Card Image Container -->
+            <div class="relative w-full h-[210px] rounded-2xl overflow-hidden card-img-hover-trigger">
+              <div
+                class="w-full h-full bg-gradient-to-tr from-[#1f1a4a] to-[#10b981]/50 flex justify-center items-center text-white">
+                <i class="fa-solid fa-list-check text-5xl opacity-80"></i>
+              </div>
+
+              <div
+                class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
+                <a href="https://github.com/eHin-cloud" target="_blank"
+                  class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
+                  <i class="fa-brands fa-github text-lg"></i>
+                </a>
+              </div>
+            </div>
+
+            <h3 class="text-white text-xl font-bold mt-5" data-vi="Kịch Bản Test & Diagnostic Suite"
+              data-en="Test Cases & Diagnostic Suite">Kịch Bản Test & Diagnostic Suite</h3>
+            <p class="text-zinc-400 text-sm mt-2 leading-relaxed"
+              data-vi="Hệ thống kiểm thử chất lượng, thiết kế Test Cases chi tiết và chạy phân tích các API endpoint tự động để phát hiện lỗi logic hệ thống."
+              data-en="Quality assurance system, designing detailed Test Cases and running automated API endpoint diagnostics to detect system logic issues.">
+              Hệ thống kiểm thử chất lượng, thiết kế Test Cases chi tiết và chạy phân tích các API endpoint tự động để
+              phát hiện lỗi logic hệ thống.
+            </p>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="text-xs font-semibold text-blue-400">#postman</span>
+            <span class="text-xs font-semibold text-green-400">#manual-testing</span>
+            <span class="text-xs font-semibold text-pink-400">#git</span>
+          </div>
         </div>
+
       </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        TESTIMONIALS SECTION
        ========================================================================== -->
-  <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="testimonials">
-    <div class="bg-[#0c102b]/60 rounded-3xl p-8 md:p-14 border border-white/5">
-      
-      <div>
-        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Mọi người nhận xét gì" data-en="Testimonials">Mọi người nhận xét gì</p>
-        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Đánh giá." data-en="Reviews.">Đánh giá.</h2>
-      </div>
+    <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="testimonials">
+      <div class="bg-[#0c102b]/60 rounded-3xl p-8 md:p-14 border border-white/5">
 
-      <div class="mt-16 grid md:grid-cols-2 gap-8">
-        
-        <!-- Feedback Card 1 -->
-        <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
-          <p class="text-white text-lg italic leading-relaxed" data-vi="&quot;Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi logic.&quot;" data-en="&quot;Hien always completes Test Cases meticulously, carefully checking input boundaries and logical error paths.&quot;">
-            "Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi logic."
-          </p>
-          <div class="mt-6 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-purple-500/20 flex justify-center items-center text-white font-bold text-sm">
-              AQ
-            </div>
-            <div>
-              <h4 class="text-white font-bold text-sm">Nguyễn Anh Quý</h4>
-              <p class="text-zinc-500 text-xs mt-0.5" data-vi="Tech Lead tại Cyber-Oasis" data-en="Tech Lead at Cyber-Oasis">Tech Lead tại Cyber-Oasis</p>
-            </div>
-          </div>
+        <div>
+          <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Mọi người nhận xét gì"
+            data-en="Testimonials">Mọi người nhận xét gì</p>
+          <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Đánh giá."
+            data-en="Reviews.">Đánh giá.</h2>
         </div>
 
-        <!-- Feedback Card 2 -->
-        <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
-          <p class="text-white text-lg italic leading-relaxed" data-vi="&quot;Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất lượng rất cao.&quot;" data-en="&quot;The ability to combine PHP/Laravel web development with QA mindset helps Hien's projects achieve high stability and quality.&quot;">
-            "Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất lượng rất cao."
-          </p>
-          <div class="mt-6 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex justify-center items-center text-white font-bold text-sm">
-              GV
-            </div>
-            <div>
-              <h4 class="text-white font-bold text-sm" data-vi="Giảng viên TDC" data-en="TDC Lecturer">Giảng viên TDC</h4>
-              <p class="text-zinc-500 text-xs mt-0.5" data-vi="Advisor tại TDC College" data-en="Advisor at TDC College">Advisor tại TDC College</p>
+        <div class="mt-16 grid md:grid-cols-2 gap-8">
+
+          <!-- Feedback Card 1 -->
+          <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
+            <p class="text-white text-lg italic leading-relaxed"
+              data-vi="&quot;Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi logic.&quot;"
+              data-en="&quot;Hien always completes Test Cases meticulously, carefully checking input boundaries and logical error paths.&quot;">
+              "Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi
+              logic."
+            </p>
+            <div class="mt-6 flex items-center gap-4">
+              <div
+                class="w-10 h-10 rounded-full bg-purple-500/20 flex justify-center items-center text-white font-bold text-sm">
+                AQ
+              </div>
+              <div>
+                <h4 class="text-white font-bold text-sm">Nguyễn Anh Quý</h4>
+                <p class="text-zinc-500 text-xs mt-0.5" data-vi="Tech Lead tại Cyber-Oasis"
+                  data-en="Tech Lead at Cyber-Oasis">Tech Lead tại Cyber-Oasis</p>
+              </div>
             </div>
           </div>
+
+          <!-- Feedback Card 2 -->
+          <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
+            <p class="text-white text-lg italic leading-relaxed"
+              data-vi="&quot;Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất lượng rất cao.&quot;"
+              data-en="&quot;The ability to combine PHP/Laravel web development with QA mindset helps Hien's projects achieve high stability and quality.&quot;">
+              "Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất
+              lượng rất cao."
+            </p>
+            <div class="mt-6 flex items-center gap-4">
+              <div
+                class="w-10 h-10 rounded-full bg-cyan-500/20 flex justify-center items-center text-white font-bold text-sm">
+                GV
+              </div>
+              <div>
+                <h4 class="text-white font-bold text-sm" data-vi="Giảng viên TDC" data-en="TDC Lecturer">Giảng viên TDC
+                </h4>
+                <p class="text-zinc-500 text-xs mt-0.5" data-vi="Advisor tại TDC College"
+                  data-en="Advisor at TDC College">Advisor tại TDC College</p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        CONTACT SECTION
        ========================================================================== -->
-  <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="contact">
-    <div class="grid md:grid-cols-12 gap-10 items-stretch">
-      
-      <!-- Contact Form -->
-      <div class="md:col-span-7 bg-[#0c102b] p-8 md:p-12 rounded-3xl border border-white/5 flex flex-col justify-between">
-        <div>
-          <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Kết nối với tôi" data-en="Get in Touch">Kết nối với tôi</p>
-          <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Liên hệ." data-en="Contact.">Liên hệ.</h2>
+    <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="contact">
+      <div class="grid md:grid-cols-12 gap-10 items-stretch">
+
+        <!-- Contact Form -->
+        <div
+          class="md:col-span-7 bg-[#0c102b] p-8 md:p-12 rounded-3xl border border-white/5 flex flex-col justify-between">
+          <div>
+            <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Kết nối với tôi"
+              data-en="Get in Touch">Kết nối với tôi</p>
+            <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Liên hệ."
+              data-en="Contact.">Liên hệ.</h2>
+          </div>
+
+          <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="mt-10 space-y-6">
+            <input type="hidden" name="access_key" value="485d1f89-b631-4354-b9c1-e455f11c910d">
+            <div class="flex flex-col">
+              <label for="name" class="text-white text-sm font-semibold mb-2" data-vi="Tên của bạn*"
+                data-en="Your Name*">Tên của bạn*</label>
+              <input type="text" id="name" name="name" placeholder="Nhập tên của bạn"
+                class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650"
+                required data-vi-placeholder="Nhập tên của bạn" data-en-placeholder="Enter your name">
+              <span id="name-error" class="text-xs text-rose-500 mt-1.5 hidden"
+                data-vi="Tên không hợp lệ (tối thiểu 3 ký tự)!" data-en="Invalid name (minimum 3 characters)!">Tên không
+                hợp lệ (tối thiểu 3 ký tự)!</span>
+            </div>
+
+            <div class="flex flex-col">
+              <label for="email" class="text-white text-sm font-semibold mb-2" data-vi="Email của bạn*"
+                data-en="Your Email*">Email của bạn*</label>
+              <input type="email" id="email" name="email" placeholder="example@email.com"
+                class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650"
+                required data-vi-placeholder="example@email.com" data-en-placeholder="example@email.com">
+              <span id="email-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Email không hợp lệ!"
+                data-en="Invalid email address!">Email không hợp lệ!</span>
+            </div>
+
+            <div class="flex flex-col">
+              <label for="message" class="text-white text-sm font-semibold mb-2" data-vi="Lời nhắn*"
+                data-en="Your Message*">Lời nhắn*</label>
+              <textarea id="message" name="message" rows="5" placeholder="Bạn muốn nhắn gì cho tôi?"
+                class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all resize-none placeholder:text-zinc-650"
+                required data-vi-placeholder="Bạn muốn nhắn gì cho tôi?"
+                data-en-placeholder="What would you like to say?"></textarea>
+              <span id="message-error" class="text-xs text-rose-500 mt-1.5 hidden"
+                data-vi="Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!"
+                data-en="Invalid message (minimum 5 characters)!">Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!</span>
+            </div>
+
+            <button type="submit"
+              class="w-full md:w-auto px-8 py-3.5 bg-[#915eff] hover:bg-[#a855f7] active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-900/40"
+              data-vi="Gửi" data-en="Send">
+              Gửi
+            </button>
+          </form>
         </div>
 
-        <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="mt-10 space-y-6">
-          <input type="hidden" name="access_key" value="485d1f89-b631-4354-b9c1-e455f11c910d">
-          <div class="flex flex-col">
-            <label for="name" class="text-white text-sm font-semibold mb-2" data-vi="Tên của bạn*" data-en="Your Name*">Tên của bạn*</label>
-            <input type="text" id="name" name="name" placeholder="Nhập tên của bạn" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650" required data-vi-placeholder="Nhập tên của bạn" data-en-placeholder="Enter your name">
-            <span id="name-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Tên không hợp lệ (tối thiểu 3 ký tự)!" data-en="Invalid name (minimum 3 characters)!">Tên không hợp lệ (tối thiểu 3 ký tự)!</span>
-          </div>
+        <!-- Right 3D Earth Globe Canvas -->
+        <div
+          class="md:col-span-5 bg-[#151030]/30 rounded-3xl border border-white/5 flex justify-center items-center min-h-[350px] relative overflow-hidden">
+          <canvas id="canvas-earth-3d" class="block"></canvas>
+        </div>
 
-          <div class="flex flex-col">
-            <label for="email" class="text-white text-sm font-semibold mb-2" data-vi="Email của bạn*" data-en="Your Email*">Email của bạn*</label>
-            <input type="email" id="email" name="email" placeholder="example@email.com" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650" required data-vi-placeholder="example@email.com" data-en-placeholder="example@email.com">
-            <span id="email-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Email không hợp lệ!" data-en="Invalid email address!">Email không hợp lệ!</span>
-          </div>
-
-          <div class="flex flex-col">
-            <label for="message" class="text-white text-sm font-semibold mb-2" data-vi="Lời nhắn*" data-en="Your Message*">Lời nhắn*</label>
-            <textarea id="message" name="message" rows="5" placeholder="Bạn muốn nhắn gì cho tôi?" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all resize-none placeholder:text-zinc-650" required data-vi-placeholder="Bạn muốn nhắn gì cho tôi?" data-en-placeholder="What would you like to say?"></textarea>
-            <span id="message-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!" data-en="Invalid message (minimum 5 characters)!">Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!</span>
-          </div>
-
-          <button type="submit" class="w-full md:w-auto px-8 py-3.5 bg-[#915eff] hover:bg-[#a855f7] active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-900/40" data-vi="Gửi" data-en="Send">
-            Gửi
-          </button>
-        </form>
       </div>
+    </section>
 
-      <!-- Right 3D Earth Globe Canvas -->
-      <div class="md:col-span-5 bg-[#151030]/30 rounded-3xl border border-white/5 flex justify-center items-center min-h-[350px] relative overflow-hidden">
-        <canvas id="canvas-earth-3d" class="w-full h-full"></canvas>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ==========================================================================
+    <!-- ==========================================================================
        FOOTER
        ========================================================================== -->
-  <footer class="py-8 border-t border-white/5 text-center text-zinc-600 text-xs md:text-sm font-mono">
-    <div class="max-w-7xl mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p>© 2026 Nguyễn Thanh Hiền. All rights reserved.</p>
-      <div class="flex gap-6 text-zinc-400">
-        <a href="https://github.com/eHin-cloud" target="_blank" class="hover:text-white transition-colors"><i class="fa-brands fa-github mr-1"></i> GitHub</a>
-        <a href="mailto:thenghien2006@gmail.com" class="hover:text-white transition-colors"><i class="fa-solid fa-envelope mr-1"></i> thenghien2006@gmail.com</a>
+    <footer class="py-8 border-t border-white/5 text-center text-zinc-600 text-xs md:text-sm font-mono">
+      <div class="max-w-7xl mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p>© 2026 Nguyễn Thanh Hiền. All rights reserved.</p>
+        <div class="flex gap-6 text-zinc-400">
+          <a href="https://github.com/eHin-cloud" target="_blank" class="hover:text-white transition-colors"><i
+              class="fa-brands fa-github mr-1"></i> GitHub</a>
+          <a href="mailto:thenghien2006@gmail.com" class="hover:text-white transition-colors"><i
+              class="fa-solid fa-envelope mr-1"></i> Email</a>
+        </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  </div>
 
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="./js/app.js"></script>
 
 </body>
+
 </html>
