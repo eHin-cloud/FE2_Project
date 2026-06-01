@@ -1756,7 +1756,7 @@ function initGame3D() {
       const dx = touch.clientX - joystickStartPos.x;
       const dy = touch.clientY - joystickStartPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDist = 45;
+      const maxDist = 36;
       
       const angle = Math.atan2(dy, dx);
       const finalDist = Math.min(dist, maxDist);
