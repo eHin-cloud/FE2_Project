@@ -987,6 +987,7 @@ let gameStarsTwinkleA = null;
 let gameStarsTwinkleB = null;
 let gameNebulaClouds = [];
 let gameTechFloor = null;
+let gameWalkwayTextures = [];
 let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let is3DMode = true;
@@ -1096,10 +1097,58 @@ function createNebulaTexture(colorHex) {
   return new THREE.CanvasTexture(canvas);
 }
 
+function createWalkwayTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  
+  // Dark slate glowing background
+  ctx.fillStyle = "rgba(10, 15, 36, 0.9)";
+  ctx.fillRect(0, 0, 64, 256);
+  
+  // Outer metallic blue rails
+  ctx.fillStyle = "rgba(6, 182, 212, 0.4)";
+  ctx.fillRect(0, 0, 6, 256);
+  ctx.fillRect(58, 0, 6, 256);
+  
+  // Translucent glowing center stripe
+  ctx.fillStyle = "rgba(6, 182, 212, 0.1)";
+  ctx.fillRect(6, 0, 52, 256);
+  
+  // Chevron flow arrows pointing forward
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.8)";
+  ctx.lineWidth = 3.5;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  
+  for (let y = 32; y < 256; y += 64) {
+    ctx.beginPath();
+    ctx.moveTo(18, y);
+    ctx.lineTo(32, y - 14);
+    ctx.lineTo(46, y);
+    ctx.stroke();
+  }
+  
+  // Horizontal grid lines
+  ctx.strokeStyle = "rgba(145, 94, 255, 0.25)";
+  ctx.lineWidth = 1;
+  for (let y = 0; y < 256; y += 16) {
+    ctx.beginPath();
+    ctx.moveTo(6, y);
+    ctx.lineTo(58, y);
+    ctx.stroke();
+  }
+  
+  const tex = new THREE.CanvasTexture(canvas);
+  return tex;
+}
+
 function initGame3D() {
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
   gameCameraPitchAngle = 0.5;
+  gameWalkwayTextures = [];
 
   if (gameInitialized) {
     if (!gameAnimationId) {
@@ -1216,8 +1265,40 @@ function initGame3D() {
   const ctx = techCanvas.getContext("2d");
   
   // Fill dark background
-  ctx.fillStyle = "rgba(7, 10, 32, 0.45)";
+  ctx.fillStyle = "rgba(7, 10, 32, 0.55)";
   ctx.fillRect(0, 0, 1024, 1024);
+  
+  // Draw Hex grid texture in background
+  const hexSize = 24;
+  const hA = hexSize / 2;
+  const hB = hexSize * Math.sqrt(3) / 2;
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.04)";
+  ctx.lineWidth = 1;
+  for (let y = -hB; y < 1024 + hB; y += hB * 2) {
+    for (let x = -hexSize; x < 1024 + hexSize; x += hexSize * 3) {
+      // Row 1
+      ctx.beginPath();
+      ctx.moveTo(x + hA, y);
+      ctx.lineTo(x + hA + hexSize, y);
+      ctx.lineTo(x + hA + hexSize + hA, y + hB);
+      ctx.lineTo(x + hA + hexSize, y + hB + hB);
+      ctx.lineTo(x + hA, y + hB + hB);
+      ctx.lineTo(x - hA, y + hB);
+      ctx.closePath();
+      ctx.stroke();
+      
+      // Row 2 (offset)
+      ctx.beginPath();
+      ctx.moveTo(x + hA + hexSize * 1.5, y + hB);
+      ctx.lineTo(x + hA + hexSize * 1.5 + hexSize, y + hB);
+      ctx.lineTo(x + hA + hexSize * 1.5 + hexSize + hA, y + hB + hB);
+      ctx.lineTo(x + hA + hexSize * 1.5 + hexSize, y + hB * 3);
+      ctx.lineTo(x + hA + hexSize * 1.5, y + hB * 3);
+      ctx.lineTo(x + hA + hexSize * 1.5 - hA, y + hB + hB);
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
   
   // Draw glowing cyan tech borders
   ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
@@ -1233,36 +1314,83 @@ function initGame3D() {
   ctx.beginPath(); ctx.moveTo(16, 1008 - bracketLen); ctx.lineTo(16, 1008); ctx.lineTo(16 + bracketLen, 1008); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(1008 - bracketLen, 1008); ctx.lineTo(1008, 1008); ctx.lineTo(1008, 1008 - bracketLen); ctx.stroke();
   
+  // Central core docking base circle
+  ctx.strokeStyle = "rgba(145, 94, 255, 0.4)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(512, 512, 60, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+  ctx.setLineDash([8, 12]);
+  ctx.beginPath();
+  ctx.arc(512, 512, 85, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
   // Concentric radar sector circles
-  ctx.strokeStyle = "rgba(145, 94, 255, 0.3)";
+  ctx.strokeStyle = "rgba(145, 94, 255, 0.25)";
   ctx.lineWidth = 2;
   const center = 512;
-  const radiuses = [120, 260, 400];
+  const radiuses = [160, 320, 440];
   radiuses.forEach(r => {
     ctx.beginPath();
     ctx.arc(center, center, r, 0, Math.PI * 2);
     ctx.stroke();
   });
   
-  // Dashed lines
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
-  ctx.setLineDash([12, 18]);
-  ctx.beginPath();
-  ctx.arc(center, center, 320, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  
   // Center crosshair axis lines
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.18)";
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(512, 40); ctx.lineTo(512, 984);
   ctx.moveTo(40, 512); ctx.lineTo(984, 512);
   ctx.stroke();
   
+  // Custom Node Target Landing Pads (Exact math alignment to 3D Nodes)
+  const drawLandingPad = (cx, cy, label, colorHex) => {
+    // Outer dashed ring
+    ctx.strokeStyle = colorHex + "44";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 8]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, 48, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Inner solid ring
+    ctx.strokeStyle = colorHex + "88";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Crosshair ticks
+    ctx.strokeStyle = colorHex + "aa";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 56, cy); ctx.lineTo(cx - 44, cy);
+    ctx.moveTo(cx + 44, cy); ctx.lineTo(cx + 56, cy);
+    ctx.moveTo(cx, cy - 56); ctx.lineTo(cx, cy - 44);
+    ctx.moveTo(cx, cy + 44); ctx.lineTo(cx, cy + 56);
+    ctx.stroke();
+    
+    // Text label
+    ctx.fillStyle = colorHex;
+    ctx.font = "bold 13px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(label, cx, cy + 68);
+  };
+  
+  drawLandingPad(512, 239, "BAY 01 // ABOUT", "#915eff");
+  drawLandingPad(785, 512, "BAY 02 // EXPERIENCE", "#c084fc");
+  drawLandingPad(239, 512, "BAY 03 // PROJECTS", "#06b6d4");
+  drawLandingPad(512, 785, "BAY 04 // CONTACT", "#f43f5e");
+  drawLandingPad(512, 922, "DEPARTURE GATE // WARP GATE", "#ec4899");
+  
   // Telemetry indicators
+  ctx.textAlign = "left";
   ctx.fillStyle = "#06b6d4";
-  ctx.font = "bold 16px monospace";
+  ctx.font = "bold 15px monospace";
   ctx.fillText("STATION CONTROL DECK AREA A-1 // SYS: SECURE", 40, 50);
   ctx.fillText("RADAR LINK STATUS: ONLINE // BEACON STABLE", 40, 75);
   
@@ -1481,12 +1609,6 @@ function initGame3D() {
   gameScene.add(centralCoreGroup);
 
   // High-Tech Metal Walkway / Connectors to Node Platforms
-  const walkwayMat = new THREE.MeshPhongMaterial({
-    color: 0x1e293b,
-    specular: 0x06b6d4,
-    shininess: 45
-  });
-
   nodeDefs.forEach(def => {
     const dist = Math.hypot(def.x, def.z);
     const dx = def.x / dist;
@@ -1497,6 +1619,18 @@ function initGame3D() {
     const bridgeDist = 2.0 + len / 2;
     const px = bridgeDist * dx;
     const pz = bridgeDist * dz;
+    
+    // Create animated canvas texture for the walkway
+    const walkwayTex = createWalkwayTexture();
+    walkwayTex.wrapT = THREE.RepeatWrapping;
+    walkwayTex.repeat.set(1, len / 1.5); // Repeat chevron pattern along length
+    gameWalkwayTextures.push(walkwayTex);
+    
+    const walkwayMat = new THREE.MeshBasicMaterial({
+      map: walkwayTex,
+      transparent: true,
+      opacity: 0.85
+    });
     
     const walkwayGeom = new THREE.BoxGeometry(0.8, 0.08, len);
     const walkway = new THREE.Mesh(walkwayGeom, walkwayMat);
@@ -1522,7 +1656,19 @@ function initGame3D() {
   const portalDist = 24.0;
   const portalLen = portalDist - 2.0 - 3.2; // portal base radius is 3.2
   const portalBridgeDist = 2.0 + portalLen / 2;
-  const portalWalkway = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, portalLen), walkwayMat);
+  
+  const portalWalkwayTex = createWalkwayTexture();
+  portalWalkwayTex.wrapT = THREE.RepeatWrapping;
+  portalWalkwayTex.repeat.set(1, portalLen / 1.5);
+  gameWalkwayTextures.push(portalWalkwayTex);
+  
+  const portalWalkwayMat = new THREE.MeshBasicMaterial({
+    map: portalWalkwayTex,
+    transparent: true,
+    opacity: 0.85
+  });
+  
+  const portalWalkway = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, portalLen), portalWalkwayMat);
   portalWalkway.position.set(0, -1.35, portalBridgeDist);
   
   // Side glowing pink guide rails for exit portal bridge
@@ -2075,6 +2221,13 @@ function gameAnimate() {
     if (dish) {
       dish.rotation.z += 0.005;
     }
+  }
+
+  // Animate flowing energy chevrons along walkways
+  if (gameWalkwayTextures && gameWalkwayTextures.length > 0) {
+    gameWalkwayTextures.forEach(tex => {
+      tex.offset.y -= 0.012;
+    });
   }
 
   // Animate destination indicator dot (sky blue ring)
