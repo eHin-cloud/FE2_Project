@@ -1944,6 +1944,13 @@ function triggerSpaceTransition(callback, isExit = false) {
     }
   }
 
+  // If exiting, make transition background solid to cover up object disappearance
+  if (isExit) {
+    loader.style.backgroundColor = "rgba(5, 8, 22, 0.96)";
+  } else {
+    loader.style.backgroundColor = "transparent";
+  }
+
   // Show loader overlay
   loader.classList.remove("hidden");
   // Force reflow
@@ -2010,36 +2017,72 @@ function triggerSpaceTransition(callback, isExit = false) {
         playSuccessChime();
       }
       
-      // Fade out transition overlay
-      loader.style.opacity = "0";
-      setTimeout(() => {
-        loader.classList.add("hidden");
-        transitionLoadingActive = false;
+      if (isExit) {
+        const mainContent = document.getElementById("main-content");
+        const gameContainer = document.getElementById("game-container");
+        const canvasBg = document.getElementById("canvas-bg");
+        const mainNav = document.getElementById("main-nav");
+        const text = document.getElementById("view-mode-text");
         
-        if (isExit) {
-          // Perform actual transition to List Mode UI
-          const mainContent = document.getElementById("main-content");
-          const gameContainer = document.getElementById("game-container");
-          const canvasBg = document.getElementById("canvas-bg");
-          const mainNav = document.getElementById("main-nav");
-          const text = document.getElementById("view-mode-text");
+        if (text) {
+          text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
+          text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
+          text.setAttribute("data-en", "🎮 3D WORKSPACE");
+        }
+        if (mainNav) mainNav.classList.remove("hidden");
+        
+        // Setup smooth cross-fade transitions
+        if (gameContainer) {
+          gameContainer.style.transition = "opacity 0.8s ease-in-out";
+          gameContainer.style.opacity = "0";
+        }
+        
+        if (mainContent) {
+          mainContent.style.transition = "opacity 0.8s ease-in-out";
+          mainContent.style.opacity = "0";
+          mainContent.classList.remove("hidden");
+          mainContent.offsetHeight; // trigger reflow
+          mainContent.style.opacity = "1";
+        }
+        
+        if (canvasBg) {
+          canvasBg.style.transition = "opacity 0.8s ease-in-out";
+          canvasBg.style.opacity = "0";
+          canvasBg.style.display = "block";
+          canvasBg.offsetHeight; // trigger reflow
+          canvasBg.style.opacity = "1";
+        }
+        
+        // Fade out transition loader itself
+        loader.style.opacity = "0";
+        
+        setTimeout(() => {
+          loader.classList.add("hidden");
+          transitionLoadingActive = false;
           
-          if (text) {
-            text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
-            text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
-            text.setAttribute("data-en", "🎮 3D WORKSPACE");
+          if (gameContainer) {
+            gameContainer.classList.add("hidden");
+            gameContainer.style.opacity = "";
+            gameContainer.style.transition = "";
           }
-          if (mainNav) mainNav.classList.remove("hidden");
-          
           if (mainContent) {
-            mainContent.style.opacity = "";
-            mainContent.classList.remove("hidden");
+            mainContent.style.transition = "";
           }
-          if (gameContainer) gameContainer.classList.add("hidden");
-          if (canvasBg) canvasBg.style.display = "block";
+          if (canvasBg) {
+            canvasBg.style.transition = "";
+            canvasBg.style.opacity = "";
+          }
           
           stopGame3D();
-        } else {
+          if (callback) callback();
+        }, 800);
+      } else {
+        // Fade out transition overlay (Enter flow)
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          loader.classList.add("hidden");
+          transitionLoadingActive = false;
+          
           // Show space station 3D world elements
           if (gamePlayer) gamePlayer.visible = true;
           if (gameUnderGlobe) gameUnderGlobe.visible = true;
@@ -2059,10 +2102,10 @@ function triggerSpaceTransition(callback, isExit = false) {
             }
           }
           if (hud) hud.style.opacity = "1";
-        }
-        
-        if (callback) callback();
-      }, 600);
+          
+          if (callback) callback();
+        }, 600);
+      }
     }
   };
   
