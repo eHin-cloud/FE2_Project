@@ -1001,6 +1001,8 @@ let keysPressed = {
 let gameCameraYawAngle = 0;
 let gameCameraPitchAngle = 0.5; // default view pitch
 let gameCameraRadius = 16;
+let gameCameraTargetRadius = 16;
+let isCloseUpView = false;
 let gamePlayerTargetPos = null;
 
 const nodeDefs = [
@@ -1074,6 +1076,22 @@ function createTextSprite(text, color = '#ffffff') {
 }
 
 function initGame3D() {
+  isCloseUpView = false;
+  gameCameraTargetRadius = 16;
+  gameCameraRadius = 16;
+  gameCameraPitchAngle = 0.5;
+  const camToggleBtn = document.getElementById("cam-toggle-btn");
+  if (camToggleBtn) {
+    const textSpan = camToggleBtn.querySelector("span");
+    if (textSpan) {
+      const viText = "GÓC CẬN CẢNH";
+      const enText = "CLOSE-UP VIEW";
+      textSpan.textContent = currentLang === 'vi' ? viText : enText;
+      textSpan.setAttribute("data-vi", viText);
+      textSpan.setAttribute("data-en", enText);
+    }
+  }
+
   if (gameInitialized) {
     if (!gameAnimationId) {
       gameAnimate();
@@ -1391,11 +1409,10 @@ function initGame3D() {
   });
 
   canvas.addEventListener("wheel", (e) => {
-    // Zoom in or out by adjusting camera radius
-    gameCameraRadius += e.deltaY * 0.012;
+    // Zoom in or out by adjusting target camera radius
+    gameCameraTargetRadius += e.deltaY * 0.012;
     // Limit zoom distance (6 is close, 30 is far)
-    gameCameraRadius = Math.max(6, Math.min(30, gameCameraRadius));
-    updateGameCameraPosition();
+    gameCameraTargetRadius = Math.max(6, Math.min(30, gameCameraTargetRadius));
   }, { passive: true });
 
   canvas.addEventListener("pointermove", (e) => {
@@ -1792,6 +1809,15 @@ function gameAnimate() {
       interactionText.setAttribute("data-en", enMsg);
     }
     
+    // Update bottom-left location HUD text
+    const locText = document.getElementById("current-location-text");
+    if (locText) {
+      const displayVal = currentLang === 'vi' ? closestNode.def.name : closestNode.def.nameEn;
+      if (locText.textContent !== displayVal) {
+        locText.textContent = displayVal;
+      }
+    }
+    
     if (minDistance < 2.0 && !activeModalNode && lastOpenedNode !== closestNode.def.id) {
       lastOpenedNode = closestNode.def.id;
       openGameModal(closestNode.def);
@@ -1802,6 +1828,14 @@ function gameAnimate() {
     }
     if (minDistance >= 3.8) {
       lastOpenedNode = null;
+      // Reset bottom-left location HUD text when in free space
+      const locText = document.getElementById("current-location-text");
+      if (locText) {
+        const defaultVal = currentLang === 'vi' ? "Không Gian Tự Do" : "Free Orbiting Space";
+        if (locText.textContent !== defaultVal) {
+          locText.textContent = defaultVal;
+        }
+      }
     }
   }
   
@@ -1818,6 +1852,9 @@ function gameAnimate() {
     }
     gameStars.geometry.attributes.position.needsUpdate = true;
   }
+
+  // Smoothly interpolate camera radius towards target
+  gameCameraRadius += (gameCameraTargetRadius - gameCameraRadius) * 0.15;
 
   updateGameCameraPosition();
   gameRenderer.render(gameScene, gameCamera);
@@ -2093,12 +2130,15 @@ function triggerSpaceTransition(callback, isExit = false) {
           
           const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
           const joystickZone = document.getElementById("joystick-zone");
+          const locationHud = document.getElementById("location-hud-container");
           if (joystickZone) {
             if (isTouchDevice) {
               joystickZone.style.display = "flex";
               joystickZone.style.opacity = "1";
+              if (locationHud) locationHud.style.bottom = "11rem";
             } else {
               joystickZone.style.display = "none";
+              if (locationHud) locationHud.style.bottom = "2rem";
             }
           }
           if (hud) hud.style.opacity = "1";
@@ -2177,12 +2217,15 @@ function setupViewModeToggle() {
 
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         const joystickZone = document.getElementById("joystick-zone");
+        const locationHud = document.getElementById("location-hud-container");
         if (joystickZone) {
           if (isTouchDevice) {
             joystickZone.style.display = "flex";
             joystickZone.style.opacity = "1";
+            if (locationHud) locationHud.style.bottom = "11rem";
           } else {
             joystickZone.style.display = "none";
+            if (locationHud) locationHud.style.bottom = "2rem";
           }
         }
         const hud = document.getElementById("instructions-hud");
@@ -2225,6 +2268,41 @@ function setupViewModeToggle() {
       updateToggleUI(false);
       if (typeof playBeep === 'function') {
         playBeep(900, 0.1, 'triangle', 0.05);
+      }
+    });
+  }
+
+  // Camera view angle toggle inside 3D space station
+  const camToggleBtn = document.getElementById("cam-toggle-btn");
+  if (camToggleBtn) {
+    camToggleBtn.addEventListener("click", () => {
+      isCloseUpView = !isCloseUpView;
+      if (isCloseUpView) {
+        gameCameraTargetRadius = 7.0;
+        // set close-up view tilt angle (pitch) slightly lower for dramatic angle
+        gameCameraPitchAngle = 0.3;
+        const viText = "GÓC TOÀN CẢNH";
+        const enText = "BIRD'S-EYE VIEW";
+        const textSpan = camToggleBtn.querySelector("span");
+        if (textSpan) {
+          textSpan.textContent = currentLang === 'vi' ? viText : enText;
+          textSpan.setAttribute("data-vi", viText);
+          textSpan.setAttribute("data-en", enText);
+        }
+      } else {
+        gameCameraTargetRadius = 16.0;
+        gameCameraPitchAngle = 0.5;
+        const viText = "GÓC CẬN CẢNH";
+        const enText = "CLOSE-UP VIEW";
+        const textSpan = camToggleBtn.querySelector("span");
+        if (textSpan) {
+          textSpan.textContent = currentLang === 'vi' ? viText : enText;
+          textSpan.setAttribute("data-vi", viText);
+          textSpan.setAttribute("data-en", enText);
+        }
+      }
+      if (typeof playBeep === 'function') {
+        playBeep(750, 0.08, 'sine', 0.04);
       }
     });
   }

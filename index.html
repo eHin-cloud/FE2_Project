@@ -181,11 +181,36 @@
     <div class="absolute inset-0 pointer-events-none z-15 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(2,3,10,0.75)_100%)] opacity-80"></div>
     <div class="absolute inset-0 pointer-events-none z-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(6,182,212,0.04),rgba(168,85,247,0.02),rgba(6,182,212,0.04))] bg-[size:100%_4px,6px_100%] opacity-25"></div>
 
-    <!-- Return / Exit 3D Mode Button (Top Left) -->
-    <button id="exit-3d-btn" class="absolute top-6 left-6 px-4 py-2 rounded-xl glass-panel border border-rose-500/20 hover:border-rose-500/60 text-xs font-mono font-bold tracking-widest text-rose-400 hover:text-rose-300 bg-[#0c102b]/80 z-30 transition-all flex items-center gap-2 pointer-events-auto">
-      <i class="fa-solid fa-arrow-left text-[10px]"></i>
-      <span data-vi="THOÁT KHÔNG GIAN 3D" data-en="EXIT 3D SPACE">THOÁT KHÔNG GIAN 3D</span>
-    </button>
+    <!-- Top Left Status Panel -->
+    <div class="absolute top-6 left-6 flex flex-col gap-2 z-30 pointer-events-none select-none">
+      <div class="px-3.5 py-1.5 rounded-full border border-emerald-500/30 bg-[#0c102b]/85 backdrop-blur-md flex items-center gap-2 text-[10px] font-mono font-bold tracking-widest text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.15)] w-max">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span data-vi="CYBER PORTFOLIO ACTIVE" data-en="CYBER PORTFOLIO ACTIVE">CYBER PORTFOLIO ACTIVE</span>
+      </div>
+      <div class="px-3 py-1 rounded-full border border-cyan-500/20 bg-[#0c102b]/65 backdrop-blur-md text-[9px] font-mono text-cyan-400/80 tracking-wider w-max">
+        <span data-vi="3D WebGL Engine Active" data-en="3D WebGL Engine Active">3D WebGL Engine Active</span>
+      </div>
+    </div>
+
+    <!-- Top Right Cyber Controller Panel -->
+    <div class="absolute top-6 right-6 flex items-center gap-3 z-30 pointer-events-auto">
+      <button id="cam-toggle-btn" class="px-4 py-2 rounded-xl border border-purple-500/30 hover:border-purple-500/60 bg-[#0c102b]/85 backdrop-blur-md text-xs font-mono font-bold tracking-widest text-purple-300 hover:text-white transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(145,94,255,0.1)]">
+        <i class="fa-solid fa-video text-[10px]"></i>
+        <span data-vi="GÓC CẬN CẢNH" data-en="CLOSE-UP VIEW">GÓC CẬN CẢNH</span>
+      </button>
+      <button id="exit-3d-btn" class="px-4 py-2 rounded-xl border border-rose-500/30 hover:border-rose-500/60 bg-[#1f0e1d]/85 backdrop-blur-md text-xs font-mono font-bold tracking-widest text-rose-400 hover:text-white transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(244,63,94,0.1)]">
+        <i class="fa-solid fa-xmark text-[10px]"></i>
+        <span data-vi="THOÁT 3D (VỀ 2D)" data-en="EXIT 3D SPACE">THOÁT 3D (VỀ 2D)</span>
+      </button>
+    </div>
+
+    <!-- Bottom Left Location HUD Box -->
+    <div id="location-hud-container" class="absolute bottom-8 left-8 z-30 pointer-events-auto select-none">
+      <div class="px-5 py-3 rounded-2xl border border-cyan-500/20 bg-[#0c102b]/85 backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.1)] flex flex-col gap-0.5 min-w-[200px] text-left">
+        <span class="text-[9px] font-mono font-bold tracking-[0.25em] text-cyan-400/80" data-vi="ĐANG ĐỨNG TẠI" data-en="CURRENT POSITION">ĐANG ĐỨNG TẠI</span>
+        <span id="current-location-text" class="text-xs font-bold text-white tracking-wide" data-vi="Trạm Không Gian" data-en="Space Station">Trạm Không Gian</span>
+      </div>
+    </div>
 
     <!-- Futuristic Crosshair Targeting HUD (Center Screen) -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-15 flex justify-center items-center opacity-65">
