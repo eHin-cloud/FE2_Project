@@ -988,6 +988,8 @@ let gameStarsTwinkleB = null;
 let gameNebulaClouds = [];
 let gameTechFloor = null;
 let gameWalkwayTextures = [];
+let gameBlackHoleGroup = null;
+let gameBgPlanets = [];
 let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let is3DMode = true;
@@ -1144,6 +1146,128 @@ function createWalkwayTexture() {
   return tex;
 }
 
+function createAccretionDiskTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  
+  ctx.clearRect(0, 0, 512, 512);
+  
+  const numArms = 8;
+  const centerX = 256;
+  const centerY = 256;
+  
+  for (let i = 0; i < numArms; i++) {
+    const baseAngle = (i / numArms) * Math.PI * 2;
+    ctx.beginPath();
+    
+    for (let r = 20; r < 240; r += 2) {
+      const angle = baseAngle + (r * 0.024);
+      const x = centerX + Math.cos(angle) * r;
+      const y = centerY + Math.sin(angle) * r;
+      
+      const alpha = Math.max(0, 1.0 - r / 240);
+      let colorStr = `rgba(255, 140, 0, ${alpha * 0.65})`;
+      if (r < 70) colorStr = `rgba(255, 255, 255, ${alpha * 0.85})`;
+      else if (r > 160) colorStr = `rgba(145, 94, 255, ${alpha * 0.45})`;
+      else if (r > 100) colorStr = `rgba(239, 68, 68, ${alpha * 0.55})`;
+      
+      ctx.fillStyle = colorStr;
+      ctx.fillRect(x - 3, y - 3, 6, 6);
+    }
+  }
+  
+  const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 120);
+  grad.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+  grad.addColorStop(0.2, "rgba(253, 186, 116, 0.75)");
+  grad.addColorStop(0.5, "rgba(239, 68, 68, 0.4)");
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(256, 256, 120, 0, Math.PI * 2);
+  ctx.fill();
+  
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createGasGiantTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  
+  const grad = ctx.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, "#083344");
+  grad.addColorStop(1, "#164e63");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 256);
+  
+  const bandColors = [
+    "rgba(6, 182, 212, 0.3)",
+    "rgba(14, 116, 144, 0.45)",
+    "rgba(145, 94, 255, 0.25)",
+    "rgba(30, 41, 59, 0.6)",
+    "rgba(255, 255, 255, 0.12)"
+  ];
+  
+  for (let y = 0; y < 256; y += 4) {
+    const colorIdx = Math.floor((Math.sin(y * 0.08) + 1.0) * 2.5) % bandColors.length;
+    ctx.fillStyle = bandColors[colorIdx];
+    
+    ctx.beginPath();
+    ctx.rect(0, y, 512, 4);
+    ctx.fill();
+  }
+  
+  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.beginPath();
+  ctx.arc(380, 120, 25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(6, 182, 212, 0.35)";
+  ctx.beginPath();
+  ctx.arc(380, 120, 15, 0, Math.PI * 2);
+  ctx.fill();
+  
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createLavaPlanetTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  
+  ctx.fillStyle = "#0c0a0f";
+  ctx.fillRect(0, 0, 512, 256);
+  
+  ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
+  ctx.shadowColor = "#f43f5e";
+  ctx.shadowBlur = 10;
+  
+  for (let i = 0; i < 20; i++) {
+    ctx.lineWidth = Math.random() * 3 + 1;
+    ctx.strokeStyle = i % 2 === 0 ? "rgba(249, 115, 22, 0.8)" : "rgba(239, 68, 68, 0.85)";
+    
+    ctx.beginPath();
+    let startX = Math.random() * 512;
+    let startY = Math.random() * 256;
+    ctx.moveTo(startX, startY);
+    
+    for (let j = 0; j < 6; j++) {
+      let nextX = startX + (Math.random() - 0.5) * 80;
+      let nextY = startY + (Math.random() - 0.5) * 50;
+      ctx.lineTo(nextX, nextY);
+      startX = nextX;
+      startY = nextY;
+    }
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+  
+  return new THREE.CanvasTexture(canvas);
+}
+
 function initGame3D() {
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
@@ -1252,6 +1376,115 @@ function initGame3D() {
     gameScene.add(nebMesh);
     gameNebulaClouds.push(nebMesh);
   }
+
+  // ==========================================================================
+  // BACKGROUND COSMIC BODIES: BLACK HOLE & GALAXY PLANETS
+  // ==========================================================================
+  
+  // 1. GIGANTIC DEEP-SPACE BLACK HOLE (Hố đen vũ trụ)
+  gameBlackHoleGroup = new THREE.Group();
+  gameBlackHoleGroup.position.set(-110, 40, -170);
+  
+  // The black hole singularity event horizon
+  const singularityGeom = new THREE.SphereGeometry(14, 32, 32);
+  const singularityMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const singularity = new THREE.Mesh(singularityGeom, singularityMat);
+  gameBlackHoleGroup.add(singularity);
+  
+  // Glowing accretion disk (Đĩa bồi tụ)
+  const accretionDiskGeom = new THREE.RingGeometry(15, 42, 64);
+  const accretionDiskMat = new THREE.MeshBasicMaterial({
+    map: createAccretionDiskTexture(),
+    side: THREE.DoubleSide,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    opacity: 0.9
+  });
+  const accretionDisk = new THREE.Mesh(accretionDiskGeom, accretionDiskMat);
+  accretionDisk.name = "accretion_disk";
+  accretionDisk.rotation.x = Math.PI / 2.6;
+  accretionDisk.rotation.y = Math.PI / 12;
+  gameBlackHoleGroup.add(accretionDisk);
+  
+  // Outer gravitational lensing aura (Hào quang bẻ cong ánh sáng)
+  const holeAuraGeom = new THREE.SphereGeometry(18, 32, 32);
+  const holeAuraMat = new THREE.MeshBasicMaterial({
+    color: 0xef4444, // Red glow
+    transparent: true,
+    opacity: 0.12,
+    blending: THREE.AdditiveBlending
+  });
+  const holeAura = new THREE.Mesh(holeAuraGeom, holeAuraMat);
+  gameBlackHoleGroup.add(holeAura);
+  
+  gameScene.add(gameBlackHoleGroup);
+  
+  // 2. BACKGROUND ORBITING PLANETS
+  gameBgPlanets = [];
+  
+  // Planet A: Ice Gas Giant (Hành tinh băng khổng lồ)
+  const planetAGroup = new THREE.Group();
+  planetAGroup.position.set(100, 25, -130);
+  
+  const planetAGeom = new THREE.SphereGeometry(11, 32, 32);
+  const planetAMat = new THREE.MeshBasicMaterial({ map: createGasGiantTexture() });
+  const planetAMesh = new THREE.Mesh(planetAGeom, planetAMat);
+  planetAMesh.name = "sphere";
+  planetAGroup.add(planetAMesh);
+  
+  // Ice Rings
+  const ringAGeom = new THREE.RingGeometry(13.5, 22, 64);
+  const ringAMat = new THREE.MeshBasicMaterial({
+    color: 0x06b6d4,
+    transparent: true,
+    opacity: 0.4,
+    side: THREE.DoubleSide
+  });
+  const ringAMesh = new THREE.Mesh(ringAGeom, ringAMat);
+  ringAMesh.rotation.x = Math.PI / 2.3;
+  ringAMesh.rotation.y = Math.PI / 8;
+  planetAGroup.add(ringAMesh);
+  
+  gameScene.add(planetAGroup);
+  gameBgPlanets.push(planetAGroup);
+  
+  // Planet B: Lava/Magma Volcanic Planet (Hành tinh dung nham)
+  const planetBGroup = new THREE.Group();
+  planetBGroup.position.set(-90, -20, 120);
+  
+  const planetBGeom = new THREE.SphereGeometry(8, 32, 32);
+  const planetBMat = new THREE.MeshBasicMaterial({ map: createLavaPlanetTexture() });
+  const planetBMesh = new THREE.Mesh(planetBGeom, planetBMat);
+  planetBMesh.name = "sphere";
+  planetBGroup.add(planetBMesh);
+  
+  gameScene.add(planetBGroup);
+  gameBgPlanets.push(planetBGroup);
+  
+  // Planet C: Cyber Grid Matrix Planet (Hành tinh mạng công nghệ)
+  const planetCGroup = new THREE.Group();
+  planetCGroup.position.set(120, -10, 80);
+  
+  const planetCGeom = new THREE.SphereGeometry(6, 32, 32);
+  const planetCMat = new THREE.MeshBasicMaterial({ color: 0x090d16 });
+  const planetCMesh = new THREE.Mesh(planetCGeom, planetCMat);
+  planetCMesh.name = "sphere";
+  planetCGroup.add(planetCMesh);
+  
+  // Cyber grid shell
+  const gridShellGeom = new THREE.SphereGeometry(7.0, 16, 16);
+  const gridShellMat = new THREE.MeshBasicMaterial({
+    color: 0x22c55e, // green tech glow
+    wireframe: true,
+    transparent: true,
+    opacity: 0.25
+  });
+  const gridShellMesh = new THREE.Mesh(gridShellGeom, gridShellMat);
+  gridShellMesh.name = "grid_shell";
+  planetCGroup.add(gridShellMesh);
+  
+  gameScene.add(planetCGroup);
+  gameBgPlanets.push(planetCGroup);
 
   // Grid floor helper
   const gridHelper = new THREE.GridHelper(60, 30, 0x06b6d4, 0x1d1836);
@@ -2207,6 +2440,33 @@ function gameAnimate() {
   if (gameNebulaClouds && gameNebulaClouds.length > 0) {
     gameNebulaClouds.forEach((neb, idx) => {
       neb.rotation.z += 0.00015 * (idx % 2 === 0 ? 1 : -1);
+    });
+  }
+
+  // Rotate black hole accretion disk
+  if (gameBlackHoleGroup) {
+    const disk = gameBlackHoleGroup.getObjectByName("accretion_disk");
+    if (disk) {
+      disk.rotation.z += 0.006;
+    }
+  }
+
+  // Rotate background planets
+  if (gameBgPlanets && gameBgPlanets.length > 0) {
+    gameBgPlanets.forEach((pGroup, idx) => {
+      const sphere = pGroup.getObjectByName("sphere");
+      if (sphere) {
+        sphere.rotation.y += 0.002 * (idx % 2 === 0 ? 1 : -1);
+      }
+      
+      // Specifically spin the green cyber grid shell on planet C (index 2)
+      if (idx === 2) {
+        const gridShell = pGroup.getObjectByName("grid_shell");
+        if (gridShell) {
+          gridShell.rotation.y -= 0.004;
+          gridShell.rotation.x += 0.0025;
+        }
+      }
     });
   }
 
