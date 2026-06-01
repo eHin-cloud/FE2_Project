@@ -433,8 +433,8 @@ function triggerTypingEffect() {
   }
 
   const texts = {
-    vi: "Thực tập sinh Web Developer & UI-focused Fullstack. Chào mừng bạn đến với Cyber-Oasis Workspace. Hãy dùng nhân vật ảo và di chuyển quanh các địa danh bằng phím, chuột hoặc d-pad để khám phá năng lực và hồ sơ cá nhân của tôi!",
-    en: "Web Developer Intern & UI-focused Fullstack. Welcome to Cyber-Oasis Workspace. Use the virtual character to explore landmarks and discover my portfolio!"
+    vi: "Thực tập sinh Web Developer & Laravel định hướng tối ưu giao diện (UI/UX). Chào mừng bạn đến với Cyber-Oasis Space Station. Hãy điều khiển drone du hành qua các trạm năng lực để khám phá hồ sơ cá nhân của tôi!",
+    en: "Web Developer & Laravel Intern focused on UI/UX optimization. Welcome to Cyber-Oasis Space Station. Navigate the drone through the nodes to explore my professional portfolio!"
   };
 
   const text = texts[currentLang] || texts.vi;
@@ -1784,5 +1784,264 @@ window.addEventListener("DOMContentLoaded", () => {
         closeIcon.classList.add("hidden");
       });
     });
+  }
+
+  // Initialize floating AI chatbot
+  initSpaceChatbot();
+
+  function initSpaceChatbot() {
+    const chatbotToggle = document.getElementById("chatbot-toggle");
+    const chatbotWindow = document.getElementById("chatbot-window");
+    const chatbotClose = document.getElementById("chatbot-close");
+    const chatbotInput = document.getElementById("chatbot-input");
+    const chatbotSend = document.getElementById("chatbot-send");
+    const chatbotMessages = document.getElementById("chatbot-messages");
+
+    if (!chatbotToggle || !chatbotWindow || !chatbotClose || !chatbotInput || !chatbotSend || !chatbotMessages) return;
+
+    let chatHistory = [];
+    let isWindowOpen = false;
+    let isLoading = false;
+
+    // Toggle Chat Window
+    chatbotToggle.addEventListener("click", () => {
+      isWindowOpen = !isWindowOpen;
+      if (isWindowOpen) {
+        chatbotWindow.classList.remove("scale-0");
+        chatbotWindow.classList.add("scale-100");
+        if (!isLoading) chatbotInput.focus();
+        if (typeof playBeep === "function") {
+          playBeep(880, 0.08, "sine", 0.02);
+        }
+      } else {
+        chatbotWindow.classList.remove("scale-100");
+        chatbotWindow.classList.add("scale-0");
+        if (typeof playBeep === "function") {
+          playBeep(600, 0.08, "triangle", 0.02);
+        }
+      }
+    });
+
+    // Close Chat Window
+    chatbotClose.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isWindowOpen = false;
+      chatbotWindow.classList.remove("scale-100");
+      chatbotWindow.classList.add("scale-0");
+      if (typeof playBeep === "function") {
+        playBeep(600, 0.08, "triangle", 0.02);
+      }
+    });
+
+    // Send Message on click/Enter
+    chatbotSend.addEventListener("click", handleSendMessage);
+    chatbotInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        handleSendMessage();
+      }
+    });
+
+    const chatbotSuggestions = document.getElementById("chatbot-suggestions");
+    if (chatbotSuggestions) {
+      chatbotSuggestions.querySelectorAll(".chatbot-suggest-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (isLoading) return;
+          chatbotInput.value = btn.innerText;
+          if (chatbotSuggestions) {
+            chatbotSuggestions.style.display = "none";
+          }
+          handleSendMessage();
+        });
+      });
+    }
+
+    async function handleSendMessage() {
+      if (isLoading) return;
+      const query = chatbotInput.value.trim();
+      if (!query) return;
+
+      isLoading = true;
+      chatbotInput.disabled = true;
+      chatbotSend.disabled = true;
+      chatbotSend.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i>';
+
+      if (chatbotSuggestions) {
+        chatbotSuggestions.style.display = "none";
+      }
+
+      // Clear input
+      chatbotInput.value = "";
+
+      // Append user bubble
+      appendMessage("user", query);
+
+      // Scroll to bottom
+      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+      // Play sending interface sound
+      if (typeof playBeep === "function") {
+        playBeep(1000, 0.05, "sine", 0.01);
+      }
+
+      // Add loading bubble
+      const loadingBubble = appendLoadingBubble();
+      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+      try {
+        const responseText = await askGemini(query, chatHistory);
+        
+        // Remove loading bubble
+        if (loadingBubble) loadingBubble.remove();
+
+        // Append bot bubble
+        appendMessage("bot", responseText);
+        
+        // Save history
+        chatHistory.push({ role: "user", text: query });
+        chatHistory.push({ role: "bot", text: responseText });
+
+        // Play message received sound
+        if (typeof playBeep === "function") {
+          playBeep(1200, 0.08, "sine", 0.02);
+        }
+      } catch (err) {
+        console.error(err);
+        if (loadingBubble) loadingBubble.remove();
+        appendMessage("bot", (currentLang === "vi" 
+          ? "Đã xảy ra lỗi kết nối với hệ thống AI của trạm: " 
+          : "Connection error with the station AI system: ") + err.message);
+      } finally {
+        isLoading = false;
+        chatbotInput.disabled = false;
+        chatbotSend.disabled = false;
+        chatbotSend.innerHTML = '<i class="fa-solid fa-paper-plane text-xs"></i>';
+        chatbotInput.focus();
+      }
+
+      // Scroll to bottom
+      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "flex gap-2 " + (sender === "user" ? "justify-end" : "");
+
+      const avatar = document.createElement("div");
+      avatar.className = sender === "user" 
+        ? "w-6 h-6 rounded-md bg-cyan-500/10 flex justify-center items-center text-[#06b6d4] flex-shrink-0 order-2"
+        : "w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0";
+      avatar.innerHTML = sender === "user" 
+        ? '<i class="fa-solid fa-user text-[10px]"></i>' 
+        : '<i class="fa-solid fa-robot text-[10px]"></i>';
+
+      const bubble = document.createElement("div");
+      bubble.className = sender === "user"
+        ? "bg-purple-950/60 p-3 rounded-2xl rounded-tr-none border border-purple-500/20 max-w-[80%] text-zinc-300 leading-relaxed font-sans"
+        : "bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 max-w-[80%] text-zinc-300 leading-relaxed font-sans";
+      bubble.innerText = text;
+
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(bubble);
+      chatbotMessages.appendChild(msgDiv);
+    }
+
+    function appendLoadingBubble() {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "flex gap-2";
+
+      const avatar = document.createElement("div");
+      avatar.className = "w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0";
+      avatar.innerHTML = '<i class="fa-solid fa-robot text-[10px]"></i>';
+
+      const bubble = document.createElement("div");
+      bubble.className = "bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 max-w-[80%] flex items-center gap-1 text-zinc-400";
+      bubble.innerHTML = `
+        <span class="w-1.5 h-1.5 bg-[#915eff] rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+        <span class="w-1.5 h-1.5 bg-[#915eff] rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+        <span class="w-1.5 h-1.5 bg-[#915eff] rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+      `;
+
+      msgDiv.appendChild(avatar);
+      msgDiv.appendChild(bubble);
+      chatbotMessages.appendChild(msgDiv);
+      return msgDiv;
+    }
+
+    async function askGemini(userMessage, history) {
+      const apiKey = 'AIzaSyDMAfA0lZN2Sczruue7nLvdvmtYnWInHiM';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      
+      const contents = history.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      }));
+      contents.push({
+        role: 'user',
+        parts: [{ text: userMessage }]
+      });
+
+      const systemInstruction = {
+        parts: [{
+          text: `Bạn là Trợ lý AI (Cyber-Assistant) tại Trạm Không Gian Hồ sơ cá nhân của Nguyễn Thanh Hiền & Nguyễn Anh Quý (Web Developer & Laravel).
+Nhiệm vụ của bạn là hỗ trợ và tư vấn nhiệt tình cho khách truy cập về thông tin cá nhân, kỹ năng, và các dự án của Thanh Hiền và Anh Quý.
+Hãy giữ giọng điệu thân thiện, chuyên nghiệp, thông minh và mang chút âm hưởng khoa học viễn tưởng/vũ trụ (ví dụ: dùng các từ như 'Trạm điều khiển', 'Quỹ đạo', 'Hệ thống', v.v. khi phù hợp).
+Thông tin hồ sơ của Nguyễn Thanh Hiền để bạn tham khảo trả lời:
+- Vai trò: Thực tập sinh Web Developer & Laravel.
+- Nơi ở: Thủ Đức, TP.HCM.
+- Dạng làm việc: Thực tập / Fulltime.
+- Học vấn: Sinh viên Công nghệ thông tin trường Cao đẳng Công nghệ Thủ Đức (TDC). Năm 1 (2024-2025) đạt GPA 2.71, học lập trình C#, Java, MySQL.
+- Kỹ năng (Khoang Công Nghệ):
+  1. Frontend & UI/UX: HTML/CSS, TailwindCSS, JavaScript, Responsive Design, thiết kế giao diện cao cấp.
+  2. Backend & Kiến trúc: PHP (OOP), MySQL (PDO), Service-Repository Pattern.
+  3. Mobile & API: Dart (Flutter, Riverpod, Clean Architecture), RESTful API, tích hợp Gemini AI và cổng thanh toán PayOS/VietQR.
+  4. Bảo mật: 2FA TOTP, Bcrypt password hashing, Prepared Statements (chống SQL Injection), vô hiệu hóa CSRF.
+- Các Dự Án Thực Tế:
+  1. Website Bán Hàng Điện Tử (Đồng Phát Triển): Hệ thống mua sắm Laravel & MySQL. Tích hợp Service-Repository, 2FA, OAuth2, thanh toán tự động PayOS, chatbot Gemini AI, Flutter Mobile App (Riverpod). Đạt điểm đồ án xuất sắc 8.0/10, triển khai Docker/Apache. Link chạy thử: https://dienmaypro.nguyenanhquy.id.vn/. Github: https://github.com/eHin-cloud/TrienKhaiPM.git
+  2. Website TMĐT Nhóm G (Laravel): Đồ án môn học Back-end Web 2 xây dựng bằng Laravel, MySQL, phối hợp qua Github (merge code). Link chạy thử: https://tmdtgroupg.nthanhhien.id.vn/. Github: https://github.com/AQuyGib/ThuongMaiDienTu
+  3. Hồ Sơ Năng Lực 3D Tương Tác: Đồ án Front-end Web 2 (trang web portfolio 3D hiện tại). Sử dụng Three.js, HTML, CSS, JS thuần, tối ưu 60 FPS. Link chạy thử: https://nthanhhien.id.vn/. Github: https://github.com/eHin-cloud/FE2_Project
+Thông tin liên lạc của Nguyễn Thanh Hiền:
+- SĐT/Hotline: 0396 519 196
+- Email: thenghien2006@gmail.com
+- GitHub: github.com/eHin-cloud (Link: https://github.com/eHin-cloud)
+- Form Liên Hệ: Khách truy cập có thể dùng Form Liên Hệ (Contact Form) ở cuối trang web để gửi lời nhắn trực tiếp tới hòm thư thenghien2006@gmail.com (hệ thống sử dụng Web3Forms để chuyển tiếp). Hãy hướng dẫn khách sử dụng form này nếu họ muốn gửi tin nhắn nhanh.
+- Cộng tác viên phát triển dự án cùng Hiền là Nguyễn Anh Quý (nguyquy67@gmail.com, github.com/AQuyGib).
+Hãy tự động phát hiện ngôn ngữ của câu hỏi và phản hồi bằng chính ngôn ngữ đó (Hỏi tiếng Việt trả lời tiếng Việt, hỏi tiếng Anh trả lời tiếng Anh). Trả lời ngắn gọn (khoảng 2-3 câu), tập trung vào câu hỏi và không bịa đặt thông tin không có trong hồ sơ.`
+        }]
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents,
+          systemInstruction
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMsg = `HTTP ${response.status}`;
+        try {
+          const errJson = JSON.parse(errorText);
+          if (errJson.error && errJson.error.message) {
+            errorMsg += `: ${errJson.error.message}`;
+          }
+        } catch (e) {
+          errorMsg += `: ${errorText}`;
+        }
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+        if (data.candidates && data.candidates[0] && data.candidates[0].finishReason) {
+          throw new Error(`Blocked by Gemini (Reason: ${data.candidates[0].finishReason})`);
+        }
+        throw new Error("Invalid response format from Gemini API");
+      }
+      return data.candidates[0].content.parts[0].text;
+    }
   }
 });
