@@ -224,7 +224,7 @@
        HEADER & NAVIGATION BAR
        ========================================================================== -->
   <nav id="main-nav"
-    class="w-full fixed top-0 z-40 bg-[#050816]/75 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-16 flex justify-between items-center transition-transform duration-500">
+    class="hidden w-full fixed top-0 z-40 bg-[#050816]/75 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-16 flex justify-between items-center transition-transform duration-500">
     <div class="flex items-center gap-2">
       <!-- Minimalist code icon logo -->
       <div
@@ -295,7 +295,7 @@
     </div>
   </nav>
 
-  <div id="main-content">
+  <div id="main-content" class="hidden">
     <!-- ==========================================================================
        HERO SECTION
        ========================================================================== -->
@@ -1128,7 +1128,7 @@
      ========================================================================== -->
     <!-- Chatbot Toggle Button -->
     <div id="chatbot-toggle"
-      class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#915eff] to-[#06b6d4] text-white flex justify-center items-center cursor-pointer shadow-lg shadow-purple-900/50 hover:scale-110 active:scale-95 transition-all duration-300 group">
+      class="hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#915eff] to-[#06b6d4] text-white flex justify-center items-center cursor-pointer shadow-lg shadow-purple-900/50 hover:scale-110 active:scale-95 transition-all duration-300 group">
       <i class="fa-solid fa-robot text-xl group-hover:rotate-12 transition-transform"></i>
       <span
         class="absolute right-16 bg-[#0c102b] border border-purple-500/30 text-white text-[10px] py-1 px-2.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-mono shadow-md"

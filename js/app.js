@@ -86,7 +86,7 @@ function updateChargingHum(progress) {
 
     const currentVol = 0.01 + (progress / 100) * 0.02;
     chargingGain.gain.setTargetAtTime(currentVol, audioCtx.currentTime, 0.05);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function stopChargingHum() {
@@ -98,7 +98,7 @@ function stopChargingHum() {
         chargingLFO.stop();
       }, 350);
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function playSuccessChime() {
@@ -168,7 +168,7 @@ function playDataTelemetryNoise() {
 
     osc.start(time);
     osc.stop(time + 0.03);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function playScrambleChirp() {
@@ -190,7 +190,7 @@ function playScrambleChirp() {
 
     osc.start(time);
     osc.stop(time + 0.015);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 
@@ -277,7 +277,7 @@ function startBootloader() {
   try {
     initAudio();
     startChargingHum();
-  } catch (e) {}
+  } catch (e) { }
 
   // Interaction fallback to unlock/resume audio as soon as the user hovers or interacts
   const initEvents = ['click', 'mousedown', 'keydown', 'touchstart', 'mousemove', 'pointerdown'];
@@ -340,7 +340,7 @@ function startBootloader() {
       for (let i = 0; i < activeStep; i++) {
         html += `<div class="text-[#888] font-mono text-xs mb-1">✔ ${steps[i].text}</div>`;
       }
-      
+
       html += `
         <div class="text-cyan-400 font-mono text-xs mb-1 flex items-center gap-2">
           <svg class="animate-spin w-3 h-3 text-cyan-400" fill="none" viewBox="0 0 24 24">
@@ -376,21 +376,21 @@ function startBootloader() {
         startBtn.classList.remove("hidden");
         startBtn.addEventListener("click", () => {
           playBeep(880, 0.15, 'triangle', 0.08);
-          
+
           // Fade out the diagnostic card or HUD container
           const bootloaderCard = document.getElementById("bootloader-card") || document.getElementById("bootloader-hud");
           if (bootloaderCard) {
             bootloaderCard.style.opacity = '0';
           }
-          
+
           // Set overlay background to transparent so we see the stars behind it
           if (overlay) {
             overlay.style.backgroundColor = 'transparent';
           }
-          
+
           // Accelerate background stars to warp speed!
           starfieldSpeedMultiplier = 20.0;
-          
+
           setTimeout(() => {
             // Dismiss bootloader overlay screen completely
             if (overlay) {
@@ -401,10 +401,16 @@ function startBootloader() {
                 starfieldSpeedMultiplier = 1.0;
               }, 500);
             }
-            
+
             // Trigger animations inside site
             startSiteAnimations();
-            
+
+            // Show chatbot toggle button after entering
+            const chatbotToggle = document.getElementById("chatbot-toggle");
+            if (chatbotToggle) {
+              chatbotToggle.classList.remove("hidden");
+            }
+
             // Trigger appropriate view mode transitions
             if (typeof setupViewModeToggle === 'function') {
               const btn = document.getElementById("view-mode-btn");
@@ -413,14 +419,14 @@ function startBootloader() {
                 const gameContainer = document.getElementById("game-container");
                 const canvasBg = document.getElementById("canvas-bg");
                 const text = document.getElementById("view-mode-text");
-                
+
                 if (is3DMode && mainContent && gameContainer && canvasBg) {
                   if (text) {
                     text.textContent = currentLang === "vi" ? "📄 CHẾ ĐỘ THƯỜNG" : "📄 LIST VIEW";
                   }
                   const mainNav = document.getElementById("main-nav");
                   if (mainNav) mainNav.classList.add("hidden");
-                  
+
                   mainContent.classList.add("hidden");
                   gameContainer.classList.remove("hidden");
                   canvasBg.style.display = "none";
@@ -494,7 +500,7 @@ function updateLanguageUI() {
 function triggerTypingEffect() {
   const target = document.getElementById("typing-desc");
   if (!target) return;
-  
+
   if (typingTimeoutId) {
     clearTimeout(typingTimeoutId);
   }
@@ -580,13 +586,13 @@ function initStarfieldBackground() {
   for (let i = 0; i < count * 3; i += 3) {
     // Spatial positioning
     positions[i] = (Math.random() - 0.5) * 600;
-    positions[i+1] = (Math.random() - 0.5) * 600;
-    positions[i+2] = (Math.random() - 0.5) * 400;
+    positions[i + 1] = (Math.random() - 0.5) * 600;
+    positions[i + 2] = (Math.random() - 0.5) * 400;
 
     // Harmonious violet/cyan colors
     colors[i] = 0.5 + Math.random() * 0.3; // R
-    colors[i+1] = 0.4 + Math.random() * 0.2; // G
-    colors[i+2] = 0.9 + Math.random() * 0.1; // B
+    colors[i + 1] = 0.4 + Math.random() * 0.2; // G
+    colors[i + 2] = 0.9 + Math.random() * 0.1; // B
   }
 
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -699,55 +705,6 @@ function initStarfieldBackground() {
   const planet3Shell = new THREE.Mesh(planet3Geom, planet3ShellMat);
   planet3Group.add(planet3Shell);
 
-  // Create drifting meteorites / asteroids
-  const asteroids = [];
-  const asteroidCount = 18;
-  const asteroidMaterial = new THREE.MeshPhongMaterial({
-    color: 0x1f2937, // dark slate grey rock
-    shininess: 15,
-    flatShading: true
-  });
-
-  for (let i = 0; i < asteroidCount; i++) {
-    const radius = 1.2 + Math.random() * 2.8;
-    const geom = new THREE.DodecahedronGeometry(radius, 1);
-    
-    // Deform geometry slightly to create irregular rocky shapes
-    const posAttr = geom.attributes.position;
-    for (let j = 0; j < posAttr.count; j++) {
-      const vx = posAttr.getX(j);
-      const vy = posAttr.getY(j);
-      const vz = posAttr.getZ(j);
-      posAttr.setXYZ(
-        j,
-        vx + (Math.random() - 0.5) * (radius * 0.25),
-        vy + (Math.random() - 0.5) * (radius * 0.25),
-        vz + (Math.random() - 0.5) * (radius * 0.25)
-      );
-    }
-    geom.computeVertexNormals();
-
-    const asteroid = new THREE.Mesh(geom, asteroidMaterial);
-    
-    // Set initial random positions
-    asteroid.position.set(
-      (Math.random() - 0.5) * 500,
-      (Math.random() - 0.5) * 500,
-      (Math.random() - 0.5) * 400
-    );
-    
-    // Save custom motion properties
-    asteroid.userData = {
-      rotX: (Math.random() - 0.5) * 0.015,
-      rotY: (Math.random() - 0.5) * 0.015,
-      rotZ: (Math.random() - 0.5) * 0.015,
-      speed: 0.15 + Math.random() * 0.25
-    };
-    
-    scene.add(asteroid);
-    asteroids.push(asteroid);
-  }
-
   // Resize Listener
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -766,8 +723,8 @@ function initStarfieldBackground() {
       pos[i] -= speed;
       if (pos[i] < -200) {
         pos[i] = 200;
-        pos[i-2] = (Math.random() - 0.5) * 600;
-        pos[i-1] = (Math.random() - 0.5) * 600;
+        pos[i - 2] = (Math.random() - 0.5) * 600;
+        pos[i - 1] = (Math.random() - 0.5) * 600;
       }
     }
     geometry.attributes.position.needsUpdate = true;
@@ -781,47 +738,23 @@ function initStarfieldBackground() {
       planet1Core.rotation.y += 0.001;
       planet1Shell.rotation.y += 0.0025;
       planet1Ring.rotation.z -= 0.0003;
-      
+
       const time = Date.now() * 0.0005;
       planet1Group.position.y = 50 + Math.sin(time) * 4;
     }
     if (planet2Group) {
       planet2Core.rotation.y -= 0.0015;
       planet2Shell.rotation.x += 0.002;
-      
+
       const time = Date.now() * 0.0007;
       planet2Group.position.y = -40 + Math.sin(time) * 3;
     }
     if (planet3Group) {
       planet3Core.rotation.y += 0.002;
       planet3Shell.rotation.x -= 0.001;
-      
+
       const time = Date.now() * 0.0004;
       planet3Group.position.y = 80 + Math.sin(time) * 2;
-    }
-
-    // Move and tumble asteroids
-    if (asteroids && asteroids.length > 0) {
-      asteroids.forEach(ast => {
-        // Tumble
-        ast.rotation.x += ast.userData.rotX;
-        ast.rotation.y += ast.userData.rotY;
-        ast.rotation.z += ast.userData.rotZ;
-        
-        // Move along Z (towards background)
-        const speed = (starfieldSpeedMultiplier > 1.0) 
-          ? (ast.userData.speed * starfieldSpeedMultiplier * 1.5) 
-          : ast.userData.speed;
-          
-        ast.position.z -= speed;
-        
-        // Reset position when it gets too far away
-        if (ast.position.z < -250) {
-          ast.position.z = 200;
-          ast.position.x = (Math.random() - 0.5) * 500;
-          ast.position.y = (Math.random() - 0.5) * 500;
-        }
-      });
     }
 
     // Parallax mouse movements
@@ -994,10 +927,10 @@ function initContactGlobe() {
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   };
-  
+
   window.addEventListener("resize", resize);
   resize();
-  
+
   // Timeout triggers to stabilize layout sizing delays
   setTimeout(resize, 100);
   setTimeout(resize, 400);
@@ -1007,7 +940,7 @@ function initContactGlobe() {
 
     globeGroup.rotation.y += 0.0035;
     globeGroup.rotation.x += 0.001;
-    
+
     ring1.rotation.z -= 0.002;
     ring2.rotation.z += 0.0012;
 
@@ -1109,13 +1042,13 @@ function setupContactForm() {
       const showToast = (success, msg) => {
         const toast = document.createElement("div");
         toast.className = `fixed bottom-5 right-5 ${success ? 'bg-[#10b981]' : 'bg-[#ef4444]'} text-white py-3 px-6 rounded-xl font-bold z-50 shadow-lg flex items-center gap-2 transform translate-y-20 transition-all duration-300`;
-        
-        toast.innerHTML = success 
+
+        toast.innerHTML = success
           ? `<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>${msg}`
           : `<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>${msg}`;
-        
+
         document.body.appendChild(toast);
-        
+
         if (success) {
           playSuccessChime();
         } else {
@@ -1132,8 +1065,8 @@ function setupContactForm() {
 
       if (isMock) {
         setTimeout(() => {
-          const successText = currentLang === "vi" 
-            ? "Cảm ơn bạn! Tin nhắn đã được gửi thành công (Chế độ Demo)." 
+          const successText = currentLang === "vi"
+            ? "Cảm ơn bạn! Tin nhắn đã được gửi thành công (Chế độ Demo)."
             : "Thank you! Your message was sent successfully (Demo Mode).";
           showToast(true, successText);
           form.reset();
@@ -1155,30 +1088,30 @@ function setupContactForm() {
             message: message
           })
         })
-        .then(response => {
-          if (response.ok) {
-            const successText = currentLang === "vi" 
-              ? "Cảm ơn bạn! Tin nhắn đã được gửi thành công." 
-              : "Thank you! Your message was sent successfully.";
-            showToast(true, successText);
-            form.reset();
-          } else {
+          .then(response => {
+            if (response.ok) {
+              const successText = currentLang === "vi"
+                ? "Cảm ơn bạn! Tin nhắn đã được gửi thành công."
+                : "Thank you! Your message was sent successfully.";
+              showToast(true, successText);
+              form.reset();
+            } else {
+              const errorText = currentLang === "vi"
+                ? "Đã xảy ra lỗi khi gửi. Vui lòng thử lại sau."
+                : "An error occurred while sending. Please try again later.";
+              showToast(false, errorText);
+            }
+          })
+          .catch(error => {
             const errorText = currentLang === "vi"
-              ? "Đã xảy ra lỗi khi gửi. Vui lòng thử lại sau."
-              : "An error occurred while sending. Please try again later.";
+              ? "Không thể kết nối máy chủ. Vui lòng thử lại sau."
+              : "Unable to connect to server. Please try again later.";
             showToast(false, errorText);
-          }
-        })
-        .catch(error => {
-          const errorText = currentLang === "vi"
-            ? "Không thể kết nối máy chủ. Vui lòng thử lại sau."
-            : "Unable to connect to server. Please try again later.";
-          showToast(false, errorText);
-        })
-        .finally(() => {
-          btn.textContent = currentLang === "vi" ? "Gửi" : "Send";
-          btn.disabled = false;
-        });
+          })
+          .finally(() => {
+            btn.textContent = currentLang === "vi" ? "Gửi" : "Send";
+            btn.disabled = false;
+          });
       }
     });
   });
@@ -1275,7 +1208,7 @@ function createTextTexture(text, color = '#ffffff') {
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'rgba(0,0,0,0)';
   ctx.fillRect(0, 0, 256, 64);
-  
+
   ctx.font = 'Bold 26px monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1283,7 +1216,7 @@ function createTextTexture(text, color = '#ffffff') {
   ctx.shadowBlur = 8;
   ctx.fillStyle = color;
   ctx.fillText(text, 128, 32);
-  
+
   return new THREE.CanvasTexture(canvas);
 }
 
@@ -1300,15 +1233,15 @@ function createNebulaTexture(colorHex) {
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext("2d");
-  
+
   const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 240);
   grad.addColorStop(0, colorHex + "2f"); // slightly glowing center
   grad.addColorStop(0.35, colorHex + "15");
   grad.addColorStop(1, "rgba(0,0,0,0)");
-  
+
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 512, 512);
-  
+
   return new THREE.CanvasTexture(canvas);
 }
 
@@ -1317,26 +1250,26 @@ function createWalkwayTexture() {
   canvas.width = 64;
   canvas.height = 256;
   const ctx = canvas.getContext("2d");
-  
+
   // Dark slate glowing background
   ctx.fillStyle = "rgba(10, 15, 36, 0.9)";
   ctx.fillRect(0, 0, 64, 256);
-  
+
   // Outer metallic blue rails
   ctx.fillStyle = "rgba(6, 182, 212, 0.4)";
   ctx.fillRect(0, 0, 6, 256);
   ctx.fillRect(58, 0, 6, 256);
-  
+
   // Translucent glowing center stripe
   ctx.fillStyle = "rgba(6, 182, 212, 0.1)";
   ctx.fillRect(6, 0, 52, 256);
-  
+
   // Chevron flow arrows pointing forward
   ctx.strokeStyle = "rgba(6, 182, 212, 0.8)";
   ctx.lineWidth = 3.5;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  
+
   for (let y = 32; y < 256; y += 64) {
     ctx.beginPath();
     ctx.moveTo(18, y);
@@ -1344,7 +1277,7 @@ function createWalkwayTexture() {
     ctx.lineTo(46, y);
     ctx.stroke();
   }
-  
+
   // Horizontal grid lines
   ctx.strokeStyle = "rgba(145, 94, 255, 0.25)";
   ctx.lineWidth = 1;
@@ -1354,7 +1287,7 @@ function createWalkwayTexture() {
     ctx.lineTo(58, y);
     ctx.stroke();
   }
-  
+
   const tex = new THREE.CanvasTexture(canvas);
   return tex;
 }
@@ -1364,33 +1297,33 @@ function createAccretionDiskTexture() {
   canvas.width = 512;
   canvas.height = 512;
   const ctx = canvas.getContext("2d");
-  
+
   ctx.clearRect(0, 0, 512, 512);
-  
+
   const numArms = 8;
   const centerX = 256;
   const centerY = 256;
-  
+
   for (let i = 0; i < numArms; i++) {
     const baseAngle = (i / numArms) * Math.PI * 2;
     ctx.beginPath();
-    
+
     for (let r = 20; r < 240; r += 2) {
       const angle = baseAngle + (r * 0.024);
       const x = centerX + Math.cos(angle) * r;
       const y = centerY + Math.sin(angle) * r;
-      
+
       const alpha = Math.max(0, 1.0 - r / 240);
       let colorStr = `rgba(255, 140, 0, ${alpha * 0.65})`;
       if (r < 70) colorStr = `rgba(255, 255, 255, ${alpha * 0.85})`;
       else if (r > 160) colorStr = `rgba(145, 94, 255, ${alpha * 0.45})`;
       else if (r > 100) colorStr = `rgba(239, 68, 68, ${alpha * 0.55})`;
-      
+
       ctx.fillStyle = colorStr;
       ctx.fillRect(x - 3, y - 3, 6, 6);
     }
   }
-  
+
   const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 120);
   grad.addColorStop(0, "rgba(255, 255, 255, 0.9)");
   grad.addColorStop(0.2, "rgba(253, 186, 116, 0.75)");
@@ -1400,7 +1333,7 @@ function createAccretionDiskTexture() {
   ctx.beginPath();
   ctx.arc(256, 256, 120, 0, Math.PI * 2);
   ctx.fill();
-  
+
   return new THREE.CanvasTexture(canvas);
 }
 
@@ -1409,13 +1342,13 @@ function createGasGiantTexture() {
   canvas.width = 512;
   canvas.height = 256;
   const ctx = canvas.getContext("2d");
-  
+
   const grad = ctx.createLinearGradient(0, 0, 0, 256);
   grad.addColorStop(0, "#083344");
   grad.addColorStop(1, "#164e63");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 512, 256);
-  
+
   const bandColors = [
     "rgba(6, 182, 212, 0.3)",
     "rgba(14, 116, 144, 0.45)",
@@ -1423,16 +1356,16 @@ function createGasGiantTexture() {
     "rgba(30, 41, 59, 0.6)",
     "rgba(255, 255, 255, 0.12)"
   ];
-  
+
   for (let y = 0; y < 256; y += 4) {
     const colorIdx = Math.floor((Math.sin(y * 0.08) + 1.0) * 2.5) % bandColors.length;
     ctx.fillStyle = bandColors[colorIdx];
-    
+
     ctx.beginPath();
     ctx.rect(0, y, 512, 4);
     ctx.fill();
   }
-  
+
   ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
   ctx.beginPath();
   ctx.arc(380, 120, 25, 0, Math.PI * 2);
@@ -1441,7 +1374,7 @@ function createGasGiantTexture() {
   ctx.beginPath();
   ctx.arc(380, 120, 15, 0, Math.PI * 2);
   ctx.fill();
-  
+
   return new THREE.CanvasTexture(canvas);
 }
 
@@ -1450,23 +1383,23 @@ function createLavaPlanetTexture() {
   canvas.width = 512;
   canvas.height = 256;
   const ctx = canvas.getContext("2d");
-  
+
   ctx.fillStyle = "#0c0a0f";
   ctx.fillRect(0, 0, 512, 256);
-  
+
   ctx.strokeStyle = "rgba(239, 68, 68, 0.85)";
   ctx.shadowColor = "#f43f5e";
   ctx.shadowBlur = 10;
-  
+
   for (let i = 0; i < 20; i++) {
     ctx.lineWidth = Math.random() * 3 + 1;
     ctx.strokeStyle = i % 2 === 0 ? "rgba(249, 115, 22, 0.8)" : "rgba(239, 68, 68, 0.85)";
-    
+
     ctx.beginPath();
     let startX = Math.random() * 512;
     let startY = Math.random() * 256;
     ctx.moveTo(startX, startY);
-    
+
     for (let j = 0; j < 6; j++) {
       let nextX = startX + (Math.random() - 0.5) * 80;
       let nextY = startY + (Math.random() - 0.5) * 50;
@@ -1477,7 +1410,7 @@ function createLavaPlanetTexture() {
     ctx.stroke();
   }
   ctx.shadowBlur = 0;
-  
+
   return new THREE.CanvasTexture(canvas);
 }
 
@@ -1496,38 +1429,38 @@ function initGame3D() {
     window.dispatchEvent(new Event('resize'));
     return;
   }
-  
+
   const canvas = document.getElementById("canvas-game-3d");
   if (!canvas) return;
   canvas.addEventListener("contextmenu", e => e.preventDefault());
-  
+
   gameScene = new THREE.Scene();
-  
+
   // Perspective Camera
   gameCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  
+
   // WebGL Renderer
   gameRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   gameRenderer.setSize(window.innerWidth, window.innerHeight);
   gameRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  
+
   // Light sources
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
   gameScene.add(ambientLight);
-  
+
   const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
   dirLight.position.set(10, 20, 15);
   gameScene.add(dirLight);
-  
+
   // Concentric / Twinkling Starfields
   // 1. Static far stars (white)
   const starCount = 800;
   const starGeom = new THREE.BufferGeometry();
   const starPos = new Float32Array(starCount * 3);
-  for(let i = 0; i < starCount * 3; i += 3) {
+  for (let i = 0; i < starCount * 3; i += 3) {
     starPos[i] = (Math.random() - 0.5) * 250;
-    starPos[i+1] = (Math.random() - 0.5) * 200 + 30;
-    starPos[i+2] = (Math.random() - 0.5) * 250;
+    starPos[i + 1] = (Math.random() - 0.5) * 200 + 30;
+    starPos[i + 2] = (Math.random() - 0.5) * 250;
   }
   starGeom.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
   const starMat = new THREE.PointsMaterial({ size: 0.7, color: 0xffffff, transparent: true, opacity: 0.5 });
@@ -1538,10 +1471,10 @@ function initGame3D() {
   const starCountA = 400;
   const starGeomA = new THREE.BufferGeometry();
   const starPosA = new Float32Array(starCountA * 3);
-  for(let i = 0; i < starCountA * 3; i += 3) {
+  for (let i = 0; i < starCountA * 3; i += 3) {
     starPosA[i] = (Math.random() - 0.5) * 250;
-    starPosA[i+1] = (Math.random() - 0.5) * 200 + 30;
-    starPosA[i+2] = (Math.random() - 0.5) * 250;
+    starPosA[i + 1] = (Math.random() - 0.5) * 200 + 30;
+    starPosA[i + 2] = (Math.random() - 0.5) * 250;
   }
   starGeomA.setAttribute("position", new THREE.BufferAttribute(starPosA, 3));
   const starMatA = new THREE.PointsMaterial({ size: 0.9, color: 0x06b6d4, transparent: true, opacity: 0.7 });
@@ -1552,10 +1485,10 @@ function initGame3D() {
   const starCountB = 400;
   const starGeomB = new THREE.BufferGeometry();
   const starPosB = new Float32Array(starCountB * 3);
-  for(let i = 0; i < starCountB * 3; i += 3) {
+  for (let i = 0; i < starCountB * 3; i += 3) {
     starPosB[i] = (Math.random() - 0.5) * 250;
-    starPosB[i+1] = (Math.random() - 0.5) * 200 + 30;
-    starPosB[i+2] = (Math.random() - 0.5) * 250;
+    starPosB[i + 1] = (Math.random() - 0.5) * 200 + 30;
+    starPosB[i + 2] = (Math.random() - 0.5) * 250;
   }
   starGeomB.setAttribute("position", new THREE.BufferAttribute(starPosB, 3));
   const starMatB = new THREE.PointsMaterial({ size: 0.8, color: 0xd946ef, transparent: true, opacity: 0.6 });
@@ -1585,7 +1518,7 @@ function initGame3D() {
     const nebGeom = new THREE.PlaneGeometry(nebulaScales[i], nebulaScales[i]);
     const nebMesh = new THREE.Mesh(nebGeom, nebMat);
     nebMesh.position.set(nebulaPositions[i].x, nebulaPositions[i].y, nebulaPositions[i].z);
-    
+
     // Rotate to face scene center generally
     nebMesh.lookAt(0, 0, 0);
     gameScene.add(nebMesh);
@@ -1595,17 +1528,17 @@ function initGame3D() {
   // ==========================================================================
   // BACKGROUND COSMIC BODIES: BLACK HOLE & GALAXY PLANETS
   // ==========================================================================
-  
+
   // 1. GIGANTIC DEEP-SPACE BLACK HOLE (Hố đen vũ trụ)
   gameBlackHoleGroup = new THREE.Group();
   gameBlackHoleGroup.position.set(-110, 40, -170);
-  
+
   // The black hole singularity event horizon
   const singularityGeom = new THREE.SphereGeometry(14, 32, 32);
   const singularityMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
   const singularity = new THREE.Mesh(singularityGeom, singularityMat);
   gameBlackHoleGroup.add(singularity);
-  
+
   // Glowing accretion disk (Đĩa bồi tụ)
   const accretionDiskGeom = new THREE.RingGeometry(15, 42, 64);
   const accretionDiskMat = new THREE.MeshBasicMaterial({
@@ -1620,7 +1553,7 @@ function initGame3D() {
   accretionDisk.rotation.x = Math.PI / 2.6;
   accretionDisk.rotation.y = Math.PI / 12;
   gameBlackHoleGroup.add(accretionDisk);
-  
+
   // Outer gravitational lensing aura (Hào quang bẻ cong ánh sáng)
   const holeAuraGeom = new THREE.SphereGeometry(18, 32, 32);
   const holeAuraMat = new THREE.MeshBasicMaterial({
@@ -1631,22 +1564,22 @@ function initGame3D() {
   });
   const holeAura = new THREE.Mesh(holeAuraGeom, holeAuraMat);
   gameBlackHoleGroup.add(holeAura);
-  
+
   gameScene.add(gameBlackHoleGroup);
-  
+
   // 2. BACKGROUND ORBITING PLANETS
   gameBgPlanets = [];
-  
+
   // Planet A: Ice Gas Giant (Hành tinh băng khổng lồ)
   const planetAGroup = new THREE.Group();
   planetAGroup.position.set(100, 25, -130);
-  
+
   const planetAGeom = new THREE.SphereGeometry(11, 32, 32);
   const planetAMat = new THREE.MeshBasicMaterial({ map: createGasGiantTexture() });
   const planetAMesh = new THREE.Mesh(planetAGeom, planetAMat);
   planetAMesh.name = "sphere";
   planetAGroup.add(planetAMesh);
-  
+
   // Ice Rings
   const ringAGeom = new THREE.RingGeometry(13.5, 22, 64);
   const ringAMat = new THREE.MeshBasicMaterial({
@@ -1659,33 +1592,33 @@ function initGame3D() {
   ringAMesh.rotation.x = Math.PI / 2.3;
   ringAMesh.rotation.y = Math.PI / 8;
   planetAGroup.add(ringAMesh);
-  
+
   gameScene.add(planetAGroup);
   gameBgPlanets.push(planetAGroup);
-  
+
   // Planet B: Lava/Magma Volcanic Planet (Hành tinh dung nham)
   const planetBGroup = new THREE.Group();
   planetBGroup.position.set(-90, -20, 120);
-  
+
   const planetBGeom = new THREE.SphereGeometry(8, 32, 32);
   const planetBMat = new THREE.MeshBasicMaterial({ map: createLavaPlanetTexture() });
   const planetBMesh = new THREE.Mesh(planetBGeom, planetBMat);
   planetBMesh.name = "sphere";
   planetBGroup.add(planetBMesh);
-  
+
   gameScene.add(planetBGroup);
   gameBgPlanets.push(planetBGroup);
-  
+
   // Planet C: Cyber Grid Matrix Planet (Hành tinh mạng công nghệ)
   const planetCGroup = new THREE.Group();
   planetCGroup.position.set(120, -10, 80);
-  
+
   const planetCGeom = new THREE.SphereGeometry(6, 32, 32);
   const planetCMat = new THREE.MeshBasicMaterial({ color: 0x090d16 });
   const planetCMesh = new THREE.Mesh(planetCGeom, planetCMat);
   planetCMesh.name = "sphere";
   planetCGroup.add(planetCMesh);
-  
+
   // Cyber grid shell
   const gridShellGeom = new THREE.SphereGeometry(7.0, 16, 16);
   const gridShellMat = new THREE.MeshBasicMaterial({
@@ -1697,7 +1630,7 @@ function initGame3D() {
   const gridShellMesh = new THREE.Mesh(gridShellGeom, gridShellMat);
   gridShellMesh.name = "grid_shell";
   planetCGroup.add(gridShellMesh);
-  
+
   gameScene.add(planetCGroup);
   gameBgPlanets.push(planetCGroup);
 
@@ -1711,11 +1644,11 @@ function initGame3D() {
   techCanvas.width = 1024;
   techCanvas.height = 1024;
   const ctx = techCanvas.getContext("2d");
-  
+
   // Fill dark background
   ctx.fillStyle = "rgba(7, 10, 32, 0.55)";
   ctx.fillRect(0, 0, 1024, 1024);
-  
+
   // Draw Hex grid texture in background
   const hexSize = 24;
   const hA = hexSize / 2;
@@ -1734,7 +1667,7 @@ function initGame3D() {
       ctx.lineTo(x - hA, y + hB);
       ctx.closePath();
       ctx.stroke();
-      
+
       // Row 2 (offset)
       ctx.beginPath();
       ctx.moveTo(x + hA + hexSize * 1.5, y + hB);
@@ -1747,12 +1680,12 @@ function initGame3D() {
       ctx.stroke();
     }
   }
-  
+
   // Draw glowing cyan tech borders
   ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
   ctx.lineWidth = 4;
   ctx.strokeRect(16, 16, 992, 992);
-  
+
   // Corner brackets
   ctx.strokeStyle = "#06b6d4";
   ctx.lineWidth = 10;
@@ -1761,21 +1694,21 @@ function initGame3D() {
   ctx.beginPath(); ctx.moveTo(1008 - bracketLen, 16); ctx.lineTo(1008, 16); ctx.lineTo(1008, 16 + bracketLen); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(16, 1008 - bracketLen); ctx.lineTo(16, 1008); ctx.lineTo(16 + bracketLen, 1008); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(1008 - bracketLen, 1008); ctx.lineTo(1008, 1008); ctx.lineTo(1008, 1008 - bracketLen); ctx.stroke();
-  
+
   // Central core docking base circle
   ctx.strokeStyle = "rgba(145, 94, 255, 0.4)";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(512, 512, 60, 0, Math.PI * 2);
   ctx.stroke();
-  
+
   ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
   ctx.setLineDash([8, 12]);
   ctx.beginPath();
   ctx.arc(512, 512, 85, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
-  
+
   // Concentric radar sector circles
   ctx.strokeStyle = "rgba(145, 94, 255, 0.25)";
   ctx.lineWidth = 2;
@@ -1786,7 +1719,7 @@ function initGame3D() {
     ctx.arc(center, center, r, 0, Math.PI * 2);
     ctx.stroke();
   });
-  
+
   // Center crosshair axis lines
   ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
   ctx.lineWidth = 1;
@@ -1794,7 +1727,7 @@ function initGame3D() {
   ctx.moveTo(512, 40); ctx.lineTo(512, 984);
   ctx.moveTo(40, 512); ctx.lineTo(984, 512);
   ctx.stroke();
-  
+
   // Custom Node Target Landing Pads (Exact math alignment to 3D Nodes)
   const drawLandingPad = (cx, cy, label, colorHex) => {
     // Outer dashed ring
@@ -1805,13 +1738,13 @@ function initGame3D() {
     ctx.arc(cx, cy, 48, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
-    
+
     // Inner solid ring
     ctx.strokeStyle = colorHex + "88";
     ctx.beginPath();
     ctx.arc(cx, cy, 42, 0, Math.PI * 2);
     ctx.stroke();
-    
+
     // Crosshair ticks
     ctx.strokeStyle = colorHex + "aa";
     ctx.lineWidth = 2;
@@ -1821,31 +1754,31 @@ function initGame3D() {
     ctx.moveTo(cx, cy - 56); ctx.lineTo(cx, cy - 44);
     ctx.moveTo(cx, cy + 44); ctx.lineTo(cx, cy + 56);
     ctx.stroke();
-    
+
     // Text label
     ctx.fillStyle = colorHex;
     ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
     ctx.fillText(label, cx, cy + 68);
   };
-  
+
   drawLandingPad(512, 239, "BAY 01 // ABOUT", "#915eff");
   drawLandingPad(785, 512, "BAY 02 // EXPERIENCE", "#c084fc");
   drawLandingPad(239, 512, "BAY 03 // PROJECTS", "#06b6d4");
   drawLandingPad(512, 785, "BAY 04 // CONTACT", "#f43f5e");
   drawLandingPad(512, 922, "DEPARTURE GATE // WARP GATE", "#ec4899");
-  
+
   // Telemetry indicators
   ctx.textAlign = "left";
   ctx.fillStyle = "#06b6d4";
   ctx.font = "bold 15px monospace";
   ctx.fillText("STATION CONTROL DECK AREA A-1 // SYS: SECURE", 40, 50);
   ctx.fillText("RADAR LINK STATUS: ONLINE // BEACON STABLE", 40, 75);
-  
+
   ctx.fillStyle = "#915eff";
   ctx.fillText("DOCKING GRID: SYMMETRICAL SECTORS", 680, 50);
   ctx.fillText("POWER CORES: 98% FLUID REACTION", 680, 75);
-  
+
   const floorTex = new THREE.CanvasTexture(techCanvas);
   const floorMat = new THREE.MeshBasicMaterial({
     map: floorTex,
@@ -1858,7 +1791,7 @@ function initGame3D() {
   gameTechFloor.rotation.x = Math.PI / 2;
   gameTechFloor.position.y = -1.48; // resting slightly above the gridHelper line floor
   gameScene.add(gameTechFloor);
-  
+
   // Dynamic expanding radar energy pulse sweep ring
   const sweepGeom = new THREE.RingGeometry(0.9, 1.0, 64);
   const sweepMat = new THREE.MeshBasicMaterial({
@@ -1872,19 +1805,19 @@ function initGame3D() {
   gameSweepRing.rotation.x = Math.PI / 2;
   gameSweepRing.position.set(0, -1.46, 0); // slightly above tech floor
   gameScene.add(gameSweepRing);
-  
+
   // Perimeter neon fence posts & beacons (Skip node paths/walkways)
   gameFenceBeacons = [];
   const fenceGroup = new THREE.Group();
   const postGeom = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
   const postMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.8 });
   const beaconGeom = new THREE.SphereGeometry(0.08, 8, 8);
-  
+
   const numPosts = 16;
   const fenceRadius = 27.5;
   for (let i = 0; i < numPosts; i++) {
     const angle = (i / numPosts) * Math.PI * 2;
-    
+
     let closeToWalkway = false;
     for (let k = 0; k < 4; k++) {
       const targetAngle = (k * Math.PI) / 2;
@@ -1899,25 +1832,25 @@ function initGame3D() {
       }
     }
     if (closeToWalkway) continue;
-    
+
     const px = Math.cos(angle) * fenceRadius;
     const pz = Math.sin(angle) * fenceRadius;
-    
+
     const postGroup = new THREE.Group();
     postGroup.position.set(px, -1.0, pz);
-    
+
     const postMesh = new THREE.Mesh(postGeom, postMat);
     postGroup.add(postMesh);
-    
+
     const beaconMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.9 });
     const beaconMesh = new THREE.Mesh(beaconGeom, beaconMat);
     beaconMesh.position.y = 0.5;
     postGroup.add(beaconMesh);
-    
+
     gameFenceBeacons.push(beaconMesh);
     fenceGroup.add(postGroup);
   }
-  
+
   // Perimeter rails connecting fence posts
   const railsGeom = new THREE.TorusGeometry(27.5, 0.02, 4, 128);
   const railsMat = new THREE.MeshBasicMaterial({ color: 0x915eff, transparent: true, opacity: 0.35 });
@@ -1925,13 +1858,13 @@ function initGame3D() {
   railsMesh.rotation.x = Math.PI / 2;
   railsMesh.position.y = -1.0;
   fenceGroup.add(railsMesh);
-  
+
   gameScene.add(fenceGroup);
-  
+
   // Multi-layered Gyroscopic Energy Reactor Core deep below grid floor
   gameUnderGlobe = new THREE.Group();
   gameUnderGlobe.position.set(0, -28, 0); // Positioned deep below grid floor
-  
+
   // 1. Pulsing Inner Core Singularity (Core Sphere)
   const innerCoreGeom = new THREE.SphereGeometry(8, 16, 16);
   const innerCoreMat = new THREE.MeshBasicMaterial({
@@ -1943,7 +1876,7 @@ function initGame3D() {
   const innerCore = new THREE.Mesh(innerCoreGeom, innerCoreMat);
   innerCore.name = "inner_core";
   gameUnderGlobe.add(innerCore);
-  
+
   // Inner solid core center light orb
   const innerSolidGeom = new THREE.SphereGeometry(3.5, 16, 16);
   const innerSolidMat = new THREE.MeshBasicMaterial({
@@ -1953,7 +1886,7 @@ function initGame3D() {
   });
   const innerSolid = new THREE.Mesh(innerSolidGeom, innerSolidMat);
   innerCore.add(innerSolid);
-  
+
   // 2. Middle Holographic Grid Matrix Shell
   const globeGeom = new THREE.SphereGeometry(24, 24, 24);
   const globeMat = new THREE.MeshBasicMaterial({
@@ -1964,7 +1897,7 @@ function initGame3D() {
   });
   const middleShell = new THREE.Mesh(globeGeom, globeMat);
   gameUnderGlobe.add(middleShell);
-  
+
   // 3. Gyroscopic Gimbal Rings (3-axis Armillary rings)
   // Axis 1: Equator (Horizontal Ring)
   const ringGeom1 = new THREE.TorusGeometry(26, 0.25, 8, 64);
@@ -1977,7 +1910,7 @@ function initGame3D() {
   gimbalRing1.name = "gimbal_1";
   gimbalRing1.rotation.x = Math.PI / 2;
   gameUnderGlobe.add(gimbalRing1);
-  
+
   // Axis 2: Meridian Y (Vertical X-aligned Ring)
   const ringGeom2 = new THREE.TorusGeometry(26.4, 0.2, 8, 64);
   const ringMat2 = new THREE.MeshBasicMaterial({
@@ -1989,7 +1922,7 @@ function initGame3D() {
   gimbalRing2.name = "gimbal_2";
   gimbalRing2.rotation.y = Math.PI / 2;
   gameUnderGlobe.add(gimbalRing2);
-  
+
   // Axis 3: Meridian Z (Vertical Z-aligned Ring)
   const ringGeom3 = new THREE.TorusGeometry(26.8, 0.2, 8, 64);
   const ringMat3 = new THREE.MeshBasicMaterial({
@@ -2000,9 +1933,9 @@ function initGame3D() {
   const gimbalRing3 = new THREE.Mesh(ringGeom3, ringMat3);
   gimbalRing3.name = "gimbal_3";
   gameUnderGlobe.add(gimbalRing3);
-  
+
   gameScene.add(gameUnderGlobe);
-  
+
   // Destination indicator mesh (sky blue ring/circle)
   const indGeom = new THREE.RingGeometry(0.01, 0.4, 32);
   const indMat = new THREE.MeshBasicMaterial({
@@ -2016,28 +1949,28 @@ function initGame3D() {
   moveIndicator.position.set(0, -1.47, 0); // Flat on grid floor (above gridHelper which is at -1.5)
   moveIndicator.visible = false;
   gameScene.add(moveIndicator);
-  
+
   // Create player Group (cyber drone)
   gamePlayer = new THREE.Group();
-  
+
   const coreGeom = new THREE.SphereGeometry(0.7, 16, 16);
   const coreMat = new THREE.MeshPhongMaterial({ color: 0x06b6d4, shininess: 100, emissive: 0x014b5c });
   const coreMesh = new THREE.Mesh(coreGeom, coreMat);
   gamePlayer.add(coreMesh);
-  
+
   const ringGeom = new THREE.TorusGeometry(1.1, 0.1, 8, 24);
   const ringMat = new THREE.MeshPhongMaterial({ color: 0x915eff, emissive: 0x3b0066 });
   const ringMesh = new THREE.Mesh(ringGeom, ringMat);
   ringMesh.rotation.x = Math.PI / 2;
   gamePlayer.add(ringMesh);
-  
+
   const thrusterGeom = new THREE.ConeGeometry(0.3, 0.8, 8);
   const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
   const thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
   thrusterMesh.position.y = -0.9;
   thrusterMesh.rotation.x = Math.PI;
   gamePlayer.add(thrusterMesh);
-  
+
   const playerLight = new THREE.PointLight(0x06b6d4, 2, 6);
   playerLight.position.y = -0.5;
   gamePlayer.add(playerLight);
@@ -2052,10 +1985,10 @@ function initGame3D() {
   const energyOrb = new THREE.Mesh(energyOrbGeom, energyOrbMat);
   energyOrb.position.y = -0.45;
   gamePlayer.add(energyOrb);
-  
+
   gameScene.add(gamePlayer);
   gamePlayer.position.set(0, 0.5, 0);
-  
+
   // ==========================================================================
   // CENTRAL SPACE STATION COMMAND CORE & CONNECTING BRIDGES
   // ==========================================================================
@@ -2130,42 +2063,42 @@ function initGame3D() {
     const dist = Math.hypot(def.x, def.z);
     const dx = def.x / dist;
     const dz = def.z / dist;
-    
+
     // Calculate space between center reactor (radius ~2.0) and node base (radius ~2.5)
     const len = dist - 2.0 - 2.5;
     const bridgeDist = 2.0 + len / 2;
     const px = bridgeDist * dx;
     const pz = bridgeDist * dz;
-    
+
     // Create animated canvas texture for the walkway
     const walkwayTex = createWalkwayTexture();
     walkwayTex.wrapT = THREE.RepeatWrapping;
     walkwayTex.repeat.set(1, len / 1.5); // Repeat chevron pattern along length
     gameWalkwayTextures.push(walkwayTex);
-    
+
     const walkwayMat = new THREE.MeshBasicMaterial({
       map: walkwayTex,
       transparent: true,
       opacity: 0.85
     });
-    
+
     const walkwayGeom = new THREE.BoxGeometry(0.8, 0.08, len);
     const walkway = new THREE.Mesh(walkwayGeom, walkwayMat);
     walkway.position.set(px, -1.35, pz);
     walkway.rotation.y = Math.atan2(def.x, def.z);
-    
+
     // Add side glowing neon laser guide rails
     const railGeom = new THREE.BoxGeometry(0.04, 0.12, len);
     const railMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
-    
+
     const leftRail = new THREE.Mesh(railGeom, railMat);
     leftRail.position.set(-0.42, 0.06, 0);
     walkway.add(leftRail);
-    
+
     const rightRail = leftRail.clone();
     rightRail.position.x = 0.42;
     walkway.add(rightRail);
-    
+
     gameScene.add(walkway);
   });
 
@@ -2173,31 +2106,31 @@ function initGame3D() {
   const portalDist = 24.0;
   const portalLen = portalDist - 2.0 - 3.2; // portal base radius is 3.2
   const portalBridgeDist = 2.0 + portalLen / 2;
-  
+
   const portalWalkwayTex = createWalkwayTexture();
   portalWalkwayTex.wrapT = THREE.RepeatWrapping;
   portalWalkwayTex.repeat.set(1, portalLen / 1.5);
   gameWalkwayTextures.push(portalWalkwayTex);
-  
+
   const portalWalkwayMat = new THREE.MeshBasicMaterial({
     map: portalWalkwayTex,
     transparent: true,
     opacity: 0.85
   });
-  
+
   const portalWalkway = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, portalLen), portalWalkwayMat);
   portalWalkway.position.set(0, -1.35, portalBridgeDist);
-  
+
   // Side glowing pink guide rails for exit portal bridge
   const portalRailMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
   const portalLeftRail = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, portalLen), portalRailMat);
   portalLeftRail.position.set(-0.42, 0.06, 0);
   portalWalkway.add(portalLeftRail);
-  
+
   const portalRightRail = portalLeftRail.clone();
   portalRightRail.position.x = 0.42;
   portalWalkway.add(portalRightRail);
-  
+
   gameScene.add(portalWalkway);
 
   // Build Nodes/Platforms
@@ -2205,14 +2138,14 @@ function initGame3D() {
   nodeDefs.forEach(def => {
     const nodeGroup = new THREE.Group();
     nodeGroup.position.set(def.x, 0, def.z);
-    
+
     // Base cylinder
     const baseGeom = new THREE.CylinderGeometry(2.5, 2.7, 0.4, 6);
     const baseMat = new THREE.MeshPhongMaterial({ color: 0x151030, shininess: 50, emissive: 0x0a0518 });
     const baseMesh = new THREE.Mesh(baseGeom, baseMat);
     baseMesh.position.y = -1.3;
     nodeGroup.add(baseMesh);
-    
+
     // Outer border ring
     const borderGeom = new THREE.TorusGeometry(2.6, 0.08, 8, 32);
     const borderMat = new THREE.MeshBasicMaterial({ color: def.color });
@@ -2221,11 +2154,11 @@ function initGame3D() {
     borderMesh.rotation.x = Math.PI / 2;
     borderMesh.position.y = -1.1;
     nodeGroup.add(borderMesh);
-    
+
     // 3D Sci-Fi Planet creation
     let iconMesh = new THREE.Group();
     iconMesh.position.y = 0.3;
-    
+
     // Core planet sphere
     const coreGeom = new THREE.SphereGeometry(0.8, 32, 32);
     const coreMat = new THREE.MeshPhongMaterial({
@@ -2237,7 +2170,7 @@ function initGame3D() {
     });
     const coreMesh = new THREE.Mesh(coreGeom, coreMat);
     iconMesh.add(coreMesh);
-    
+
     // Unique orbiting features for each planet
     if (def.id === "about") {
       // Purple plasma planet with outer energy lattice
@@ -2251,7 +2184,7 @@ function initGame3D() {
       const shellMesh = new THREE.Mesh(shellGeom, shellMat);
       shellMesh.name = "sub_shell";
       iconMesh.add(shellMesh);
-      
+
     } else if (def.id === "experience") {
       // Ringed planet (Saturn style)
       const ringGeom = new THREE.RingGeometry(1.2, 2.0, 32);
@@ -2266,53 +2199,53 @@ function initGame3D() {
       ringMesh.rotation.y = Math.PI / 12;
       ringMesh.name = "sub_ring";
       iconMesh.add(ringMesh);
-      
+
     } else if (def.id === "projects") {
       // Technology planet with energy orbits
       const orbitGroup = new THREE.Group();
       orbitGroup.name = "sub_orbits";
-      
+
       const ringGeom1 = new THREE.TorusGeometry(1.3, 0.02, 8, 48);
       const ringMat1 = new THREE.MeshBasicMaterial({ color: def.color });
       const ring1 = new THREE.Mesh(ringGeom1, ringMat1);
       orbitGroup.add(ring1);
-      
+
       const ring2 = new THREE.Mesh(ringGeom1, ringMat1);
       ring2.rotation.x = Math.PI / 2;
       orbitGroup.add(ring2);
-      
+
       const ring3 = new THREE.Mesh(ringGeom1, ringMat1);
       ring3.rotation.y = Math.PI / 2;
       orbitGroup.add(ring3);
-      
+
       iconMesh.add(orbitGroup);
-      
+
     } else if (def.id === "contact") {
       // Red planet with orbiting mini moons
       const moonGroup = new THREE.Group();
       moonGroup.name = "sub_moons";
-      
+
       const moonGeom = new THREE.SphereGeometry(0.16, 8, 8);
       const moonMat = new THREE.MeshPhongMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 0.5 });
-      
+
       const moon1 = new THREE.Mesh(moonGeom, moonMat);
       moon1.position.set(1.4, 0.2, 0);
       moonGroup.add(moon1);
-      
+
       const moon2 = new THREE.Mesh(moonGeom, moonMat);
       moon2.position.set(-1.4, -0.2, 0);
       moonGroup.add(moon2);
-      
+
       iconMesh.add(moonGroup);
     }
-    
+
     nodeGroup.add(iconMesh);
-    
+
     // Floating text label sprite above planet
     const nameSprite = createTextSprite(currentLang === 'vi' ? def.name : def.nameEn, '#' + def.color.toString(16).padStart(6, '0'));
     nameSprite.position.y = 2.0;
     nodeGroup.add(nameSprite);
-    
+
     // Beam cylinder light
     const beamGeom = new THREE.CylinderGeometry(1.5, 1.5, 3.5, 16, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({
@@ -2325,9 +2258,9 @@ function initGame3D() {
     const beamMesh = new THREE.Mesh(beamGeom, beamMat);
     beamMesh.position.y = 0.5;
     nodeGroup.add(beamMesh);
-    
+
     gameScene.add(nodeGroup);
-    
+
     gameNodes.push({
       group: nodeGroup,
       mesh: iconMesh,
@@ -2335,17 +2268,17 @@ function initGame3D() {
       def: def
     });
   });
-  
+
   // Listeners
   window.addEventListener("keydown", handleGameKeyDown);
   window.addEventListener("keyup", handleGameKeyUp);
   window.addEventListener("resize", handleGameResize);
-  
+
   // Drag rotate and right-click move listeners
   let isDragging = false;
   let prevX = 0;
   let prevY = 0;
-  
+
   window.addEventListener("pointerdown", (e) => {
     if (e.target.id === "canvas-game-3d") {
       if (e.button === 0 || e.pointerType === "touch") {
@@ -2363,20 +2296,20 @@ function initGame3D() {
       const mouse = new THREE.Vector2();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      
+
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, gameCamera);
-      
+
       const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
       const targetPoint = new THREE.Vector3();
       raycaster.ray.intersectPlane(plane, targetPoint);
-      
+
       const limit = 26;
       gamePlayerTargetPos = {
         x: Math.max(-limit, Math.min(limit, targetPoint.x)),
         z: Math.max(-limit, Math.min(limit, targetPoint.z))
       };
-      
+
       // Position and reveal the sky blue destination indicator dot/ring
       if (moveIndicator) {
         moveIndicator.position.set(gamePlayerTargetPos.x, -1.47, gamePlayerTargetPos.z);
@@ -2384,7 +2317,7 @@ function initGame3D() {
         moveIndicator.scale.set(1, 1, 1);
         moveIndicator.material.opacity = 0.85;
       }
-      
+
       if (typeof playBeep === 'function') {
         playBeep(650, 0.08, 'sine', 0.02);
       }
@@ -2433,27 +2366,27 @@ function initGame3D() {
       }
     }
   });
-  
+
   window.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
     const dx = e.clientX - prevX;
     const dy = e.clientY - prevY;
-    
+
     gameCameraYawAngle -= dx * 0.005;
     gameCameraPitchAngle = Math.max(0.1, Math.min(Math.PI / 2.2, gameCameraPitchAngle + dy * 0.005));
-    
+
     prevX = e.clientX;
     prevY = e.clientY;
   });
-  
+
   window.addEventListener("pointerup", () => {
     isDragging = false;
   });
-  
+
   // Touch joystick listener
   const zone = document.getElementById("joystick-zone");
   const handle = document.getElementById("joystick-handle");
-  
+
   if (zone && handle) {
     zone.addEventListener("touchstart", (e) => {
       const rect = zone.getBoundingClientRect();
@@ -2464,7 +2397,7 @@ function initGame3D() {
       joystickActive = true;
       e.preventDefault();
     });
-    
+
     zone.addEventListener("touchmove", (e) => {
       if (!joystickActive) return;
       const touch = e.touches[0];
@@ -2472,34 +2405,34 @@ function initGame3D() {
       const dy = touch.clientY - joystickStartPos.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const maxDist = 36;
-      
+
       const angle = Math.atan2(dy, dx);
       const finalDist = Math.min(dist, maxDist);
-      
+
       const px = Math.cos(angle) * finalDist;
       const py = Math.sin(angle) * finalDist;
-      
+
       handle.style.transform = `translate(${px}px, ${py}px)`;
-      
+
       joystickDir.x = Math.cos(angle) * (finalDist / maxDist);
       joystickDir.y = Math.sin(angle) * (finalDist / maxDist);
       e.preventDefault();
     });
-    
+
     const resetJoy = () => {
       joystickActive = false;
       handle.style.transform = "translate(0, 0)";
       joystickDir = { x: 0, y: 0 };
     };
-    
+
     zone.addEventListener("touchend", resetJoy);
     zone.addEventListener("touchcancel", resetJoy);
   }
-  
+
   // Portal Gate to Return to list view
   gamePortalGroup = new THREE.Group();
   gamePortalGroup.position.set(0, 1.0, 24);
-  
+
   // Portal ring frame
   const portalRingGeom = new THREE.TorusGeometry(2.5, 0.15, 16, 64);
   const portalRingMat = new THREE.MeshPhongMaterial({
@@ -2510,21 +2443,21 @@ function initGame3D() {
   });
   gamePortalRing = new THREE.Mesh(portalRingGeom, portalRingMat);
   gamePortalGroup.add(gamePortalRing);
-  
+
   // Portal vortex (swirling translucent field)
   const portalVortexGeom = new THREE.CircleGeometry(2.4, 32);
   const portalVortexCanvas = document.createElement('canvas');
   portalVortexCanvas.width = 256;
   portalVortexCanvas.height = 256;
   const portalVCtx = portalVortexCanvas.getContext('2d');
-  
+
   // Draw sci-fi radar/spiral grid on the portal vortex canvas
   portalVCtx.strokeStyle = '#f43f5e';
   portalVCtx.lineWidth = 4;
   portalVCtx.beginPath();
   portalVCtx.arc(128, 128, 110, 0, Math.PI * 2);
   portalVCtx.stroke();
-  
+
   portalVCtx.strokeStyle = 'rgba(244, 63, 94, 0.3)';
   portalVCtx.lineWidth = 2;
   for (let r = 20; r < 100; r += 20) {
@@ -2532,14 +2465,14 @@ function initGame3D() {
     portalVCtx.arc(128, 128, r, 0, Math.PI * 2);
     portalVCtx.stroke();
   }
-  
+
   portalVCtx.beginPath();
   portalVCtx.moveTo(128, 18);
   portalVCtx.lineTo(128, 238);
   portalVCtx.moveTo(18, 128);
   portalVCtx.lineTo(238, 128);
   portalVCtx.stroke();
-  
+
   const portalVortexTexture = new THREE.CanvasTexture(portalVortexCanvas);
   const portalVortexMat = new THREE.MeshBasicMaterial({
     map: portalVortexTexture,
@@ -2550,34 +2483,34 @@ function initGame3D() {
   });
   gamePortalVortex = new THREE.Mesh(portalVortexGeom, portalVortexMat);
   gamePortalGroup.add(gamePortalVortex);
-  
+
   // Add text label sprite above portal: "EXIT PORTAL"
   gamePortalSprite = createTextSprite(currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL', '#f43f5e');
   gamePortalSprite.position.y = 3.5;
   gamePortalGroup.add(gamePortalSprite);
-  
+
   // Underneath base
   const portalBaseGeom = new THREE.CylinderGeometry(3.2, 3.5, 0.6, 6);
   const portalBaseMat = new THREE.MeshPhongMaterial({ color: 0x151030, shininess: 50 });
   const portalBase = new THREE.Mesh(portalBaseGeom, portalBaseMat);
   portalBase.position.y = -2.0;
   gamePortalGroup.add(portalBase);
-  
+
   gameScene.add(gamePortalGroup);
 
   updateGameCameraPosition();
-  
+
   gameInitialized = true;
   gameAnimate();
 }
 
 function updateGameCameraPosition() {
   if (!gameCamera || !gamePlayer) return;
-  
+
   const ox = Math.sin(gameCameraYawAngle) * Math.cos(gameCameraPitchAngle) * gameCameraRadius;
   const oy = Math.sin(gameCameraPitchAngle) * gameCameraRadius;
   const oz = Math.cos(gameCameraYawAngle) * Math.cos(gameCameraPitchAngle) * gameCameraRadius;
-  
+
   gameCamera.position.set(gamePlayer.position.x + ox, gamePlayer.position.y + oy, gamePlayer.position.z + oz);
   gameCamera.lookAt(gamePlayer.position.x, gamePlayer.position.y + 0.5, gamePlayer.position.z);
 }
@@ -2585,7 +2518,7 @@ function updateGameCameraPosition() {
 function handleGameKeyDown(e) {
   if (activeModalNode) return;
   if (document.getElementById("bootloader-overlay")) return;
-  
+
   // Cancel auto target pathing on keyboard input
   gamePlayerTargetPos = null;
 
@@ -2618,31 +2551,31 @@ function handleGameResize() {
 function gameAnimate() {
   if (!is3DMode) return;
   gameAnimationId = requestAnimationFrame(gameAnimate);
-  
+
   const time = performance.now() * 0.002;
-  
+
   if (gamePlayer && !activeModalNode && !document.getElementById("bootloader-overlay")) {
     gamePlayer.position.y = 0.5 + Math.sin(time * 2) * 0.12;
     gamePlayer.children[1].rotation.z += 0.015;
     gamePlayer.children[2].scale.setScalar(0.95 + Math.sin(time * 6) * 0.05);
-    
+
     // Pulsate bottom engine energy orb sphere
     if (gamePlayer.children[4]) {
       gamePlayer.children[4].scale.setScalar(0.9 + Math.sin(time * 8) * 0.1);
     }
-    
+
     const speed = 0.22;
     let dx = 0;
     let dz = 0;
-    
+
     const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(gameCamera.quaternion);
     camForward.y = 0;
     camForward.normalize();
-    
+
     const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(gameCamera.quaternion);
     camRight.y = 0;
     camRight.normalize();
-    
+
     if (joystickActive) {
       gamePlayerTargetPos = null;
       dx = (camForward.x * -joystickDir.y + camRight.x * joystickDir.x) * speed;
@@ -2666,45 +2599,45 @@ function gameAnimate() {
     } else {
       let moveForward = 0;
       let moveRight = 0;
-      
+
       if (keysPressed.w || keysPressed.ArrowUp) moveForward += 1;
       if (keysPressed.s || keysPressed.ArrowDown) moveForward -= 1;
       if (keysPressed.a || keysPressed.ArrowLeft) moveRight -= 1;
       if (keysPressed.d || keysPressed.ArrowRight) moveRight += 1;
-      
+
       dx = (camForward.x * moveForward + camRight.x * moveRight) * speed;
       dz = (camForward.z * moveForward + camRight.z * moveRight) * speed;
     }
-    
+
     gamePlayer.position.x += dx;
     gamePlayer.position.z += dz;
-    
+
     const limit = 26;
     gamePlayer.position.x = Math.max(-limit, Math.min(limit, gamePlayer.position.x));
     gamePlayer.position.z = Math.max(-limit, Math.min(limit, gamePlayer.position.z));
-    
+
     if (dx !== 0 || dz !== 0) {
       const targetAngle = Math.atan2(dx, dz);
       gamePlayer.rotation.y = targetAngle;
     }
   }
-  
+
   let closestNode = null;
   let minDistance = Infinity;
-  
+
   // Rotate and animate the multi-layered Gyroscopic Reactor Core underneath
   if (gameUnderGlobe) {
     gameUnderGlobe.rotation.y += 0.0008; // slow master rotation
-    
+
     const g1 = gameUnderGlobe.getObjectByName("gimbal_1");
     const g2 = gameUnderGlobe.getObjectByName("gimbal_2");
     const g3 = gameUnderGlobe.getObjectByName("gimbal_3");
     const innerCore = gameUnderGlobe.getObjectByName("inner_core");
-    
+
     if (g1) g1.rotation.z += 0.006;
     if (g2) g2.rotation.x -= 0.005;
     if (g3) g3.rotation.y += 0.004;
-    
+
     if (innerCore) {
       innerCore.rotation.y -= 0.008;
       // Pulse inner core size dynamically
@@ -2743,7 +2676,7 @@ function gameAnimate() {
       if (sphere) {
         sphere.rotation.y += 0.002 * (idx % 2 === 0 ? 1 : -1);
       }
-      
+
       // Specifically spin the green cyber grid shell on planet C (index 2)
       if (idx === 2) {
         const gridShell = pGroup.getObjectByName("grid_shell");
@@ -2761,7 +2694,7 @@ function gameAnimate() {
     const ring2 = centralCoreGroup.children[2];
     if (ring1) ring1.rotation.z += 0.01;
     if (ring2) ring2.rotation.z -= 0.008;
-    
+
     const dish = centralCoreGroup.getObjectByName("station_dish");
     if (dish) {
       dish.rotation.z += 0.005;
@@ -2782,7 +2715,7 @@ function gameAnimate() {
       nextScale = 1.0;
     }
     gameSweepRing.scale.set(nextScale, nextScale, 1);
-    
+
     const progress = nextScale / 45;
     gameSweepRing.material.opacity = Math.max(0, (1.0 - progress) * 0.4);
   }
@@ -2836,7 +2769,7 @@ function gameAnimate() {
     // Rotate core planet sphere
     const spinSpeed = node.isHovered ? 0.035 : 0.008;
     node.mesh.rotation.y += spinSpeed;
-    
+
     // Rotate the sub-elements for each specific planet style
     node.mesh.children.forEach(child => {
       if (child.name === "sub_shell") {
@@ -2858,40 +2791,40 @@ function gameAnimate() {
       const time = performance.now() * 0.0015;
       node.sprite.position.y = 2.0 + Math.sin(time * 2.0 + node.group.position.x) * 0.08;
     }
-    
+
     const dist = gamePlayer.position.distanceTo(node.group.position);
     if (dist < minDistance) {
       minDistance = dist;
       closestNode = node;
     }
   });
-  
+
   // Animate exit portal and check for collision to warp back to list view
   if (gamePortalGroup && gamePortalVortex && gamePortalRing && gamePlayer) {
     gamePortalVortex.rotation.z += 0.015;
     const scalePulse = 1.0 + Math.sin(performance.now() * 0.003) * 0.04;
     gamePortalRing.scale.set(scalePulse, scalePulse, 1.0);
-    
+
     if (gamePortalSprite) {
       gamePortalSprite.lookAt(gameCamera.position);
     }
-    
+
     const portalDist = gamePlayer.position.distanceTo(gamePortalGroup.position);
     if (portalDist < 3.2 && is3DMode) {
       // Set position back to origin to prevent double triggering
       gamePlayer.position.set(0, 0.5, 0);
       gamePlayerTargetPos = null;
-      
+
       const exitBtn = document.getElementById("exit-3d-btn") || document.getElementById("view-mode-btn");
       if (exitBtn) {
         exitBtn.click();
       }
     }
   }
-  
+
   const interactionHud = document.getElementById("interaction-hud");
   const interactionText = document.getElementById("interaction-text");
-  
+
   if (minDistance < 3.8 && closestNode && !activeModalNode) {
     if (interactionHud && interactionText) {
       interactionHud.classList.remove("hidden");
@@ -2901,7 +2834,7 @@ function gameAnimate() {
       interactionText.setAttribute("data-vi", viMsg);
       interactionText.setAttribute("data-en", enMsg);
     }
-    
+
     // Update bottom-left location HUD text
     const locText = document.getElementById("current-location-text");
     if (locText) {
@@ -2910,7 +2843,7 @@ function gameAnimate() {
         locText.textContent = displayVal;
       }
     }
-    
+
     if (minDistance < 2.0 && !activeModalNode && lastOpenedNode !== closestNode.def.id) {
       lastOpenedNode = closestNode.def.id;
       openGameModal(closestNode.def);
@@ -2931,7 +2864,7 @@ function gameAnimate() {
       }
     }
   }
-  
+
   if (gameStars && gameStars.geometry && gameStars.geometry.attributes.position) {
     const pos = gameStars.geometry.attributes.position.array;
     for (let i = 2; i < pos.length; i += 3) {
@@ -2939,8 +2872,8 @@ function gameAnimate() {
       pos[i] -= speed;
       if (pos[i] < -200) {
         pos[i] = 200;
-        pos[i-2] = (Math.random() - 0.5) * 200;
-        pos[i-1] = (Math.random() - 0.5) * 150 + 20;
+        pos[i - 2] = (Math.random() - 0.5) * 200;
+        pos[i - 1] = (Math.random() - 0.5) * 150 + 20;
       }
     }
     gameStars.geometry.attributes.position.needsUpdate = true;
@@ -2965,13 +2898,13 @@ function openGameModal(nodeDef) {
   const modal = document.getElementById("game-modal");
   const content = document.getElementById("game-modal-content");
   if (!modal || !content) return;
-  
+
   activeModalNode = nodeDef.id;
-  
+
   if (typeof playBeep === 'function') {
     playBeep(880, 0.18, 'sine', 0.04);
   }
-  
+
   const srcSection = document.getElementById(nodeDef.targetId);
   if (srcSection) {
     content.innerHTML = `
@@ -2990,11 +2923,11 @@ function openGameModal(nodeDef) {
         </div>
       </div>
     `;
-    
+
     if (nodeDef.targetId === "contact") {
       setupContactForm();
     }
-    
+
     // Force active state on cloned timeline items inside modal
     const clonedItems = content.querySelectorAll(".timeline-item");
     clonedItems.forEach(item => {
@@ -3008,7 +2941,7 @@ function openGameModal(nodeDef) {
 
     updateLanguageUI();
   }
-  
+
   modal.classList.remove("hidden");
   setTimeout(() => {
     modal.classList.remove("opacity-0");
@@ -3018,13 +2951,13 @@ function openGameModal(nodeDef) {
 function closeGameModal() {
   const modal = document.getElementById("game-modal");
   if (!modal) return;
-  
+
   modal.classList.add("opacity-0");
   setTimeout(() => {
     modal.classList.add("hidden");
     activeModalNode = null;
   }, 300);
-  
+
   if (typeof playBeep === 'function') {
     playBeep(440, 0.1, 'sine', 0.04);
   }
@@ -3041,7 +2974,7 @@ function updateGameLanguageUI() {
       node.sprite.material.needsUpdate = true;
     }
   });
-  
+
   if (gamePortalSprite) {
     const portalText = currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL';
     const texture = createTextTexture(portalText, '#f43f5e');
@@ -3056,15 +2989,15 @@ function triggerSpaceTransition(callback, isExit = false) {
   const hud = document.getElementById("instructions-hud");
   const interaction = document.getElementById("interaction-hud");
   const transTitle = document.getElementById("transition-title");
-  
+
   if (!loader) {
     if (callback) callback();
     return;
   }
-  
+
   // Set active state to accelerate background stars
   transitionLoadingActive = true;
-  
+
   // Update loader title based on enter/exit
   if (transTitle) {
     if (isExit) {
@@ -3086,7 +3019,7 @@ function triggerSpaceTransition(callback, isExit = false) {
   // Force reflow
   loader.offsetHeight;
   loader.style.opacity = "1";
-  
+
   // Fade out 3D models so only stars show in Three.js
   if (gamePlayer) gamePlayer.visible = false;
   if (gameUnderGlobe) gameUnderGlobe.visible = false;
@@ -3094,28 +3027,28 @@ function triggerSpaceTransition(callback, isExit = false) {
   gameNodes.forEach(node => {
     if (node.group) node.group.visible = false;
   });
-  
+
   if (joystick) joystick.style.opacity = "0";
   if (hud) hud.style.opacity = "0";
   if (interaction) interaction.classList.add("hidden");
-  
+
   const bar = document.getElementById("transition-progress-bar");
   const percentText = document.getElementById("transition-percentage");
   const statusText = document.getElementById("transition-status");
-  
+
   let progress = 0;
-  
+
   const tick = () => {
     progress += Math.floor(Math.random() * 3) + 1;
     if (progress > 100) progress = 100;
-    
+
     if (bar) bar.style.width = `${progress}%`;
     if (percentText) percentText.textContent = `${progress}%`;
-    
+
     if (progress % 4 === 0 && typeof playScrambleChirp === 'function') {
       playScrambleChirp();
     }
-    
+
     if (statusText) {
       if (isExit) {
         if (progress < 25) {
@@ -3139,34 +3072,34 @@ function triggerSpaceTransition(callback, isExit = false) {
         }
       }
     }
-    
+
     if (progress < 100) {
       setTimeout(tick, 15 + Math.random() * 15);
     } else {
       if (typeof playSuccessChime === 'function') {
         playSuccessChime();
       }
-      
+
       if (isExit) {
         const mainContent = document.getElementById("main-content");
         const gameContainer = document.getElementById("game-container");
         const canvasBg = document.getElementById("canvas-bg");
         const mainNav = document.getElementById("main-nav");
         const text = document.getElementById("view-mode-text");
-        
+
         if (text) {
           text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
           text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
           text.setAttribute("data-en", "🎮 3D WORKSPACE");
         }
         if (mainNav) mainNav.classList.remove("hidden");
-        
+
         // Setup smooth cross-fade transitions
         if (gameContainer) {
           gameContainer.style.transition = "opacity 0.8s ease-in-out";
           gameContainer.style.opacity = "0";
         }
-        
+
         if (mainContent) {
           mainContent.style.transition = "opacity 0.8s ease-in-out";
           mainContent.style.opacity = "0";
@@ -3174,7 +3107,7 @@ function triggerSpaceTransition(callback, isExit = false) {
           mainContent.offsetHeight; // trigger reflow
           mainContent.style.opacity = "1";
         }
-        
+
         if (canvasBg) {
           canvasBg.style.transition = "opacity 0.8s ease-in-out";
           canvasBg.style.opacity = "0";
@@ -3182,14 +3115,14 @@ function triggerSpaceTransition(callback, isExit = false) {
           canvasBg.offsetHeight; // trigger reflow
           canvasBg.style.opacity = "1";
         }
-        
+
         // Fade out transition loader itself
         loader.style.opacity = "0";
-        
+
         setTimeout(() => {
           loader.classList.add("hidden");
           transitionLoadingActive = false;
-          
+
           if (gameContainer) {
             gameContainer.classList.add("hidden");
             gameContainer.style.opacity = "";
@@ -3202,7 +3135,7 @@ function triggerSpaceTransition(callback, isExit = false) {
             canvasBg.style.transition = "";
             canvasBg.style.opacity = "";
           }
-          
+
           stopGame3D();
           if (callback) callback();
         }, 800);
@@ -3212,7 +3145,7 @@ function triggerSpaceTransition(callback, isExit = false) {
         setTimeout(() => {
           loader.classList.add("hidden");
           transitionLoadingActive = false;
-          
+
           // Show space station 3D world elements
           if (gamePlayer) gamePlayer.visible = true;
           if (gameUnderGlobe) gameUnderGlobe.visible = true;
@@ -3220,7 +3153,7 @@ function triggerSpaceTransition(callback, isExit = false) {
           gameNodes.forEach(node => {
             if (node.group) node.group.visible = true;
           });
-          
+
           const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
           const joystickZone = document.getElementById("joystick-zone");
           const locationHud = document.getElementById("location-hud-container");
@@ -3235,13 +3168,13 @@ function triggerSpaceTransition(callback, isExit = false) {
             }
           }
           if (hud) hud.style.opacity = "1";
-          
+
           if (callback) callback();
         }, 600);
       }
     }
   };
-  
+
   setTimeout(tick, 150);
 }
 
@@ -3252,9 +3185,9 @@ function setupViewModeToggle() {
   const gameContainer = document.getElementById("game-container");
   const canvasBg = document.getElementById("canvas-bg");
   const mainNav = document.getElementById("main-nav");
-  
+
   if (!btn) return;
-  
+
   const updateToggleUI = (skipTransition = false) => {
     // Keep 3D game and main content hidden while the first-load bootloader overlay is active
     if (document.getElementById("bootloader-overlay")) {
@@ -3270,23 +3203,23 @@ function setupViewModeToggle() {
       text.setAttribute("data-vi", "📄 CHẾ ĐỘ THƯỜNG");
       text.setAttribute("data-en", "📄 LIST VIEW");
       if (mainNav) mainNav.classList.add("hidden");
-      
+
       if (!skipTransition) {
         // Accelerate background stars of canvas-bg
         starfieldSpeedMultiplier = 20.0;
-        
+
         // Fade out regular page content
         mainContent.style.transition = "opacity 0.5s ease-out";
         mainContent.style.opacity = "0";
-        
+
         setTimeout(() => {
           mainContent.classList.add("hidden");
           gameContainer.classList.remove("hidden");
           canvasBg.style.display = "none";
-          
+
           // Reset 2D background speed multiplier
           starfieldSpeedMultiplier = 1.0;
-          
+
           initGame3D();
           triggerSpaceTransition();
         }, 500);
@@ -3295,12 +3228,12 @@ function setupViewModeToggle() {
         mainContent.classList.add("hidden");
         gameContainer.classList.remove("hidden");
         canvasBg.style.display = "none";
-        
+
         initGame3D();
-        
+
         const loader = document.getElementById("transition-loader");
         if (loader) loader.classList.add("hidden");
-        
+
         if (gamePlayer) gamePlayer.visible = true;
         if (gameUnderGlobe) gameUnderGlobe.visible = true;
         if (gamePortalGroup) gamePortalGroup.visible = true;
@@ -3332,17 +3265,17 @@ function setupViewModeToggle() {
         text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
         text.setAttribute("data-en", "🎮 3D WORKSPACE");
         if (mainNav) mainNav.classList.remove("hidden");
-        
+
         mainContent.style.opacity = "";
         mainContent.classList.remove("hidden");
         gameContainer.classList.add("hidden");
         canvasBg.style.display = "block";
-        
+
         stopGame3D();
       }
     }
   };
-  
+
   btn.addEventListener("click", () => {
     is3DMode = !is3DMode;
     localStorage.setItem("view-mode-3d", is3DMode);
@@ -3384,14 +3317,14 @@ function setupViewModeToggle() {
       }
     });
   }
-  
+
   const savedMode = localStorage.getItem("view-mode-3d");
   if (savedMode !== null) {
     is3DMode = savedMode === "true";
   } else {
     is3DMode = true; // Enabled by default
   }
-  
+
   updateToggleUI(true);
 }
 
@@ -3405,15 +3338,15 @@ window.addEventListener("DOMContentLoaded", () => {
   startBootloader();
   // Set up form handlers
   setupContactForm();
-  
+
   // Set up view mode toggle
   setupViewModeToggle();
-  
+
   // Bind instructions HUD collapsible header toggle
   const hudHeader = document.getElementById("hud-header");
   const hudContent = document.getElementById("hud-content");
   const hudToggleIcon = document.getElementById("hud-toggle-icon");
-  
+
   if (hudHeader && hudContent && hudToggleIcon) {
     hudHeader.addEventListener("click", () => {
       const isCollapsed = hudContent.classList.toggle("hidden");
@@ -3433,7 +3366,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (modalClose) {
     modalClose.addEventListener("click", closeGameModal);
   }
-  
+
   // Hide joystick on non-touch devices
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   const joystickZone = document.getElementById("joystick-zone");
@@ -3453,15 +3386,15 @@ window.addEventListener("DOMContentLoaded", () => {
       navigator.clipboard.writeText(email).then(() => {
         const toast = document.createElement("div");
         toast.className = "fixed bottom-5 right-5 bg-[#10b981] text-white py-3 px-6 rounded-xl font-bold z-50 shadow-lg flex items-center gap-2 transform translate-y-20 transition-all duration-300";
-        const msg = currentLang === 'vi' 
-          ? `Đã sao chép email: ${email}!` 
+        const msg = currentLang === 'vi'
+          ? `Đã sao chép email: ${email}!`
           : `Copied email: ${email}!`;
         toast.innerHTML = `
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
           ${msg}
         `;
         document.body.appendChild(toast);
-        
+
         if (typeof playSuccessChime === 'function') {
           playSuccessChime();
         }
@@ -3623,13 +3556,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
       try {
         const responseText = await askGemini(query, chatHistory);
-        
+
         // Remove loading bubble
         if (loadingBubble) loadingBubble.remove();
 
         // Append bot bubble
         appendMessage("bot", responseText);
-        
+
         // Save history
         chatHistory.push({ role: "user", text: query });
         chatHistory.push({ role: "bot", text: responseText });
@@ -3641,8 +3574,8 @@ window.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         console.error(err);
         if (loadingBubble) loadingBubble.remove();
-        appendMessage("bot", (currentLang === "vi" 
-          ? "Đã xảy ra lỗi kết nối với hệ thống AI của trạm: " 
+        appendMessage("bot", (currentLang === "vi"
+          ? "Đã xảy ra lỗi kết nối với hệ thống AI của trạm: "
           : "Connection error with the station AI system: ") + err.message);
       } finally {
         isLoading = false;
@@ -3661,11 +3594,11 @@ window.addEventListener("DOMContentLoaded", () => {
       msgDiv.className = "flex gap-2 " + (sender === "user" ? "justify-end" : "");
 
       const avatar = document.createElement("div");
-      avatar.className = sender === "user" 
+      avatar.className = sender === "user"
         ? "w-6 h-6 rounded-md bg-cyan-500/10 flex justify-center items-center text-[#06b6d4] flex-shrink-0 order-2"
         : "w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0";
-      avatar.innerHTML = sender === "user" 
-        ? '<i class="fa-solid fa-user text-[10px]"></i>' 
+      avatar.innerHTML = sender === "user"
+        ? '<i class="fa-solid fa-user text-[10px]"></i>'
         : '<i class="fa-solid fa-robot text-[10px]"></i>';
 
       const bubble = document.createElement("div");
@@ -3704,7 +3637,7 @@ window.addEventListener("DOMContentLoaded", () => {
     async function askGemini(userMessage, history) {
       const apiKey = 'AIzaSyDMAfA0lZN2Sczruue7nLvdvmtYnWInHiM';
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      
+
       const contents = history.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.text }]

@@ -44,6 +44,17 @@ if (!fs.existsSync(distJsDir)) {
   fs.mkdirSync(distJsDir);
 }
 
+// Sao chép các tệp JS thư viện khác (như three.min.js) sang dist/js
+const jsSrcDir = path.join(__dirname, 'js');
+if (fs.existsSync(jsSrcDir)) {
+  fs.readdirSync(jsSrcDir).forEach(file => {
+    if (file !== 'app.js' && file.endsWith('.js')) {
+      fs.copyFileSync(path.join(jsSrcDir, file), path.join(distJsDir, file));
+      console.log(`📦 Đang sao chép thư viện: ${file}`);
+    }
+  });
+}
+
 // 3. Tiến hành mã hóa tệp js/app.js sang dist/js/app.js
 console.log("🔒 Đang mã hóa tệp JS bằng javascript-obfuscator (vui lòng chờ)...");
 try {
