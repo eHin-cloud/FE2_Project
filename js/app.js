@@ -1418,9 +1418,6 @@ function initGame3D() {
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
   gameCameraPitchAngle = 0.5;
-  gameWalkwayTextures = [];
-  gameSweepRing = null;
-  gameFenceBeacons = [];
 
   if (gameInitialized) {
     if (!gameAnimationId) {
@@ -1429,6 +1426,10 @@ function initGame3D() {
     window.dispatchEvent(new Event('resize'));
     return;
   }
+
+  gameWalkwayTextures = [];
+  gameSweepRing = null;
+  gameFenceBeacons = [];
 
   const canvas = document.getElementById("canvas-game-3d");
   if (!canvas) return;
