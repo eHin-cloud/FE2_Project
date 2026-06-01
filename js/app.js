@@ -1283,27 +1283,78 @@ function initGame3D() {
   gameTechFloor.position.y = -1.48; // resting slightly above the gridHelper line floor
   gameScene.add(gameTechFloor);
   
-  // Giant rotating hologram planet underneath the scene grid
-  const globeGeom = new THREE.SphereGeometry(30, 24, 24);
+  // Multi-layered Gyroscopic Energy Reactor Core deep below grid floor
+  gameUnderGlobe = new THREE.Group();
+  gameUnderGlobe.position.set(0, -28, 0); // Positioned deep below grid floor
+  
+  // 1. Pulsing Inner Core Singularity (Core Sphere)
+  const innerCoreGeom = new THREE.SphereGeometry(8, 16, 16);
+  const innerCoreMat = new THREE.MeshBasicMaterial({
+    color: 0xd946ef,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.35
+  });
+  const innerCore = new THREE.Mesh(innerCoreGeom, innerCoreMat);
+  innerCore.name = "inner_core";
+  gameUnderGlobe.add(innerCore);
+  
+  // Inner solid core center light orb
+  const innerSolidGeom = new THREE.SphereGeometry(3.5, 16, 16);
+  const innerSolidMat = new THREE.MeshBasicMaterial({
+    color: 0xff00ff,
+    transparent: true,
+    opacity: 0.6
+  });
+  const innerSolid = new THREE.Mesh(innerSolidGeom, innerSolidMat);
+  innerCore.add(innerSolid);
+  
+  // 2. Middle Holographic Grid Matrix Shell
+  const globeGeom = new THREE.SphereGeometry(24, 24, 24);
   const globeMat = new THREE.MeshBasicMaterial({
     color: 0x06b6d4,
     wireframe: true,
     transparent: true,
     opacity: 0.12
   });
-  gameUnderGlobe = new THREE.Mesh(globeGeom, globeMat);
-  gameUnderGlobe.position.set(0, -28, 0); // Positioned deep below grid floor
+  const middleShell = new THREE.Mesh(globeGeom, globeMat);
+  gameUnderGlobe.add(middleShell);
   
-  // Floating grid equator ring
-  const equatorGeom = new THREE.TorusGeometry(32, 0.15, 8, 64);
-  const equatorMat = new THREE.MeshBasicMaterial({
+  // 3. Gyroscopic Gimbal Rings (3-axis Armillary rings)
+  // Axis 1: Equator (Horizontal Ring)
+  const ringGeom1 = new THREE.TorusGeometry(26, 0.25, 8, 64);
+  const ringMat1 = new THREE.MeshBasicMaterial({
     color: 0x915eff,
     transparent: true,
-    opacity: 0.2
+    opacity: 0.3
   });
-  const equatorRing = new THREE.Mesh(equatorGeom, equatorMat);
-  equatorRing.rotation.x = Math.PI / 2;
-  gameUnderGlobe.add(equatorRing);
+  const gimbalRing1 = new THREE.Mesh(ringGeom1, ringMat1);
+  gimbalRing1.name = "gimbal_1";
+  gimbalRing1.rotation.x = Math.PI / 2;
+  gameUnderGlobe.add(gimbalRing1);
+  
+  // Axis 2: Meridian Y (Vertical X-aligned Ring)
+  const ringGeom2 = new THREE.TorusGeometry(26.4, 0.2, 8, 64);
+  const ringMat2 = new THREE.MeshBasicMaterial({
+    color: 0x06b6d4,
+    transparent: true,
+    opacity: 0.25
+  });
+  const gimbalRing2 = new THREE.Mesh(ringGeom2, ringMat2);
+  gimbalRing2.name = "gimbal_2";
+  gimbalRing2.rotation.y = Math.PI / 2;
+  gameUnderGlobe.add(gimbalRing2);
+  
+  // Axis 3: Meridian Z (Vertical Z-aligned Ring)
+  const ringGeom3 = new THREE.TorusGeometry(26.8, 0.2, 8, 64);
+  const ringMat3 = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e,
+    transparent: true,
+    opacity: 0.25
+  });
+  const gimbalRing3 = new THREE.Mesh(ringGeom3, ringMat3);
+  gimbalRing3.name = "gimbal_3";
+  gameUnderGlobe.add(gimbalRing3);
   
   gameScene.add(gameUnderGlobe);
   
@@ -1977,10 +2028,25 @@ function gameAnimate() {
   let closestNode = null;
   let minDistance = Infinity;
   
-  // Rotate the giant hologram planet underneath
+  // Rotate and animate the multi-layered Gyroscopic Reactor Core underneath
   if (gameUnderGlobe) {
-    gameUnderGlobe.rotation.y += 0.0015;
-    gameUnderGlobe.rotation.x += 0.0008;
+    gameUnderGlobe.rotation.y += 0.0008; // slow master rotation
+    
+    const g1 = gameUnderGlobe.getObjectByName("gimbal_1");
+    const g2 = gameUnderGlobe.getObjectByName("gimbal_2");
+    const g3 = gameUnderGlobe.getObjectByName("gimbal_3");
+    const innerCore = gameUnderGlobe.getObjectByName("inner_core");
+    
+    if (g1) g1.rotation.z += 0.006;
+    if (g2) g2.rotation.x -= 0.005;
+    if (g3) g3.rotation.y += 0.004;
+    
+    if (innerCore) {
+      innerCore.rotation.y -= 0.008;
+      // Pulse inner core size dynamically
+      const sc = 1.0 + Math.sin(time * 3) * 0.12;
+      innerCore.scale.set(sc, sc, sc);
+    }
   }
 
   // Twinkle star systems
