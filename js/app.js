@@ -408,6 +408,9 @@ function startBootloader() {
                   if (text) {
                     text.textContent = currentLang === "vi" ? "📄 CHẾ ĐỘ THƯỜNG" : "📄 LIST VIEW";
                   }
+                  const mainNav = document.getElementById("main-nav");
+                  if (mainNav) mainNav.classList.add("hidden");
+                  
                   mainContent.classList.add("hidden");
                   gameContainer.classList.remove("hidden");
                   canvasBg.style.display = "none";
