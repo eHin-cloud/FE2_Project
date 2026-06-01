@@ -1002,7 +1002,6 @@ let gameCameraYawAngle = 0;
 let gameCameraPitchAngle = 0.5; // default view pitch
 let gameCameraRadius = 16;
 let gameCameraTargetRadius = 16;
-let isCloseUpView = false;
 let gamePlayerTargetPos = null;
 
 const nodeDefs = [
@@ -1076,21 +1075,9 @@ function createTextSprite(text, color = '#ffffff') {
 }
 
 function initGame3D() {
-  isCloseUpView = false;
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
   gameCameraPitchAngle = 0.5;
-  const camToggleBtn = document.getElementById("cam-toggle-btn");
-  if (camToggleBtn) {
-    const textSpan = camToggleBtn.querySelector("span");
-    if (textSpan) {
-      const viText = "GÓC CẬN CẢNH";
-      const enText = "CLOSE-UP VIEW";
-      textSpan.textContent = currentLang === 'vi' ? viText : enText;
-      textSpan.setAttribute("data-vi", viText);
-      textSpan.setAttribute("data-en", enText);
-    }
-  }
 
   if (gameInitialized) {
     if (!gameAnimationId) {
@@ -2268,41 +2255,6 @@ function setupViewModeToggle() {
       updateToggleUI(false);
       if (typeof playBeep === 'function') {
         playBeep(900, 0.1, 'triangle', 0.05);
-      }
-    });
-  }
-
-  // Camera view angle toggle inside 3D space station
-  const camToggleBtn = document.getElementById("cam-toggle-btn");
-  if (camToggleBtn) {
-    camToggleBtn.addEventListener("click", () => {
-      isCloseUpView = !isCloseUpView;
-      if (isCloseUpView) {
-        gameCameraTargetRadius = 7.0;
-        // set close-up view tilt angle (pitch) slightly lower for dramatic angle
-        gameCameraPitchAngle = 0.3;
-        const viText = "GÓC TOÀN CẢNH";
-        const enText = "BIRD'S-EYE VIEW";
-        const textSpan = camToggleBtn.querySelector("span");
-        if (textSpan) {
-          textSpan.textContent = currentLang === 'vi' ? viText : enText;
-          textSpan.setAttribute("data-vi", viText);
-          textSpan.setAttribute("data-en", enText);
-        }
-      } else {
-        gameCameraTargetRadius = 16.0;
-        gameCameraPitchAngle = 0.5;
-        const viText = "GÓC CẬN CẢNH";
-        const enText = "CLOSE-UP VIEW";
-        const textSpan = camToggleBtn.querySelector("span");
-        if (textSpan) {
-          textSpan.textContent = currentLang === 'vi' ? viText : enText;
-          textSpan.setAttribute("data-vi", viText);
-          textSpan.setAttribute("data-en", enText);
-        }
-      }
-      if (typeof playBeep === 'function') {
-        playBeep(750, 0.08, 'sine', 0.04);
       }
     });
   }
