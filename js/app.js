@@ -2586,11 +2586,13 @@ function gameAnimate() {
   // Rotate and pulsate landing pad rings
   if (gameNodes && gameNodes.length > 0) {
     gameNodes.forEach(node => {
-      const ring = node.getObjectByName("pad_ring");
-      if (ring) {
-        ring.rotation.z += 0.012;
-        const sc = 1.0 + Math.sin(time * 4) * 0.06;
-        ring.scale.set(sc, sc, 1);
+      if (node.group) {
+        const ring = node.group.getObjectByName("pad_ring");
+        if (ring) {
+          ring.rotation.z += 0.012;
+          const sc = 1.0 + Math.sin(time * 4) * 0.06;
+          ring.scale.set(sc, sc, 1);
+        }
       }
     });
   }
