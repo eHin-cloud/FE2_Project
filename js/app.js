@@ -3013,9 +3013,19 @@ function triggerSpaceTransition(callback, isExit = false) {
 
   // Show loader overlay
   loader.classList.remove("hidden");
-  // Force reflow
-  loader.offsetHeight;
-  loader.style.opacity = "1";
+
+  if (isExit) {
+    // If exiting 3D, fade in loader smoothly over the 3D scene
+    loader.style.transition = "opacity 0.5s ease-out";
+    loader.style.opacity = "0";
+    // Force reflow
+    loader.offsetHeight;
+    loader.style.opacity = "1";
+  } else {
+    // If entering 3D, instantly show loader to block out 3D model loading
+    loader.style.transition = "none";
+    loader.style.opacity = "1";
+  }
 
   // Fade out 3D models so only stars show in Three.js
   if (gamePlayer) gamePlayer.visible = false;
@@ -3114,6 +3124,7 @@ function triggerSpaceTransition(callback, isExit = false) {
         }
 
         // Fade out transition loader itself
+        loader.style.transition = "opacity 0.6s ease-in-out";
         loader.style.opacity = "0";
 
         setTimeout(() => {
@@ -3137,19 +3148,20 @@ function triggerSpaceTransition(callback, isExit = false) {
           if (callback) callback();
         }, 800);
       } else {
+        // Show space station 3D world elements immediately so they fade in together with the background walkways/grid!
+        if (gamePlayer) gamePlayer.visible = true;
+        if (gameUnderGlobe) gameUnderGlobe.visible = true;
+        if (gamePortalGroup) gamePortalGroup.visible = true;
+        gameNodes.forEach(node => {
+          if (node.group) node.group.visible = true;
+        });
+
         // Fade out transition overlay (Enter flow)
+        loader.style.transition = "opacity 0.6s ease-in-out";
         loader.style.opacity = "0";
         setTimeout(() => {
           loader.classList.add("hidden");
           transitionLoadingActive = false;
-
-          // Show space station 3D world elements
-          if (gamePlayer) gamePlayer.visible = true;
-          if (gameUnderGlobe) gameUnderGlobe.visible = true;
-          if (gamePortalGroup) gamePortalGroup.visible = true;
-          gameNodes.forEach(node => {
-            if (node.group) node.group.visible = true;
-          });
 
           const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
           const joystickZone = document.getElementById("joystick-zone");
