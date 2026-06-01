@@ -980,6 +980,7 @@ let gameScene, gameCamera, gameRenderer;
 let gamePlayer;
 let gameNodes = [];
 let gameUnderGlobe;
+let centralCoreGroup = null;
 let moveIndicator;
 let gameStars = null;
 let gameInitialized = false;
@@ -1205,6 +1206,132 @@ function initGame3D() {
   gameScene.add(gamePlayer);
   gamePlayer.position.set(0, 0.5, 0);
   
+  // ==========================================================================
+  // CENTRAL SPACE STATION COMMAND CORE & CONNECTING BRIDGES
+  // ==========================================================================
+  centralCoreGroup = new THREE.Group();
+  centralCoreGroup.position.set(0, 0, 0);
+
+  // Main high-tech cylindrical core reactor tower
+  const reactorTowerGeom = new THREE.CylinderGeometry(1.6, 2.0, 5.0, 8);
+  const reactorTowerMat = new THREE.MeshPhongMaterial({
+    color: 0x0f172a,
+    emissive: 0x070c1e,
+    specular: 0x06b6d4,
+    shininess: 90,
+    flatShading: true
+  });
+  const reactorTower = new THREE.Mesh(reactorTowerGeom, reactorTowerMat);
+  reactorTower.position.y = -0.5; // aligned to go down slightly below grid floor
+  centralCoreGroup.add(reactorTower);
+
+  // Central glowing core energy rings
+  const reactorRingGeom1 = new THREE.TorusGeometry(2.1, 0.08, 8, 32);
+  const reactorRingMat1 = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+  const reactorRing1 = new THREE.Mesh(reactorRingGeom1, reactorRingMat1);
+  reactorRing1.rotation.x = Math.PI / 2;
+  reactorRing1.position.y = 0.8;
+  centralCoreGroup.add(reactorRing1);
+
+  const reactorRing2 = reactorRing1.clone();
+  reactorRing2.position.y = -1.2;
+  reactorRing2.scale.set(1.05, 1.05, 1);
+  reactorRing2.material = new THREE.MeshBasicMaterial({ color: 0x915eff });
+  centralCoreGroup.add(reactorRing2);
+
+  // Sci-Fi Tech Solar Array Panels (Left/Right Wings)
+  const solarWingGeom = new THREE.BoxGeometry(6.5, 0.04, 1.0);
+  const solarWingMat = new THREE.MeshPhongMaterial({
+    color: 0x0284c7,
+    emissive: 0x0c2540,
+    specular: 0xffffff,
+    shininess: 100
+  });
+
+  // Left Solar Wing
+  const leftWing = new THREE.Mesh(solarWingGeom, solarWingMat);
+  leftWing.position.set(-4.5, 1.0, 0);
+  centralCoreGroup.add(leftWing);
+
+  // Right Solar Wing
+  const rightWing = leftWing.clone();
+  rightWing.position.x = 4.5;
+  centralCoreGroup.add(rightWing);
+
+  // Antenna Mast & Rotating Sat Dish on top
+  const antennaMastGeom = new THREE.CylinderGeometry(0.1, 0.1, 2.0, 8);
+  const antennaMastMat = new THREE.MeshPhongMaterial({ color: 0x475569 });
+  const antennaMast = new THREE.Mesh(antennaMastGeom, antennaMastMat);
+  antennaMast.position.y = 2.8;
+  centralCoreGroup.add(antennaMast);
+
+  const dishGeom = new THREE.ConeGeometry(0.9, 0.35, 16, 1, true);
+  const dishMat = new THREE.MeshPhongMaterial({ color: 0x334155, side: THREE.DoubleSide });
+  const dishMesh = new THREE.Mesh(dishGeom, dishMat);
+  dishMesh.name = "station_dish";
+  dishMesh.position.y = 3.8;
+  dishMesh.rotation.x = -Math.PI / 4;
+  centralCoreGroup.add(dishMesh);
+
+  gameScene.add(centralCoreGroup);
+
+  // High-Tech Metal Walkway / Connectors to Node Platforms
+  const walkwayMat = new THREE.MeshPhongMaterial({
+    color: 0x1e293b,
+    specular: 0x06b6d4,
+    shininess: 45
+  });
+
+  nodeDefs.forEach(def => {
+    const dist = Math.hypot(def.x, def.z);
+    const dx = def.x / dist;
+    const dz = def.z / dist;
+    
+    // Calculate space between center reactor (radius ~2.0) and node base (radius ~2.5)
+    const len = dist - 2.0 - 2.5;
+    const bridgeDist = 2.0 + len / 2;
+    const px = bridgeDist * dx;
+    const pz = bridgeDist * dz;
+    
+    const walkwayGeom = new THREE.BoxGeometry(0.8, 0.08, len);
+    const walkway = new THREE.Mesh(walkwayGeom, walkwayMat);
+    walkway.position.set(px, -1.35, pz);
+    walkway.rotation.y = Math.atan2(def.x, def.z);
+    
+    // Add side glowing neon laser guide rails
+    const railGeom = new THREE.BoxGeometry(0.04, 0.12, len);
+    const railMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
+    
+    const leftRail = new THREE.Mesh(railGeom, railMat);
+    leftRail.position.set(-0.42, 0.06, 0);
+    walkway.add(leftRail);
+    
+    const rightRail = leftRail.clone();
+    rightRail.position.x = 0.42;
+    walkway.add(rightRail);
+    
+    gameScene.add(walkway);
+  });
+
+  // Walkway to Exit Portal (Portal at 0, 1, 24)
+  const portalDist = 24.0;
+  const portalLen = portalDist - 2.0 - 3.2; // portal base radius is 3.2
+  const portalBridgeDist = 2.0 + portalLen / 2;
+  const portalWalkway = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, portalLen), walkwayMat);
+  portalWalkway.position.set(0, -1.35, portalBridgeDist);
+  
+  // Side glowing pink guide rails for exit portal bridge
+  const portalRailMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+  const portalLeftRail = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, portalLen), portalRailMat);
+  portalLeftRail.position.set(-0.42, 0.06, 0);
+  portalWalkway.add(portalLeftRail);
+  
+  const portalRightRail = portalLeftRail.clone();
+  portalRightRail.position.x = 0.42;
+  portalWalkway.add(portalRightRail);
+  
+  gameScene.add(portalWalkway);
+
   // Build Nodes/Platforms
   gameNodes = [];
   nodeDefs.forEach(def => {
@@ -1700,6 +1827,19 @@ function gameAnimate() {
   if (gameUnderGlobe) {
     gameUnderGlobe.rotation.y += 0.0015;
     gameUnderGlobe.rotation.x += 0.0008;
+  }
+
+  // Rotate central station core elements (energy rings & radar array)
+  if (centralCoreGroup) {
+    const ring1 = centralCoreGroup.children[1];
+    const ring2 = centralCoreGroup.children[2];
+    if (ring1) ring1.rotation.z += 0.01;
+    if (ring2) ring2.rotation.z -= 0.008;
+    
+    const dish = centralCoreGroup.getObjectByName("station_dish");
+    if (dish) {
+      dish.rotation.z += 0.005;
+    }
   }
 
   // Animate destination indicator dot (sky blue ring)
