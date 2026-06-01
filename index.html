@@ -5,9 +5,9 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#050816">
-  <meta name="description" content="Portfolio 3D của Lê Thị Thanh Hiền - Sinh viên CNTT trường TDC, Front-End Developer & QA Software Tester.">
+  <meta name="description" content="Portfolio 3D của Nguyễn Thanh Hiền - Sinh viên CNTT trường TDC, Front-End Developer & QA Software Tester.">
   <meta name="keywords" content="frontend, backend, qa, testing, laravel, php, mysql, tdc, portfolio, three.js">
-  <meta name="author" content="Lê Thị Thanh Hiền">
+  <meta name="author" content="Nguyễn Thanh Hiền">
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,53 +21,124 @@
 <body class="bg-[#050816] text-white">
 
   <!-- ==========================================================================
-       BOOTLOADER / LOADER SCREEN OVERLAY
+       BOOTLOADER / LOADER SCREEN OVERLAY (SCI-FI TERMINAL)
        ========================================================================== -->
-  <div id="bootloader-overlay">
-    <div class="max-w-5xl w-full mx-4 grid md:grid-cols-2 gap-8 p-6 md:p-10 rounded-3xl bg-[#070919] border border-purple-900/30 shadow-2xl relative">
+  <div id="bootloader-overlay" class="crt-monitor">
+    <!-- Cyberpunk grid background -->
+    <div class="cyber-grid absolute inset-0 opacity-15 pointer-events-none"></div>
+    <!-- Scanline effect -->
+    <div class="scanlines absolute inset-0 pointer-events-none"></div>
+
+    <div class="max-w-5xl w-full mx-4 p-6 md:p-10 rounded-2xl bg-[#030511]/90 border border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden flex flex-col justify-between min-h-[500px]">
       
-      <!-- Left side: Compiler Diagnostics Log -->
-      <div class="flex flex-col justify-between min-h-[300px]">
-        <div>
-          <div class="flex items-center gap-2 mb-4">
-            <span class="w-3 h-3 rounded-full bg-red-500"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500"></span>
-            <span class="text-zinc-500 font-mono text-xs ml-2">sys_diagnostics.log</span>
-          </div>
-          <h2 class="text-xl font-bold font-display text-white mb-1 tracking-wider loader-glow-text">LÊ THỊ THANH HIỀN</h2>
-          <p class="text-zinc-500 text-xs font-mono mb-6">DIAGNOSTIC BOOTLOADER v2.0</p>
-          <div id="loader-terminal-logs" class="space-y-1 bg-[#02030a] p-4 rounded-xl border border-zinc-800/40 h-48 overflow-y-auto font-mono scrollbar-none">
-            <!-- Driven via js/app.js -->
-          </div>
+      <!-- Tech framing corner brackets -->
+      <div class="absolute top-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">┌── [SECURE_LINK]</div>
+      <div class="absolute top-3 right-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">[NODE_097] ──┐</div>
+      <div class="absolute bottom-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">└── [SYS_INITIAL]</div>
+      <div class="absolute bottom-3 right-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">[VER_9.8.4] ──┘</div>
+
+      <!-- Top Dashboard Status Bar -->
+      <div class="flex flex-wrap justify-between items-center border-b border-cyan-500/10 pb-4 mb-4 font-mono text-[10px] sm:text-xs text-cyan-400/80 gap-2">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></span>
+            <span class="font-bold text-cyan-400">NEURAL LINK: ACTIVE</span>
+          </span>
+          <span class="hidden sm:inline">|</span>
+          <span class="hidden sm:inline text-zinc-500">HOST: TDC_NET_ALPHA</span>
         </div>
-        
-        <div class="flex justify-between items-center mt-6">
-          <div class="flex flex-col">
-            <span class="text-zinc-500 text-[10px] uppercase font-mono tracking-widest">System Booting</span>
-            <span id="loader-percentage" class="text-2xl font-bold text-[#915eff]">0%</span>
-          </div>
-          
-          <button id="loader-start-btn" class="hidden px-6 py-2.5 bg-[#915eff] hover:bg-[#a855f7] active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-900/40 flex items-center gap-2">
-            <i class="fa-solid fa-play text-xs"></i> BẮT ĐẦU
-          </button>
+        <div class="flex items-center gap-4">
+          <span class="text-zinc-500">LOC: 10.8220° N, 106.7721° E</span>
+          <span>|</span>
+          <span id="loader-time" class="font-mono">SYS_CLOCK: --:--:--</span>
         </div>
       </div>
 
-      <!-- Right side: SVG Layout Wireframe Tracing -->
-      <div class="hidden md:flex justify-center items-center bg-[#02030a]/50 p-6 rounded-2xl border border-zinc-900/50">
-        <svg viewBox="0 0 350 250" class="w-full h-auto max-w-[320px]">
-          <!-- Header Mockup line -->
-          <path id="wf_header" d="M 10 20 L 340 20" class="loader-layout-path" />
-          <!-- Sidebar Mockup outline -->
-          <path id="wf_sidebar" d="M 10 30 L 100 30 L 100 230 L 10 230 Z" class="loader-layout-path" />
-          <!-- Workspace main box -->
-          <path id="wf_workspace" d="M 110 30 L 340 30 L 340 230 L 110 230 Z" class="loader-layout-path" />
-          <!-- Inner card 1 -->
-          <path id="wf_inner_1" d="M 120 40 L 330 40 L 330 120 L 120 120 Z" class="loader-layout-path" />
-          <!-- Inner card 2 -->
-          <path id="wf_inner_2" d="M 120 130 L 330 130 L 330 220 L 120 220 Z" class="loader-layout-path" />
-        </svg>
+      <div class="grid md:grid-cols-12 gap-8 items-center my-auto z-10">
+        <!-- Left Side: Terminal Diagnostics Console -->
+        <div class="md:col-span-7 flex flex-col justify-between min-h-[300px]">
+          <div>
+            <h2 class="text-2xl md:text-3xl font-black font-display tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 loader-glow-text mb-1 uppercase">
+              NGUYỄN THANH HIỀN
+            </h2>
+            <p class="text-zinc-500 text-xs font-mono mb-4 tracking-wider">A.I. NEURAL CORE INITIALIZATION // DIALOGS v3.5</p>
+            
+            <!-- Terminal Output Box -->
+            <div id="loader-terminal-logs" class="space-y-1.5 bg-[#02030a]/80 p-4 rounded-xl border border-cyan-500/20 shadow-inner h-52 overflow-y-auto font-mono text-xs text-cyan-300 scrollbar-none">
+              <!-- Dynamically populated via js/app.js -->
+            </div>
+          </div>
+          
+          <!-- Boot Percentage & Core Stabilizer Details -->
+          <div class="flex justify-between items-end mt-6">
+            <div class="flex flex-col font-mono">
+              <span class="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Quantum Core Alignment</span>
+              <div class="flex items-center gap-3">
+                <span id="loader-percentage" class="text-3xl font-bold text-cyan-400">0%</span>
+                <!-- Progress Bar HUD -->
+                <div class="w-32 h-2 bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-500/30">
+                  <div id="loader-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-75" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+            
+            <button id="loader-start-btn" class="hidden px-6 py-2.5 bg-transparent border-2 border-cyan-400 hover:bg-cyan-400/20 active:scale-95 text-cyan-400 font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] flex items-center gap-2 font-mono uppercase tracking-widest text-xs">
+              <i class="fa-solid fa-bolt text-xs animate-pulse"></i> ENGAGE LINK
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side: Rotating SVG Hologram/Radar HUD -->
+        <div class="hidden md:flex justify-center items-center relative p-4 md:col-span-5">
+          <!-- Multi-ring HUD visual -->
+          <div class="relative w-64 h-64 flex justify-center items-center">
+            
+            <!-- Outer dotted rotating ring -->
+            <svg class="absolute w-full h-full animate-[spin_20s_linear_infinite] text-cyan-500/30" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="1" stroke-dasharray="2, 4" fill="none" />
+            </svg>
+            
+            <!-- Mid solid segmented rotating ring -->
+            <svg class="absolute w-[85%] h-[85%] animate-[spin_12s_linear_infinite_reverse] text-purple-500/40" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="1.5" stroke-dasharray="15, 8, 45, 12" fill="none" />
+            </svg>
+            
+            <!-- Inner crosshair scanning ring -->
+            <svg class="absolute w-[70%] h-[70%] animate-[spin_6s_linear_infinite] text-cyan-400/60" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="0.75" stroke-dasharray="50, 10" fill="none" />
+              <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2, 2" />
+              <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2, 2" />
+            </svg>
+
+            <!-- Tech Radar Sweeper (scanning glow) -->
+            <div class="absolute w-[60%] h-[60%] rounded-full border border-cyan-500/20 overflow-hidden flex justify-center items-center">
+              <div class="absolute inset-0 bg-[conic-gradient(from_0deg,rgba(6,182,212,0.15),transparent_60%)] animate-[spin_3s_linear_infinite]"></div>
+              
+              <!-- Center glowing orb / neural node -->
+              <div class="w-8 h-8 rounded-full bg-cyan-400/20 border border-cyan-400 flex justify-center items-center shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-pulse">
+                <i class="fa-solid fa-atom text-cyan-400 text-xs animate-[spin_4s_linear_infinite]"></i>
+              </div>
+            </div>
+
+            <!-- Small diagnostic status reads surrounding HUD -->
+            <div class="absolute top-1 left-1 text-[8px] font-mono text-cyan-500/50">SYS_SENS_OK</div>
+            <div class="absolute top-1 right-1 text-[8px] font-mono text-purple-500/50">WARP_STB_98%</div>
+            <div class="absolute bottom-1 left-1 text-[8px] font-mono text-purple-500/50">DB_SYNC_99</div>
+            <div class="absolute bottom-1 right-1 text-[8px] font-mono text-cyan-500/50">QA_TEST_PASS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Tech Data Readouts -->
+      <div class="border-t border-cyan-500/10 pt-4 mt-4 flex flex-wrap justify-between items-center text-[9px] sm:text-[10px] font-mono text-zinc-500">
+        <div class="flex gap-4">
+          <span>MEM_ALLOC: 4.81 GB / 16.00 GB</span>
+          <span class="hidden sm:inline">|</span>
+          <span id="loader-matrix" class="hidden sm:inline text-cyan-500/50">HASH: 0x9F3E8A90B2...</span>
+        </div>
+        <div>
+          <span class="text-cyan-500/60 animate-pulse">SECURE ENCRYPTED HANDSHAKE IP-256</span>
+        </div>
       </div>
 
     </div>
@@ -92,31 +163,39 @@
 
     <!-- Desktop menu links -->
     <ul class="hidden md:flex gap-10 text-secondary text-base font-medium tracking-wide">
-      <li class="hover:text-white transition-colors"><a href="#about">Giới thiệu</a></li>
-      <li class="hover:text-white transition-colors"><a href="#experience">Kinh nghiệm</a></li>
-      <li class="hover:text-white transition-colors"><a href="#projects">Sản phẩm</a></li>
-      <li class="hover:text-white transition-colors"><a href="#contact">Liên hệ</a></li>
+      <li class="hover:text-white transition-colors"><a href="#about" data-vi="Giới thiệu" data-en="About">Giới thiệu</a></li>
+      <li class="hover:text-white transition-colors"><a href="#experience" data-vi="Kinh nghiệm" data-en="Experience">Kinh nghiệm</a></li>
+      <li class="hover:text-white transition-colors"><a href="#projects" data-vi="Sản phẩm" data-en="Projects">Sản phẩm</a></li>
+      <li class="hover:text-white transition-colors"><a href="#contact" data-vi="Liên hệ" data-en="Contact">Liên hệ</a></li>
     </ul>
 
-    <div class="hidden md:block">
-      <a href="https://github.com/eHingit" target="_blank" class="px-5 py-2 rounded-xl bg-[#1d1836] border border-purple-500/20 hover:border-purple-500/50 text-white font-semibold transition-all">
-        <i class="fa-brands fa-github mr-2"></i>GitHub
-      </a>
+    <div class="flex items-center gap-4">
+      <!-- Lang Toggle button -->
+      <button id="lang-toggle-btn" class="px-3 py-1.5 rounded-xl border border-cyan-500/20 hover:border-cyan-500/50 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
+        <i class="fa-solid fa-globe text-[10px]"></i>
+        <span id="lang-text">VI</span>
+      </button>
+
+      <div class="hidden md:block">
+        <a href="https://github.com/eHin-cloud" target="_blank" class="px-5 py-2 rounded-xl bg-[#1d1836] border border-purple-500/20 hover:border-purple-500/50 text-white font-semibold transition-all">
+          <i class="fa-brands fa-github mr-2"></i>GitHub
+        </a>
+      </div>
+
+      <!-- Mobile menu toggle -->
+      <button id="mobile-menu-btn" class="md:hidden text-white text-2xl focus:outline-none z-50">
+        <i id="menu-icon" class="fa-solid fa-bars"></i>
+        <i id="close-icon" class="fa-solid fa-xmark hidden"></i>
+      </button>
     </div>
 
-    <!-- Mobile menu toggle -->
-    <button id="mobile-menu-btn" class="md:hidden text-white text-2xl focus:outline-none z-50">
-      <i id="menu-icon" class="fa-solid fa-bars"></i>
-      <i id="close-icon" class="fa-solid fa-xmark hidden"></i>
-    </button>
-
     <!-- Mobile menu dropdown -->
-    <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#050816] border-b border-purple-900/30 p-6 flex flex-col gap-4 shadow-xl z-30">
-      <a href="#about" class="text-zinc-300 hover:text-white text-lg">Giới thiệu</a>
-      <a href="#experience" class="text-zinc-300 hover:text-white text-lg">Kinh nghiệm</a>
-      <a href="#projects" class="text-zinc-300 hover:text-white text-lg">Sản phẩm</a>
-      <a href="#contact" class="text-zinc-300 hover:text-white text-lg">Liên hệ</a>
-      <a href="https://github.com/eHingit" target="_blank" class="text-zinc-300 hover:text-white text-lg"><i class="fa-brands fa-github mr-2"></i>GitHub</a>
+    <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-[#050816] border-b border-purple-900/30 p-6 flex flex-col gap-4 shadow-xl z-30 font-mono text-sm">
+      <a href="#about" data-vi="Giới thiệu" data-en="About" class="text-zinc-300 hover:text-white text-lg">Giới thiệu</a>
+      <a href="#experience" data-vi="Kinh nghiệm" data-en="Experience" class="text-zinc-300 hover:text-white text-lg">Kinh nghiệm</a>
+      <a href="#projects" data-vi="Sản phẩm" data-en="Projects" class="text-zinc-300 hover:text-white text-lg">Sản phẩm</a>
+      <a href="#contact" data-vi="Liên hệ" data-en="Contact" class="text-zinc-300 hover:text-white text-lg">Liên hệ</a>
+      <a href="https://github.com/eHin-cloud" target="_blank" class="text-zinc-300 hover:text-white text-lg"><i class="fa-brands fa-github mr-2"></i>GitHub</a>
     </div>
   </nav>
 
@@ -136,17 +215,17 @@
 
         <div>
           <h1 class="text-white text-4xl md:text-6xl font-bold tracking-tight font-display leading-tight">
-            Xin chào, tôi là <span class="text-[#915eff]">Thanh Hiền</span>
+            <span data-vi="Xin chào, tôi là " data-en="Hello, I'm ">Xin chào, tôi là </span><span class="text-[#915eff]">Thanh Hiền</span>
           </h1>
           <p id="typing-desc" class="mt-4 text-[#dfd9ff] text-base md:text-xl font-medium leading-relaxed max-w-xl min-h-[60px]">
             <!-- Written dynamically by js/app.js typing animation -->
           </p>
           
           <div class="mt-8 flex flex-wrap gap-4">
-            <a href="#projects" class="px-6 py-3 bg-[#915eff] hover:bg-[#a855f7] text-white font-bold rounded-xl shadow-lg shadow-purple-900/40 hover:-translate-y-1 transition-all">
+            <a href="#projects" data-vi="Xem dự án" data-en="View Projects" class="px-6 py-3 bg-[#915eff] hover:bg-[#a855f7] text-white font-bold rounded-xl shadow-lg shadow-purple-900/40 hover:-translate-y-1 transition-all">
               Xem dự án
             </a>
-            <a href="#contact" class="px-6 py-3 border border-white/20 hover:border-white/50 text-white font-bold rounded-xl hover:-translate-y-1 transition-all">
+            <a href="#contact" data-vi="Liên hệ với tôi" data-en="Contact Me" class="px-6 py-3 border border-white/20 hover:border-white/50 text-white font-bold rounded-xl hover:-translate-y-1 transition-all">
               Liên hệ với tôi
             </a>
           </div>
@@ -173,11 +252,11 @@
        ========================================================================== -->
   <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="about">
     <div>
-      <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono">Giới thiệu chung</p>
-      <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1">Tổng quan.</h2>
+      <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Giới thiệu chung" data-en="Overview">Giới thiệu chung</p>
+      <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Tổng quan." data-en="Overview.">Tổng quan.</h2>
     </div>
 
-    <p class="mt-4 text-secondary text-base md:text-lg max-w-3xl leading-relaxed text-zinc-400">
+    <p class="mt-4 text-secondary text-base md:text-lg max-w-3xl leading-relaxed text-zinc-400" data-vi="Tôi là sinh viên chuyên ngành Công nghệ thông tin tại Trường Cao đẳng Công nghệ Thủ Đức (TDC). Với nền tảng lập trình web Backend vững chắc (PHP/Laravel/MySQL) kết hợp cùng kỹ năng kiểm thử phần mềm (QA / Manual Testing / API Postman) và lập trình giao diện Front-End, tôi tập trung tạo ra những trang web hiệu quả, có cấu trúc chuẩn hóa, code sạch và luôn đảm bảo chất lượng vận hành cao nhất thông qua quy trình test chặt chẽ." data-en="I am an Information Technology student at Thu Duc College of Technology (TDC). With a solid foundation in Backend web development (PHP/Laravel/MySQL) combined with software testing skills (QA / Manual Testing / API Postman) and Front-End development, I focus on building efficient, standardized, clean code websites and always ensuring the highest operational quality through rigorous testing processes.">
       Tôi là sinh viên chuyên ngành Công nghệ thông tin tại Trường Cao đẳng Công nghệ Thủ Đức (TDC). 
       Với nền tảng lập trình web Backend vững chắc (PHP/Laravel/MySQL) kết hợp cùng kỹ năng 
       kiểm thử phần mềm (QA / Manual Testing / API Postman) và lập trình giao diện Front-End, 
@@ -194,7 +273,7 @@
           <div class="w-16 h-16 rounded-2xl bg-purple-500/10 flex justify-center items-center text-[#915eff] text-3xl mb-6">
             <i class="fa-solid fa-laptop-code"></i>
           </div>
-          <h3 class="text-white text-xl font-bold">Front-End Developer</h3>
+          <h3 class="text-white text-xl font-bold" data-vi="Front-End Developer" data-en="Front-End Developer">Front-End Developer</h3>
         </div>
       </div>
 
@@ -204,7 +283,7 @@
           <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 flex justify-center items-center text-[#06b6d4] text-3xl mb-6">
             <i class="fa-solid fa-bug"></i>
           </div>
-          <h3 class="text-white text-xl font-bold">QA / Manual Tester</h3>
+          <h3 class="text-white text-xl font-bold" data-vi="QA / Manual Tester" data-en="QA / Manual Tester">QA / Manual Tester</h3>
         </div>
       </div>
 
@@ -214,7 +293,7 @@
           <div class="w-16 h-16 rounded-2xl bg-rose-500/10 flex justify-center items-center text-[#f43f5e] text-3xl mb-6">
             <i class="fa-solid fa-server"></i>
           </div>
-          <h3 class="text-white text-xl font-bold">PHP & Laravel Backend</h3>
+          <h3 class="text-white text-xl font-bold" data-vi="PHP & Laravel Backend" data-en="PHP & Laravel Backend">PHP & Laravel Backend</h3>
         </div>
       </div>
 
@@ -224,7 +303,7 @@
           <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex justify-center items-center text-[#10b981] text-3xl mb-6">
             <i class="fa-solid fa-database"></i>
           </div>
-          <h3 class="text-white text-xl font-bold">Database Architect</h3>
+          <h3 class="text-white text-xl font-bold" data-vi="Kiến trúc Cơ sở dữ liệu" data-en="Database Architect">Database Architect</h3>
         </div>
       </div>
 
@@ -237,8 +316,8 @@
   <section class="py-24 bg-[#0c102b]/40" id="experience">
     <div class="max-w-7xl mx-auto px-6 md:px-16">
       <div class="text-center mb-16">
-        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono">Chặng đường học tập & phát triển</p>
-        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1">Học vấn & Kinh nghiệm.</h2>
+        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Chặng đường học tập & phát triển" data-en="Academic & Professional Journey">Chặng đường học tập & phát triển</p>
+        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Học vấn & Kinh nghiệm." data-en="Education & Experience.">Học vấn & Kinh nghiệm.</h2>
       </div>
 
       <!-- Timeline Wrapper -->
@@ -247,13 +326,13 @@
         <!-- Timeline Item 1 -->
         <div class="timeline-item left-item">
           <div class="timeline-content">
-            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest">Năm 1 (2023 - 2024)</span>
-            <h3 class="text-white text-xl font-bold mt-1">Sinh viên CNTT - Nhập môn & Tư duy Thuật toán</h3>
-            <p class="text-zinc-400 text-sm font-semibold mt-1">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 1 (2023 - 2024)" data-en="Year 1 (2023 - 2024)">Năm 1 (2023 - 2024)</span>
+            <h3 class="text-white text-xl font-bold mt-1" data-vi="Sinh viên CNTT - Nhập môn & Tư duy Thuật toán" data-en="IT Student - Introduction & Algorithmic Thinking">Sinh viên CNTT - Nhập môn & Tư duy Thuật toán</h3>
+            <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
             <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-              <li>Lập trình hướng cấu trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java.</li>
-              <li>Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF).</li>
-              <li>Đạt GPA 3.1 và nhận học bổng khuyến học khuyến tài của nhà trường.</li>
+              <li data-vi="Lập trình hướng cấu trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java." data-en="Basic structured programming and algorithmic thinking in C++ & Java.">Lập trình hướng cấu trúc cơ bản và tư duy thuật toán trên ngôn ngữ C++ & Java.</li>
+              <li data-vi="Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF)." data-en="Relational MySQL database design, database normalization (3NF).">Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa mô hình dữ liệu (3NF).</li>
+              <li data-vi="Đạt GPA 3.1 và nhận học bổng khuyến học khuyến tài của nhà trường." data-en="Achieved GPA 3.1 and received academic encouragement scholarships.">Đạt GPA 3.1 và nhận học bổng khuyến học khuyến tài của nhà trường.</li>
             </ul>
           </div>
         </div>
@@ -261,13 +340,13 @@
         <!-- Timeline Item 2 -->
         <div class="timeline-item right-item">
           <div class="timeline-content">
-            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest">Năm 2 (2024 - 2025)</span>
-            <h3 class="text-white text-xl font-bold mt-1">Web Developer - Lập trình Web PHP/Laravel</h3>
-            <p class="text-zinc-400 text-sm font-semibold mt-1">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 2 (2024 - 2025)" data-en="Year 2 (2024 - 2025)">Năm 2 (2024 - 2025)</span>
+            <h3 class="text-white text-xl font-bold mt-1" data-vi="Web Developer - Lập trình Web PHP/Laravel" data-en="Web Developer - PHP/Laravel Web Development">Web Developer - Lập trình Web PHP/Laravel</h3>
+            <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
             <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-              <li>Xây dựng hoàn chỉnh các ứng dụng web dạng MVC sử dụng Laravel framework.</li>
-              <li>Thiết kế quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn.</li>
-              <li>Lập trình RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa.</li>
+              <li data-vi="Xây dựng hoàn chỉnh các ứng dụng web dạng MVC sử dụng Laravel framework." data-en="Built fully functional MVC web applications using the Laravel framework.">Xây dựng hoàn chỉnh các ứng dụng web dạng MVC sử dụng Laravel framework.</li>
+              <li data-vi="Thiết kế quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn." data-en="Designed MySQL database relations (One-to-Many, Many-to-Many), optimized queries.">Thiết kế quan hệ MySQL Database (One-to-Many, Many-to-Many), tối ưu truy vấn.</li>
+              <li data-vi="Lập trình RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa." data-en="Developed RESTful APIs, clean routing structures and standardized JSON payloads.">Lập trình RESTful API, phân chia route sạch và trả về JSON payload chuẩn hóa.</li>
             </ul>
           </div>
         </div>
@@ -275,13 +354,13 @@
         <!-- Timeline Item 3 -->
         <div class="timeline-item left-item">
           <div class="timeline-content">
-            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest">Năm 3 (2025 - 2026)</span>
-            <h3 class="text-white text-xl font-bold mt-1">Kiểm thử Phần mềm & Thực tập Tốt nghiệp</h3>
-            <p class="text-zinc-400 text-sm font-semibold mt-1">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+            <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 3 (2025 - 2026)" data-en="Year 3 (2025 - 2026)">Năm 3 (2025 - 2026)</span>
+            <h3 class="text-white text-xl font-bold mt-1" data-vi="Kiểm thử Phần mềm & Thực tập Tốt nghiệp" data-en="Software Testing & Graduation Internship">Kiểm thử Phần mềm & Thực tập Tốt nghiệp</h3>
+            <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
             <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-              <li>Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi.</li>
-              <li>Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman.</li>
-              <li>Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit.</li>
+              <li data-vi="Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi." data-en="Wrote Test Plan documentation, designed detailed Test Cases covering edge cases.">Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi.</li>
+              <li data-vi="Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman." data-en="Automated and manual testing of backend API endpoints via Postman.">Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman.</li>
+              <li data-vi="Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit." data-en="Managed source code and resolved branch conflicts (Git conflicts) using SmartGit.">Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit.</li>
             </ul>
           </div>
         </div>
@@ -295,9 +374,9 @@
        ========================================================================== -->
   <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="projects">
     <div>
-      <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono">Dự án tiêu biểu</p>
-      <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1">Sản phẩm thực tế.</h2>
-      <p class="mt-4 text-zinc-400 text-base md:text-lg max-w-3xl leading-relaxed">
+      <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Dự án tiêu biểu" data-en="Featured Projects">Dự án tiêu biểu</p>
+      <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Sản phẩm thực tế." data-en="Real Products.">Sản phẩm thực tế.</h2>
+      <p class="mt-4 text-zinc-400 text-base md:text-lg max-w-3xl leading-relaxed" data-vi="Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả." data-en="The projects below showcase my skills and experience through practical examples. Each product is briefly described along with a GitHub source link. This demonstrates my ability to solve complex problems, work with diverse technologies, and manage product quality effectively.">
         Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả.
       </p>
     </div>
@@ -316,14 +395,14 @@
             </div>
             
             <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
-              <a href="https://github.com/eHingit/ThuongMaiDienTu" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
+              <a href="https://github.com/eHin-cloud/ThuongMaiDienTu" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
                 <i class="fa-brands fa-github text-lg"></i>
               </a>
             </div>
           </div>
 
-          <h3 class="text-white text-xl font-bold mt-5">Website Thương Mại Điện Tử</h3>
-          <p class="text-zinc-400 text-sm mt-2 leading-relaxed">
+          <h3 class="text-white text-xl font-bold mt-5" data-vi="Website Thương Mại Điện Tử" data-en="E-Commerce Website">Website Thương Mại Điện Tử</h3>
+          <p class="text-zinc-400 text-sm mt-2 leading-relaxed" data-vi="Ứng dụng web mua sắm trực tuyến toàn diện được lập trình trên Laravel & MySQL, tích hợp quy trình đặt hàng, giỏ hàng, bình luận sản phẩm và trang quản trị Admin." data-en="Comprehensive online shopping web application developed on Laravel & MySQL, integrating checkout, shopping cart, product comments, and Admin dashboard.">
             Ứng dụng web mua sắm trực tuyến toàn diện được lập trình trên Laravel & MySQL, tích hợp quy trình đặt hàng, giỏ hàng, bình luận sản phẩm và trang quản trị Admin.
           </p>
         </div>
@@ -345,14 +424,14 @@
             </div>
             
             <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
-              <a href="https://github.com/eHingit/ehin.github.io" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
+              <a href="https://github.com/eHin-cloud/ehin.github.io" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
                 <i class="fa-brands fa-github text-lg"></i>
               </a>
             </div>
           </div>
 
-          <h3 class="text-white text-xl font-bold mt-5">Trợ Lý Chatbot Đa Ngôn Ngữ</h3>
-          <p class="text-zinc-400 text-sm mt-2 leading-relaxed">
+          <h3 class="text-white text-xl font-bold mt-5" data-vi="Trợ Lý Chatbot Đa Ngôn Ngữ" data-en="Multilingual Chatbot Assistant">Trợ Lý Chatbot Đa Ngôn Ngữ</h3>
+          <p class="text-zinc-400 text-sm mt-2 leading-relaxed" data-vi="Hộp thoại tư vấn hỗ trợ khách hàng tự động với hai chế độ ngôn ngữ Tiếng Việt & Tiếng Anh, liên kết trực tiếp link sản phẩm và nhận diện lỗi thông minh." data-en="Automated customer support chat dialog with dual Vietnamese & English language modes, direct product links, and smart error detection.">
             Hộp thoại tư vấn hỗ trợ khách hàng tự động với hai chế độ ngôn ngữ Tiếng Việt & Tiếng Anh, liên kết trực tiếp link sản phẩm và nhận diện lỗi thông minh.
           </p>
         </div>
@@ -374,14 +453,14 @@
             </div>
             
             <div class="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity duration-300 flex justify-center items-center gap-4">
-              <a href="https://github.com/eHingit" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
+              <a href="https://github.com/eHin-cloud" target="_blank" class="w-10 h-10 rounded-full bg-black/80 border border-white/10 hover:border-[#915eff] flex justify-center items-center text-white transition-all">
                 <i class="fa-brands fa-github text-lg"></i>
               </a>
             </div>
           </div>
 
-          <h3 class="text-white text-xl font-bold mt-5">Kịch Bản Test & Diagnostic Suite</h3>
-          <p class="text-zinc-400 text-sm mt-2 leading-relaxed">
+          <h3 class="text-white text-xl font-bold mt-5" data-vi="Kịch Bản Test & Diagnostic Suite" data-en="Test Cases & Diagnostic Suite">Kịch Bản Test & Diagnostic Suite</h3>
+          <p class="text-zinc-400 text-sm mt-2 leading-relaxed" data-vi="Hệ thống kiểm thử chất lượng, thiết kế Test Cases chi tiết và chạy phân tích các API endpoint tự động để phát hiện lỗi logic hệ thống." data-en="Quality assurance system, designing detailed Test Cases and running automated API endpoint diagnostics to detect system logic issues.">
             Hệ thống kiểm thử chất lượng, thiết kế Test Cases chi tiết và chạy phân tích các API endpoint tự động để phát hiện lỗi logic hệ thống.
           </p>
         </div>
@@ -403,15 +482,15 @@
     <div class="bg-[#0c102b]/60 rounded-3xl p-8 md:p-14 border border-white/5">
       
       <div>
-        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono">Mọi người nhận xét gì</p>
-        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1">Đánh giá.</h2>
+        <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Mọi người nhận xét gì" data-en="Testimonials">Mọi người nhận xét gì</p>
+        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Đánh giá." data-en="Reviews.">Đánh giá.</h2>
       </div>
 
       <div class="mt-16 grid md:grid-cols-2 gap-8">
         
         <!-- Feedback Card 1 -->
         <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
-          <p class="text-white text-lg italic leading-relaxed">
+          <p class="text-white text-lg italic leading-relaxed" data-vi="&quot;Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi logic.&quot;" data-en="&quot;Hien always completes Test Cases meticulously, carefully checking input boundaries and logical error paths.&quot;">
             "Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi logic."
           </p>
           <div class="mt-6 flex items-center gap-4">
@@ -420,14 +499,14 @@
             </div>
             <div>
               <h4 class="text-white font-bold text-sm">Nguyễn Anh Quý</h4>
-              <p class="text-zinc-500 text-xs mt-0.5">Tech Lead tại Cyber-Oasis</p>
+              <p class="text-zinc-500 text-xs mt-0.5" data-vi="Tech Lead tại Cyber-Oasis" data-en="Tech Lead at Cyber-Oasis">Tech Lead tại Cyber-Oasis</p>
             </div>
           </div>
         </div>
 
         <!-- Feedback Card 2 -->
         <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
-          <p class="text-white text-lg italic leading-relaxed">
+          <p class="text-white text-lg italic leading-relaxed" data-vi="&quot;Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất lượng rất cao.&quot;" data-en="&quot;The ability to combine PHP/Laravel web development with QA mindset helps Hien's projects achieve high stability and quality.&quot;">
             "Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất lượng rất cao."
           </p>
           <div class="mt-6 flex items-center gap-4">
@@ -435,8 +514,8 @@
               GV
             </div>
             <div>
-              <h4 class="text-white font-bold text-sm">Giảng viên TDC</h4>
-              <p class="text-zinc-500 text-xs mt-0.5">Advisor tại TDC College</p>
+              <h4 class="text-white font-bold text-sm" data-vi="Giảng viên TDC" data-en="TDC Lecturer">Giảng viên TDC</h4>
+              <p class="text-zinc-500 text-xs mt-0.5" data-vi="Advisor tại TDC College" data-en="Advisor at TDC College">Advisor tại TDC College</p>
             </div>
           </div>
         </div>
@@ -455,30 +534,31 @@
       <!-- Contact Form -->
       <div class="md:col-span-7 bg-[#0c102b] p-8 md:p-12 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div>
-          <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono">Kết nối với tôi</p>
-          <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1">Liên hệ.</h2>
+          <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Kết nối với tôi" data-en="Get in Touch">Kết nối với tôi</p>
+          <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Liên hệ." data-en="Contact.">Liên hệ.</h2>
         </div>
 
-        <form id="contact-form" class="mt-10 space-y-6">
+        <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="mt-10 space-y-6">
+          <input type="hidden" name="access_key" value="485d1f89-b631-4354-b9c1-e455f11c910d">
           <div class="flex flex-col">
-            <label for="name" class="text-white text-sm font-semibold mb-2">Tên của bạn*</label>
-            <input type="text" id="name" placeholder="Nhập tên của bạn" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650" required>
-            <span id="name-error" class="text-xs text-rose-500 mt-1.5 hidden">Tên không hợp lệ (tối thiểu 3 ký tự)!</span>
+            <label for="name" class="text-white text-sm font-semibold mb-2" data-vi="Tên của bạn*" data-en="Your Name*">Tên của bạn*</label>
+            <input type="text" id="name" name="name" placeholder="Nhập tên của bạn" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650" required data-vi-placeholder="Nhập tên của bạn" data-en-placeholder="Enter your name">
+            <span id="name-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Tên không hợp lệ (tối thiểu 3 ký tự)!" data-en="Invalid name (minimum 3 characters)!">Tên không hợp lệ (tối thiểu 3 ký tự)!</span>
           </div>
 
           <div class="flex flex-col">
-            <label for="email" class="text-white text-sm font-semibold mb-2">Email của bạn*</label>
-            <input type="email" id="email" placeholder="example@email.com" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650" required>
-            <span id="email-error" class="text-xs text-rose-500 mt-1.5 hidden">Email không hợp lệ!</span>
+            <label for="email" class="text-white text-sm font-semibold mb-2" data-vi="Email của bạn*" data-en="Your Email*">Email của bạn*</label>
+            <input type="email" id="email" name="email" placeholder="example@email.com" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650" required data-vi-placeholder="example@email.com" data-en-placeholder="example@email.com">
+            <span id="email-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Email không hợp lệ!" data-en="Invalid email address!">Email không hợp lệ!</span>
           </div>
 
           <div class="flex flex-col">
-            <label for="message" class="text-white text-sm font-semibold mb-2">Lời nhắn*</label>
-            <textarea id="message" rows="5" placeholder="Bạn muốn nhắn gì cho tôi?" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all resize-none placeholder:text-zinc-650" required></textarea>
-            <span id="message-error" class="text-xs text-rose-500 mt-1.5 hidden">Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!</span>
+            <label for="message" class="text-white text-sm font-semibold mb-2" data-vi="Lời nhắn*" data-en="Your Message*">Lời nhắn*</label>
+            <textarea id="message" name="message" rows="5" placeholder="Bạn muốn nhắn gì cho tôi?" class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all resize-none placeholder:text-zinc-650" required data-vi-placeholder="Bạn muốn nhắn gì cho tôi?" data-en-placeholder="What would you like to say?"></textarea>
+            <span id="message-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!" data-en="Invalid message (minimum 5 characters)!">Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!</span>
           </div>
 
-          <button type="submit" class="w-full md:w-auto px-8 py-3.5 bg-[#915eff] hover:bg-[#a855f7] active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-900/40">
+          <button type="submit" class="w-full md:w-auto px-8 py-3.5 bg-[#915eff] hover:bg-[#a855f7] active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-900/40" data-vi="Gửi" data-en="Send">
             Gửi
           </button>
         </form>
@@ -497,10 +577,10 @@
        ========================================================================== -->
   <footer class="py-8 border-t border-white/5 text-center text-zinc-600 text-xs md:text-sm font-mono">
     <div class="max-w-7xl mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p>© 2026 Lê Thị Thanh Hiền. All rights reserved.</p>
+      <p>© 2026 Nguyễn Thanh Hiền. All rights reserved.</p>
       <div class="flex gap-6 text-zinc-400">
-        <a href="https://github.com/eHingit" target="_blank" class="hover:text-white transition-colors"><i class="fa-brands fa-github mr-1"></i> GitHub</a>
-        <a href="mailto:lethithanhhien.dev@gmail.com" class="hover:text-white transition-colors"><i class="fa-solid fa-envelope mr-1"></i> Email</a>
+        <a href="https://github.com/eHin-cloud" target="_blank" class="hover:text-white transition-colors"><i class="fa-brands fa-github mr-1"></i> GitHub</a>
+        <a href="mailto:thenghien2006@gmail.com" class="hover:text-white transition-colors"><i class="fa-solid fa-envelope mr-1"></i> thenghien2006@gmail.com</a>
       </div>
     </div>
   </footer>

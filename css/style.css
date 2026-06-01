@@ -209,7 +209,7 @@ h1, h2, h3, h4, .font-display {
 }
 
 /* ==========================================================================
-   BOOTLOADER STYLING
+   BOOTLOADER STYLING & SCI-FI EFFECTS
    ========================================================================== */
 #bootloader-overlay {
   position: fixed;
@@ -217,7 +217,7 @@ h1, h2, h3, h4, .font-display {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #03040c;
+  background-color: #02040a;
   z-index: 9999;
   display: flex;
   justify-content: center;
@@ -226,15 +226,38 @@ h1, h2, h3, h4, .font-display {
   transition: opacity 0.5s ease-out;
 }
 
-.loader-layout-path {
-  fill: none;
-  stroke: rgba(145, 94, 255, 0.25);
-  stroke-width: 1.5;
-  transition: stroke 0.4s ease, filter 0.4s ease;
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+}
+
+.scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg, 
+    rgba(6, 182, 212, 0.04), 
+    rgba(145, 94, 255, 0.02), 
+    rgba(6, 182, 212, 0.04)
+  );
+  background-size: 100% 4px, 6px 100%;
+}
+
+.crt-monitor::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(2, 4, 10, 0.3) 100%);
+  pointer-events: none;
+  z-index: 20;
 }
 
 .loader-glow-text {
-  text-shadow: 0 0 8px rgba(145, 94, 255, 0.6);
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6), 0 0 15px rgba(145, 94, 255, 0.3);
 }
 
 /* ==========================================================================
