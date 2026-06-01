@@ -317,6 +317,23 @@ function startBootloader() {
       lastActiveStep = activeStep;
     }
 
+    // Scramble active step based on progress within its weight
+    let stepStart = 0;
+    for (let i = 0; i < activeStep; i++) {
+      stepStart += steps[i].weight;
+    }
+    const stepWeight = steps[activeStep]?.weight || 1;
+    const stepRatio = (progress - stepStart) / stepWeight;
+    const scrambledText = scrambleString(steps[activeStep]?.text || "FINALIZING...", stepRatio);
+
+    // Play micro scramble chirp on every scramble tick (for typewriter noise)
+    playScrambleChirp();
+
+    // Play data telemetry sweeps/bursts every few ticks
+    if (progress % 4 === 0) {
+      playDataTelemetryNoise();
+    }
+
     // Write Terminal Logs with sci-fi decoding effect
     if (logTerminal) {
       let html = '';
@@ -324,23 +341,6 @@ function startBootloader() {
         html += `<div class="text-[#888] font-mono text-xs mb-1">✔ ${steps[i].text}</div>`;
       }
       
-      // Scramble active step based on progress within its weight
-      let stepStart = 0;
-      for (let i = 0; i < activeStep; i++) {
-        stepStart += steps[i].weight;
-      }
-      const stepWeight = steps[activeStep]?.weight || 1;
-      const stepRatio = (progress - stepStart) / stepWeight;
-      const scrambledText = scrambleString(steps[activeStep]?.text || "FINALIZING...", stepRatio);
-
-      // Play micro scramble chirp on every scramble tick (for typewriter noise)
-      playScrambleChirp();
-
-      // Play data telemetry sweeps/bursts every few ticks
-      if (progress % 4 === 0) {
-        playDataTelemetryNoise();
-      }
-
       html += `
         <div class="text-cyan-400 font-mono text-xs mb-1 flex items-center gap-2">
           <svg class="animate-spin w-3 h-3 text-cyan-400" fill="none" viewBox="0 0 24 24">
@@ -354,6 +354,12 @@ function startBootloader() {
       logTerminal.scrollTop = logTerminal.scrollHeight; // Auto-scroll
     }
 
+    // Update single-line status bar for minimal HUD mode
+    const statusTextEl = document.getElementById("loader-status-text");
+    if (statusTextEl) {
+      statusTextEl.textContent = scrambledText;
+    }
+
     if (progress < 100) {
       setTimeout(tick, 20); // slightly slower tick for better text appreciation
     } else {
@@ -362,13 +368,17 @@ function startBootloader() {
       playSuccessChime();
 
       // Show Start Button
+      const chargingCore = document.getElementById("loader-core-charging");
+      if (chargingCore) {
+        chargingCore.classList.add("hidden");
+      }
       if (startBtn) {
         startBtn.classList.remove("hidden");
         startBtn.addEventListener("click", () => {
           playBeep(880, 0.15, 'triangle', 0.08);
           
-          // Fade out the diagnostic card container
-          const bootloaderCard = document.getElementById("bootloader-card");
+          // Fade out the diagnostic card or HUD container
+          const bootloaderCard = document.getElementById("bootloader-card") || document.getElementById("bootloader-hud");
           if (bootloaderCard) {
             bootloaderCard.style.opacity = '0';
           }
@@ -416,6 +426,14 @@ function startBootloader() {
                   canvasBg.style.display = "none";
                   initGame3D();
                   triggerSpaceTransition();
+                } else if (!is3DMode && mainContent && canvasBg) {
+                  if (text) {
+                    text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
+                  }
+                  const mainNav = document.getElementById("main-nav");
+                  if (mainNav) mainNav.classList.remove("hidden");
+                  mainContent.classList.remove("hidden");
+                  canvasBg.style.display = "block";
                 }
               }
             }
@@ -585,6 +603,151 @@ function initStarfieldBackground() {
   const starField = new THREE.Points(geometry, material);
   scene.add(starField);
 
+  // 3D Space Lights for Planets
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+  scene.add(ambientLight);
+
+  const dirLight1 = new THREE.DirectionalLight(0x06b6d4, 2.5); // Cyan light
+  dirLight1.position.set(200, 150, 150);
+  scene.add(dirLight1);
+
+  const dirLight2 = new THREE.DirectionalLight(0xa855f7, 1.8); // Purple light
+  dirLight2.position.set(-200, -150, 100);
+  scene.add(dirLight2);
+
+  // PLANET 1: Ice Gas Giant with Rings (Right Side)
+  const planet1Group = new THREE.Group();
+  planet1Group.position.set(130, 50, -150);
+  scene.add(planet1Group);
+
+  const planet1CoreGeom = new THREE.SphereGeometry(28, 32, 32);
+  const planet1CoreMat = new THREE.MeshPhongMaterial({
+    color: 0x020617,
+    shininess: 80,
+    bumpScale: 0.05
+  });
+  const planet1Core = new THREE.Mesh(planet1CoreGeom, planet1CoreMat);
+  planet1Group.add(planet1Core);
+
+  const planet1ShellGeom = new THREE.SphereGeometry(28.5, 32, 32);
+  const planet1ShellMat = new THREE.MeshPhongMaterial({
+    color: 0x06b6d4,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.25
+  });
+  const planet1Shell = new THREE.Mesh(planet1ShellGeom, planet1ShellMat);
+  planet1Group.add(planet1Shell);
+
+  // Rings
+  const planet1RingGeom = new THREE.RingGeometry(34, 52, 64);
+  const planet1RingMat = new THREE.MeshBasicMaterial({
+    color: 0x06b6d4,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.18,
+    wireframe: true
+  });
+  const planet1Ring = new THREE.Mesh(planet1RingGeom, planet1RingMat);
+  planet1Ring.rotation.x = Math.PI / 2.2;
+  planet1Ring.rotation.y = Math.PI / 8;
+  planet1Group.add(planet1Ring);
+
+  // PLANET 2: Purple Cyber Core (Left Side)
+  const planet2Group = new THREE.Group();
+  planet2Group.position.set(-100, -40, -100);
+  scene.add(planet2Group);
+
+  const planet2CoreGeom = new THREE.SphereGeometry(16, 32, 32);
+  const planet2CoreMat = new THREE.MeshPhongMaterial({
+    color: 0x0d0824,
+    shininess: 60
+  });
+  const planet2Core = new THREE.Mesh(planet2CoreGeom, planet2CoreMat);
+  planet2Group.add(planet2Core);
+
+  const planet2ShellGeom = new THREE.SphereGeometry(16.4, 16, 16);
+  const planet2ShellMat = new THREE.MeshPhongMaterial({
+    color: 0xa855f7,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.3
+  });
+  const planet2Shell = new THREE.Mesh(planet2ShellGeom, planet2ShellMat);
+  planet2Group.add(planet2Shell);
+
+  // PLANET 3: Emerald Low-Poly Moon (Upper Left)
+  const planet3Group = new THREE.Group();
+  planet3Group.position.set(-60, 80, -200);
+  scene.add(planet3Group);
+
+  const planet3Geom = new THREE.IcosahedronGeometry(10, 1);
+  const planet3Mat = new THREE.MeshPhongMaterial({
+    color: 0x052e16,
+    shininess: 40,
+    flatShading: true
+  });
+  const planet3Core = new THREE.Mesh(planet3Geom, planet3Mat);
+  planet3Group.add(planet3Core);
+
+  const planet3ShellMat = new THREE.MeshBasicMaterial({
+    color: 0x10b981,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.25
+  });
+  const planet3Shell = new THREE.Mesh(planet3Geom, planet3ShellMat);
+  planet3Group.add(planet3Shell);
+
+  // Create drifting meteorites / asteroids
+  const asteroids = [];
+  const asteroidCount = 18;
+  const asteroidMaterial = new THREE.MeshPhongMaterial({
+    color: 0x1f2937, // dark slate grey rock
+    shininess: 15,
+    flatShading: true
+  });
+
+  for (let i = 0; i < asteroidCount; i++) {
+    const radius = 1.2 + Math.random() * 2.8;
+    const geom = new THREE.DodecahedronGeometry(radius, 1);
+    
+    // Deform geometry slightly to create irregular rocky shapes
+    const posAttr = geom.attributes.position;
+    for (let j = 0; j < posAttr.count; j++) {
+      const vx = posAttr.getX(j);
+      const vy = posAttr.getY(j);
+      const vz = posAttr.getZ(j);
+      posAttr.setXYZ(
+        j,
+        vx + (Math.random() - 0.5) * (radius * 0.25),
+        vy + (Math.random() - 0.5) * (radius * 0.25),
+        vz + (Math.random() - 0.5) * (radius * 0.25)
+      );
+    }
+    geom.computeVertexNormals();
+
+    const asteroid = new THREE.Mesh(geom, asteroidMaterial);
+    
+    // Set initial random positions
+    asteroid.position.set(
+      (Math.random() - 0.5) * 500,
+      (Math.random() - 0.5) * 500,
+      (Math.random() - 0.5) * 400
+    );
+    
+    // Save custom motion properties
+    asteroid.userData = {
+      rotX: (Math.random() - 0.5) * 0.015,
+      rotY: (Math.random() - 0.5) * 0.015,
+      rotZ: (Math.random() - 0.5) * 0.015,
+      speed: 0.15 + Math.random() * 0.25
+    };
+    
+    scene.add(asteroid);
+    asteroids.push(asteroid);
+  }
+
   // Resize Listener
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -612,6 +775,54 @@ function initStarfieldBackground() {
     // Drifting rotation animation (slight secondary rotation)
     starField.rotation.y += 0.0002;
     starField.rotation.x += 0.0001;
+
+    // Rotate planets and shells
+    if (planet1Group) {
+      planet1Core.rotation.y += 0.001;
+      planet1Shell.rotation.y += 0.0025;
+      planet1Ring.rotation.z -= 0.0003;
+      
+      const time = Date.now() * 0.0005;
+      planet1Group.position.y = 50 + Math.sin(time) * 4;
+    }
+    if (planet2Group) {
+      planet2Core.rotation.y -= 0.0015;
+      planet2Shell.rotation.x += 0.002;
+      
+      const time = Date.now() * 0.0007;
+      planet2Group.position.y = -40 + Math.sin(time) * 3;
+    }
+    if (planet3Group) {
+      planet3Core.rotation.y += 0.002;
+      planet3Shell.rotation.x -= 0.001;
+      
+      const time = Date.now() * 0.0004;
+      planet3Group.position.y = 80 + Math.sin(time) * 2;
+    }
+
+    // Move and tumble asteroids
+    if (asteroids && asteroids.length > 0) {
+      asteroids.forEach(ast => {
+        // Tumble
+        ast.rotation.x += ast.userData.rotX;
+        ast.rotation.y += ast.userData.rotY;
+        ast.rotation.z += ast.userData.rotZ;
+        
+        // Move along Z (towards background)
+        const speed = (starfieldSpeedMultiplier > 1.0) 
+          ? (ast.userData.speed * starfieldSpeedMultiplier * 1.5) 
+          : ast.userData.speed;
+          
+        ast.position.z -= speed;
+        
+        // Reset position when it gets too far away
+        if (ast.position.z < -250) {
+          ast.position.z = 200;
+          ast.position.x = (Math.random() - 0.5) * 500;
+          ast.position.y = (Math.random() - 0.5) * 500;
+        }
+      });
+    }
 
     // Parallax mouse movements
     camera.position.x += (mouseX - camera.position.x) * 0.05;
@@ -3045,12 +3256,12 @@ function setupViewModeToggle() {
   if (!btn) return;
   
   const updateToggleUI = (skipTransition = false) => {
-    // Keep 3D game hidden while the first-load bootloader overlay is active
+    // Keep 3D game and main content hidden while the first-load bootloader overlay is active
     if (document.getElementById("bootloader-overlay")) {
-      mainContent.classList.remove("hidden");
+      mainContent.classList.add("hidden");
       gameContainer.classList.add("hidden");
       canvasBg.style.display = "block";
-      if (mainNav) mainNav.classList.remove("hidden");
+      if (mainNav) mainNav.classList.add("hidden");
       return;
     }
 
