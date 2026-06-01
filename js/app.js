@@ -1650,6 +1650,27 @@ function setupViewModeToggle() {
       playBeep(900, 0.1, 'triangle', 0.05);
     }
   });
+
+  // Portal Crack Button - Direct entry to 3D Space Station
+  const portalBtn = document.getElementById("portal-crack-btn");
+  if (portalBtn) {
+    portalBtn.addEventListener("click", () => {
+      if (!is3DMode) {
+        is3DMode = true;
+        localStorage.setItem("view-mode-3d", is3DMode);
+        updateToggleUI();
+        if (typeof playBeep === 'function') {
+          playBeep(1200, 0.15, 'sine', 0.08);
+          setTimeout(() => playBeep(1500, 0.1, 'sine', 0.05), 150);
+          setTimeout(() => playBeep(1800, 0.08, 'sine', 0.03), 300);
+        }
+      } else {
+        // Already in 3D mode, scroll to game area
+        const gameContainer = document.getElementById("game-container");
+        if (gameContainer) gameContainer.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
   
   const savedMode = localStorage.getItem("view-mode-3d");
   if (savedMode !== null) {
