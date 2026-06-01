@@ -1920,11 +1920,12 @@ function updateGameLanguageUI() {
   }
 }
 
-function triggerSpaceTransition(callback) {
+function triggerSpaceTransition(callback, isExit = false) {
   const loader = document.getElementById("transition-loader");
   const joystick = document.getElementById("joystick-zone");
   const hud = document.getElementById("instructions-hud");
   const interaction = document.getElementById("interaction-hud");
+  const transTitle = document.getElementById("transition-title");
   
   if (!loader) {
     if (callback) callback();
@@ -1934,6 +1935,15 @@ function triggerSpaceTransition(callback) {
   // Set active state to accelerate background stars
   transitionLoadingActive = true;
   
+  // Update loader title based on enter/exit
+  if (transTitle) {
+    if (isExit) {
+      transTitle.textContent = currentLang === 'vi' ? "ĐANG THOÁT TRẠM KHÔNG GIAN // COGNITIVE RETURN" : "DISENGAGING HYPERDRIVE // EXITING SPACE";
+    } else {
+      transTitle.textContent = currentLang === 'vi' ? "ĐANG KHỞI ĐỘNG CƠ CẤU WARP // UỐN CONG KHÔNG GIAN" : "INITIALIZING HYPERDRIVE // WARPING SPACE";
+    }
+  }
+
   // Show loader overlay
   loader.classList.remove("hidden");
   // Force reflow
@@ -1970,14 +1980,26 @@ function triggerSpaceTransition(callback) {
     }
     
     if (statusText) {
-      if (progress < 25) {
-        statusText.textContent = currentLang === 'vi' ? "Đang dò tọa độ thời không..." : "TUNING SPACE-TIME INDEX...";
-      } else if (progress < 55) {
-        statusText.textContent = currentLang === 'vi' ? "Đang tích lũy plasma động năng..." : "CHARGING PLASMA FLUX ENERGY...";
-      } else if (progress < 80) {
-        statusText.textContent = currentLang === 'vi' ? "Uốn cong ma trận không gian..." : "WARPING SPACE-TIME MATRIX...";
+      if (isExit) {
+        if (progress < 25) {
+          statusText.textContent = currentLang === 'vi' ? "Đang ngắt liên kết thần kinh..." : "DISENGAGING NEURAL LINK...";
+        } else if (progress < 55) {
+          statusText.textContent = currentLang === 'vi' ? "Đang hủy đồng bộ drone..." : "DE-SYNCHRONIZING DRONE AVATAR...";
+        } else if (progress < 80) {
+          statusText.textContent = currentLang === 'vi' ? "Đang dịch chuyển về trang chủ..." : "WARPING SPACE-TIME MATRIX FEEDBACK...";
+        } else {
+          statusText.textContent = currentLang === 'vi' ? "Đang thiết lập lại kết nối..." : "RE-ESTABLISHING COGNITIVE TELEMETRY...";
+        }
       } else {
-        statusText.textContent = currentLang === 'vi' ? "Đang đồng bộ thực thể drone..." : "SYNCHRONIZING DRONE AVATAR...";
+        if (progress < 25) {
+          statusText.textContent = currentLang === 'vi' ? "Đang dò tọa độ thời không..." : "TUNING SPACE-TIME INDEX...";
+        } else if (progress < 55) {
+          statusText.textContent = currentLang === 'vi' ? "Đang tích lũy plasma động năng..." : "CHARGING PLASMA FLUX ENERGY...";
+        } else if (progress < 80) {
+          statusText.textContent = currentLang === 'vi' ? "Uốn cong ma trận không gian..." : "WARPING SPACE-TIME MATRIX...";
+        } else {
+          statusText.textContent = currentLang === 'vi' ? "Đang đồng bộ thực thể drone..." : "SYNCHRONIZING DRONE AVATAR...";
+        }
       }
     }
     
@@ -1992,28 +2014,52 @@ function triggerSpaceTransition(callback) {
       loader.style.opacity = "0";
       setTimeout(() => {
         loader.classList.add("hidden");
-        
-        // Show space station 3D world elements
         transitionLoadingActive = false;
         
-        if (gamePlayer) gamePlayer.visible = true;
-        if (gameUnderGlobe) gameUnderGlobe.visible = true;
-        if (gamePortalGroup) gamePortalGroup.visible = true;
-        gameNodes.forEach(node => {
-          if (node.group) node.group.visible = true;
-        });
-        
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        const joystickZone = document.getElementById("joystick-zone");
-        if (joystickZone) {
-          if (isTouchDevice) {
-            joystickZone.style.display = "flex";
-            joystickZone.style.opacity = "1";
-          } else {
-            joystickZone.style.display = "none";
+        if (isExit) {
+          // Perform actual transition to List Mode UI
+          const mainContent = document.getElementById("main-content");
+          const gameContainer = document.getElementById("game-container");
+          const canvasBg = document.getElementById("canvas-bg");
+          const mainNav = document.getElementById("main-nav");
+          const text = document.getElementById("view-mode-text");
+          
+          if (text) {
+            text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
+            text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
+            text.setAttribute("data-en", "🎮 3D WORKSPACE");
           }
+          if (mainNav) mainNav.classList.remove("hidden");
+          
+          if (mainContent) {
+            mainContent.style.opacity = "";
+            mainContent.classList.remove("hidden");
+          }
+          if (gameContainer) gameContainer.classList.add("hidden");
+          if (canvasBg) canvasBg.style.display = "block";
+          
+          stopGame3D();
+        } else {
+          // Show space station 3D world elements
+          if (gamePlayer) gamePlayer.visible = true;
+          if (gameUnderGlobe) gameUnderGlobe.visible = true;
+          if (gamePortalGroup) gamePortalGroup.visible = true;
+          gameNodes.forEach(node => {
+            if (node.group) node.group.visible = true;
+          });
+          
+          const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+          const joystickZone = document.getElementById("joystick-zone");
+          if (joystickZone) {
+            if (isTouchDevice) {
+              joystickZone.style.display = "flex";
+              joystickZone.style.opacity = "1";
+            } else {
+              joystickZone.style.display = "none";
+            }
+          }
+          if (hud) hud.style.opacity = "1";
         }
-        if (hud) hud.style.opacity = "1";
         
         if (callback) callback();
       }, 600);
@@ -2100,17 +2146,21 @@ function setupViewModeToggle() {
         if (hud) hud.style.opacity = "1";
       }
     } else {
-      text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
-      text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
-      text.setAttribute("data-en", "🎮 3D WORKSPACE");
-      if (mainNav) mainNav.classList.remove("hidden");
-      
-      mainContent.style.opacity = "";
-      mainContent.classList.remove("hidden");
-      gameContainer.classList.add("hidden");
-      canvasBg.style.display = "block";
-      
-      stopGame3D();
+      if (!skipTransition) {
+        triggerSpaceTransition(null, true);
+      } else {
+        text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
+        text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
+        text.setAttribute("data-en", "🎮 3D WORKSPACE");
+        if (mainNav) mainNav.classList.remove("hidden");
+        
+        mainContent.style.opacity = "";
+        mainContent.classList.remove("hidden");
+        gameContainer.classList.add("hidden");
+        canvasBg.style.display = "block";
+        
+        stopGame3D();
+      }
     }
   };
   
