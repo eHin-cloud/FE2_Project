@@ -30,44 +30,56 @@
     <!-- Scanline effect -->
     <div class="scanlines absolute inset-0 pointer-events-none"></div>
 
-    <div id="bootloader-hud" class="z-10 flex flex-col items-center justify-center text-center px-4 max-w-lg transition-all duration-700">
-      
+    <div id="bootloader-hud"
+      class="z-10 flex flex-col items-center justify-center text-center px-4 max-w-lg transition-all duration-700">
+
       <!-- Sleek Glowing Futuristic Aperture/Ring -->
       <div class="relative w-48 h-48 mb-8 flex justify-center items-center">
         <!-- Outer breathing halo -->
-        <div class="absolute w-full h-full rounded-full border border-cyan-500/20 animate-[ping_4s_ease-in-out_infinite]"></div>
-        
+        <div
+          class="absolute w-full h-full rounded-full border border-cyan-500/20 animate-[ping_4s_ease-in-out_infinite]">
+        </div>
+
         <!-- Rotating coordinate ring -->
         <svg class="absolute w-[90%] h-[90%] animate-[spin_30s_linear_infinite] text-cyan-400/40" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="0.8" stroke-dasharray="4, 6, 12, 6" fill="none" />
+          <circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="0.8" stroke-dasharray="4, 6, 12, 6"
+            fill="none" />
         </svg>
 
         <!-- Reverse rotating tick ring -->
-        <svg class="absolute w-[75%] h-[75%] animate-[spin_15s_linear_infinite_reverse] text-purple-500/40" viewBox="0 0 100 100">
+        <svg class="absolute w-[75%] h-[75%] animate-[spin_15s_linear_infinite_reverse] text-purple-500/40"
+          viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1, 8" fill="none" />
         </svg>
 
         <!-- Glowing Central Power Core shown during loading -->
-        <div id="loader-core-charging" class="w-24 h-24 rounded-full bg-cyan-950/20 border border-cyan-500/30 flex flex-col justify-center items-center shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]">
-          <div class="w-12 h-12 rounded-full border-2 border-dashed border-cyan-400 animate-[spin_10s_linear_infinite] flex justify-center items-center">
+        <div id="loader-core-charging"
+          class="w-24 h-24 rounded-full bg-cyan-950/20 border border-cyan-500/30 flex flex-col justify-center items-center shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]">
+          <div
+            class="w-12 h-12 rounded-full border-2 border-dashed border-cyan-400 animate-[spin_10s_linear_infinite] flex justify-center items-center">
             <span class="text-[9px] font-mono text-cyan-400 font-bold animate-pulse">SYNC</span>
           </div>
         </div>
 
         <!-- Glowing Central Power Core button (Replaces charging core on finish) -->
-        <button id="loader-start-btn" 
+        <button id="loader-start-btn"
           class="hidden w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-950/80 to-purple-950/80 border-2 border-cyan-400/70 hover:border-cyan-400 flex flex-col justify-center items-center shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_55px_rgba(6,182,212,0.8)] active:scale-95 transition-all duration-300 group cursor-pointer relative overflow-hidden z-20">
-          
+
           <!-- Core scanning sweep light -->
-          <div class="absolute inset-0 bg-[conic-gradient(from_0deg,rgba(6,182,212,0.35),transparent_60%)] animate-[spin_2s_linear_infinite]"></div>
-          
-          <i class="fa-solid fa-satellite-dish text-cyan-400 text-2xl group-hover:scale-110 group-hover:rotate-12 transition-all relative z-10 animate-pulse"></i>
-          <span class="text-[8px] font-mono font-bold tracking-widest text-cyan-300/80 group-hover:text-cyan-300 mt-1 uppercase relative z-10">BOARD</span>
+          <div
+            class="absolute inset-0 bg-[conic-gradient(from_0deg,rgba(6,182,212,0.35),transparent_60%)] animate-[spin_2s_linear_infinite]">
+          </div>
+
+          <i
+            class="fa-solid fa-satellite-dish text-cyan-400 text-2xl group-hover:scale-110 group-hover:rotate-12 transition-all relative z-10 animate-pulse"></i>
+          <span
+            class="text-[8px] font-mono font-bold tracking-widest text-cyan-300/80 group-hover:text-cyan-300 mt-1 uppercase relative z-10">BOARD</span>
         </button>
       </div>
 
       <!-- Station Title -->
-      <h1 class="text-2xl sm:text-3xl font-black font-display tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-purple-400 py-2 leading-relaxed filter drop-shadow-[0_0_12px_rgba(6,182,212,0.4)] uppercase">
+      <h1
+        class="text-2xl sm:text-3xl font-black font-display tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-purple-400 py-2 leading-relaxed filter drop-shadow-[0_0_12px_rgba(6,182,212,0.4)] uppercase">
         NGUYỄN THANH HIỀN
       </h1>
       <p class="text-[10px] font-mono tracking-[0.5em] text-cyan-400/70 mb-8 uppercase">
@@ -81,7 +93,9 @@
           <span id="loader-percentage">0%</span>
         </div>
         <div class="w-full h-1 bg-cyan-950/40 rounded-full overflow-hidden border border-cyan-500/10">
-          <div id="loader-progress-bar" class="h-full bg-gradient-to-r from-cyan-400 to-purple-400 transition-all duration-75" style="width: 0%"></div>
+          <div id="loader-progress-bar"
+            class="h-full bg-gradient-to-r from-cyan-400 to-purple-400 transition-all duration-75" style="width: 0%">
+          </div>
         </div>
       </div>
     </div>
@@ -96,8 +110,12 @@
     <canvas id="canvas-game-3d" class="w-full h-full block"></canvas>
 
     <!-- Tech Viewport Scanline & Vignette Effect Overlay -->
-    <div class="absolute inset-0 pointer-events-none z-15 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(2,3,10,0.75)_100%)] opacity-80"></div>
-    <div class="absolute inset-0 pointer-events-none z-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(6,182,212,0.04),rgba(168,85,247,0.02),rgba(6,182,212,0.04))] bg-[size:100%_4px,6px_100%] opacity-25"></div>
+    <div
+      class="absolute inset-0 pointer-events-none z-15 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(2,3,10,0.75)_100%)] opacity-80">
+    </div>
+    <div
+      class="absolute inset-0 pointer-events-none z-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(6,182,212,0.04),rgba(168,85,247,0.02),rgba(6,182,212,0.04))] bg-[size:100%_4px,6px_100%] opacity-25">
+    </div>
 
     <!-- Sci-Fi Viewport Screen Corner Ornaments -->
     <div class="cyber-screen-corners absolute inset-5 pointer-events-none z-25">
@@ -109,7 +127,8 @@
 
     <!-- Top Left Status Panel -->
     <div class="absolute top-8 left-8 flex flex-col gap-2 z-30 pointer-events-none select-none">
-      <div class="cyber-hud-panel-green px-4 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-mono font-bold tracking-widest text-emerald-400 w-max">
+      <div
+        class="cyber-hud-panel-green px-4 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-mono font-bold tracking-widest text-emerald-400 w-max">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
         <span data-vi="CYBER PORTFOLIO ACTIVE" data-en="CYBER PORTFOLIO ACTIVE">CYBER PORTFOLIO ACTIVE</span>
       </div>
@@ -120,7 +139,8 @@
 
     <!-- Top Right Cyber Controller Panel -->
     <div class="absolute top-8 right-8 flex items-center gap-3 z-30 pointer-events-auto">
-      <button id="exit-3d-btn" class="cyber-hud-btn px-5 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all">
+      <button id="exit-3d-btn"
+        class="cyber-hud-btn px-5 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all">
         <i class="fa-solid fa-xmark text-[10px]"></i>
         <span data-vi="THOÁT 3D (VỀ 2D)" data-en="EXIT 3D SPACE">THOÁT 3D (VỀ 2D)</span>
       </button>
@@ -129,15 +149,19 @@
     <!-- Bottom Left Location HUD Box -->
     <div id="location-hud-container" class="absolute bottom-8 left-8 z-30 pointer-events-auto select-none">
       <div class="cyber-hud-panel px-5 py-3.5 rounded-lg flex flex-col gap-0.5 min-w-[200px] text-left">
-        <span class="text-[9px] font-mono font-bold tracking-[0.25em] text-cyan-400/80" data-vi="ĐANG ĐỨNG TẠI" data-en="CURRENT POSITION">ĐANG ĐỨNG TẠI</span>
-        <span id="current-location-text" class="text-xs font-bold text-white tracking-wide" data-vi="Trạm Không Gian" data-en="Space Station">Trạm Không Gian</span>
+        <span class="text-[9px] font-mono font-bold tracking-[0.25em] text-cyan-400/80" data-vi="ĐANG ĐỨNG TẠI"
+          data-en="CURRENT POSITION">ĐANG ĐỨNG TẠI</span>
+        <span id="current-location-text" class="text-xs font-bold text-white tracking-wide" data-vi="Trạm Không Gian"
+          data-en="Space Station">Trạm Không Gian</span>
       </div>
     </div>
 
     <!-- Futuristic Crosshair Targeting HUD (Center Screen) -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-15 flex justify-center items-center opacity-65">
+    <div
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-15 flex justify-center items-center opacity-65">
       <!-- Target ring -->
-      <div class="w-20 h-20 rounded-full border border-dashed border-cyan-400/20 animate-[spin_40s_linear_infinite]"></div>
+      <div class="w-20 h-20 rounded-full border border-dashed border-cyan-400/20 animate-[spin_40s_linear_infinite]">
+      </div>
       <!-- Center tiny dot -->
       <div class="absolute w-1.5 h-1.5 rounded-full bg-cyan-400/80 shadow-[0_0_8px_#06b6d4]"></div>
       <!-- Corner notches -->
@@ -148,14 +172,21 @@
     </div>
 
     <!-- Transition Loader Overlay (entering 3D space station) -->
-    <div id="transition-loader" class="absolute inset-0 bg-transparent z-50 flex flex-col justify-center items-center select-none opacity-0 hidden transition-all duration-500">
+    <div id="transition-loader"
+      class="absolute inset-0 bg-[#050816] z-50 flex flex-col justify-center items-center select-none opacity-0 hidden transition-all duration-500">
       <div class="scanlines absolute inset-0 pointer-events-none"></div>
       <div class="flex flex-col items-center max-w-sm w-full px-8 text-center relative z-10">
-        <div id="transition-title" class="mb-4 text-cyan-400 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase font-bold animate-pulse" data-vi="ĐANG KHỞI ĐỘNG CƠ CẤU WARP // UỐN CONG KHÔNG GIAN" data-en="INITIALIZING HYPERDRIVE // WARPING SPACE">
+        <div id="transition-title"
+          class="mb-4 text-cyan-400 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase font-bold animate-pulse"
+          data-vi="ĐANG KHỞI ĐỘNG CƠ CẤU WARP // UỐN CONG KHÔNG GIAN"
+          data-en="INITIALIZING HYPERDRIVE // WARPING SPACE">
           ĐANG KHỞI ĐỘNG CƠ CẤU WARP // UỐN CONG KHÔNG GIAN
         </div>
-        <div class="relative w-full h-1.5 bg-purple-950/40 rounded-full border border-purple-500/20 overflow-hidden mb-3">
-          <div id="transition-progress-bar" class="absolute h-full left-0 top-0 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-[0_0_10px_#06b6d4] transition-all duration-75" style="width: 0%;"></div>
+        <div
+          class="relative w-full h-1.5 bg-purple-950/40 rounded-full border border-purple-500/20 overflow-hidden mb-3">
+          <div id="transition-progress-bar"
+            class="absolute h-full left-0 top-0 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-[0_0_10px_#06b6d4] transition-all duration-75"
+            style="width: 0%;"></div>
         </div>
         <div class="flex justify-between w-full font-mono text-[9px] text-zinc-500">
           <span id="transition-status" class="uppercase">TUNING SPACE-TIME INDEX...</span>
@@ -190,7 +221,8 @@
         </div>
         <div data-vi="• Chuột trái & Kéo để xoay camera" data-en="• Left-Click & Drag to rotate camera">• Chuột trái &
           Kéo để xoay camera</div>
-        <div data-vi="• Cuộn chuột để phóng to / thu nhỏ" data-en="• Scroll wheel to Zoom in / out">• Cuộn chuột để phóng to / thu nhỏ</div>
+        <div data-vi="• Cuộn chuột để phóng to / thu nhỏ" data-en="• Scroll wheel to Zoom in / out">• Cuộn chuột để
+          phóng to / thu nhỏ</div>
         <div data-vi="• Đến gần các địa danh để xem thông tin" data-en="• Approach nodes to view info">• Đến gần các địa
           danh để xem thông tin</div>
       </div>
@@ -232,7 +264,7 @@
         H
       </div>
       <a href="#" class="text-white text-lg font-bold font-display cursor-pointer flex">
-        Thanh Hiền&nbsp;<span class="sm:block hidden text-[#915eff]">| Vibe Coder</span>
+        Nguyễn Thanh Hiền&nbsp;<span class="sm:block hidden text-[#915eff]">| Vibe Coder</span>
       </a>
     </div>
 
@@ -346,27 +378,31 @@
           data-vi="⚡ Bước vào Trạm Không Gian" data-en="⚡ Enter the Space Station">
           ⚡ Bước vào Trạm Không Gian
         </p>
-        <button id="portal-crack-btn" class="portal-crack group relative cursor-pointer" aria-label="Enter 3D Space Station">
+        <button id="portal-crack-btn" class="portal-crack group relative cursor-pointer"
+          aria-label="Enter 3D Space Station">
           <!-- Outer glow ring -->
-          <div class="absolute inset-0 rounded-full bg-purple-500/20 blur-xl group-hover:bg-purple-500/40 transition-all duration-500 scale-150"></div>
+          <div
+            class="absolute inset-0 rounded-full bg-purple-500/20 blur-xl group-hover:bg-purple-500/40 transition-all duration-500 scale-150">
+          </div>
           <!-- Portal crack shape -->
           <div class="relative w-14 h-20 flex justify-center items-center">
             <!-- Crack line SVG -->
-            <svg class="w-full h-full drop-shadow-[0_0_12px_rgba(145,94,255,0.6)] group-hover:drop-shadow-[0_0_20px_rgba(145,94,255,0.9)] transition-all duration-300" viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 2 L22 12 L18 18 L24 28 L16 34 L22 44 L18 52 L20 58" 
-                stroke="url(#portalGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                class="animate-pulse"/>
-              <path d="M20 2 L22 12 L18 18 L24 28 L16 34 L22 44 L18 52 L20 58" 
-                stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+            <svg
+              class="w-full h-full drop-shadow-[0_0_12px_rgba(145,94,255,0.6)] group-hover:drop-shadow-[0_0_20px_rgba(145,94,255,0.9)] transition-all duration-300"
+              viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2 L22 12 L18 18 L24 28 L16 34 L22 44 L18 52 L20 58" stroke="url(#portalGradient)"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse" />
+              <path d="M20 2 L22 12 L18 18 L24 28 L16 34 L22 44 L18 52 L20 58" stroke="white" stroke-width="1"
+                stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
               <!-- Spark particles -->
-              <circle cx="22" cy="12" r="1.5" fill="#915eff" class="animate-ping" style="animation-duration:2s"/>
-              <circle cx="24" cy="28" r="1.5" fill="#a855f7" class="animate-ping" style="animation-duration:1.5s"/>
-              <circle cx="18" cy="44" r="1" fill="#c084fc" class="animate-ping" style="animation-duration:2.5s"/>
+              <circle cx="22" cy="12" r="1.5" fill="#915eff" class="animate-ping" style="animation-duration:2s" />
+              <circle cx="24" cy="28" r="1.5" fill="#a855f7" class="animate-ping" style="animation-duration:1.5s" />
+              <circle cx="18" cy="44" r="1" fill="#c084fc" class="animate-ping" style="animation-duration:2.5s" />
               <defs>
                 <linearGradient id="portalGradient" x1="20" y1="2" x2="20" y2="58" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#c084fc"/>
-                  <stop offset="50%" stop-color="#915eff"/>
-                  <stop offset="100%" stop-color="#6d28d9"/>
+                  <stop offset="0%" stop-color="#c084fc" />
+                  <stop offset="50%" stop-color="#915eff" />
+                  <stop offset="100%" stop-color="#6d28d9" />
                 </linearGradient>
               </defs>
             </svg>

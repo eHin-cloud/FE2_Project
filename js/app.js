@@ -3007,12 +3007,8 @@ function triggerSpaceTransition(callback, isExit = false) {
     }
   }
 
-  // If exiting, make transition background solid to cover up object disappearance
-  if (isExit) {
-    loader.style.backgroundColor = "rgba(5, 8, 22, 0.96)";
-  } else {
-    loader.style.backgroundColor = "transparent";
-  }
+  // Make transition background solid to cover up object loading and disappearance
+  loader.style.backgroundColor = "#050816";
 
   // Show loader overlay
   loader.classList.remove("hidden");
