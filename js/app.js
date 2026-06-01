@@ -218,13 +218,13 @@ function scrambleString(str, ratio) {
 // ==========================================================================
 function startBootloader() {
   const steps = [
-    { text: "ESTABLISHING QUANTUM NEURAL HANDSHAKE...", weight: 12 },
-    { text: "STABILIZING WARP DRIVE MATRIX FLUX...", weight: 13 },
-    { text: "DECRYPTING CORE IDENTITY DATABANKS...", weight: 15 },
-    { text: "MAPPING THREE.JS COSMIC SPACETIME CANVAS...", weight: 15 },
-    { text: "SYNCHRONIZING LARAVEL BACKEND NEURAL ENGINE...", weight: 15 },
-    { text: "COMPILING MANUAL QA DIAGNOSTIC TEST CASES...", weight: 15 },
-    { text: "INITIALIZATION SUCCESS. CORE STATUS: SECURE.", weight: 15 }
+    { text: "ESTABLISHING NEURAL LINK TO SPACE STATION...", weight: 12 },
+    { text: "INITIATING GRAVITATIONAL SINGULARITY COMPENSATORS...", weight: 13 },
+    { text: "WARMING UP FUSION REACTOR ENERGY CORE...", weight: 15 },
+    { text: "MAPPING DEEP SPACE GALAXY PLANET COORDINATES...", weight: 15 },
+    { text: "CALIBRATING SAFETY RUNWAY ENERGY FLOW BEACONS...", weight: 15 },
+    { text: "ESTABLISHING ENCRYPTED TELEMETRY TO ORBITING APEX DRONE...", weight: 15 },
+    { text: "STATION BOOT NOMINAL. CORE IS STABLE. READY TO BOARD.", weight: 15 }
   ];
 
   const statusPercent = document.getElementById("loader-percentage");
