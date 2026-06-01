@@ -983,6 +983,10 @@ let gameUnderGlobe;
 let centralCoreGroup = null;
 let moveIndicator;
 let gameStars = null;
+let gameStarsTwinkleA = null;
+let gameStarsTwinkleB = null;
+let gameNebulaClouds = [];
+let gameTechFloor = null;
 let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let is3DMode = true;
@@ -1075,6 +1079,23 @@ function createTextSprite(text, color = '#ffffff') {
   return sprite;
 }
 
+function createNebulaTexture(colorHex) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  
+  const grad = ctx.createRadialGradient(256, 256, 10, 256, 256, 240);
+  grad.addColorStop(0, colorHex + "2f"); // slightly glowing center
+  grad.addColorStop(0.35, colorHex + "15");
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+  
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+  
+  return new THREE.CanvasTexture(canvas);
+}
+
 function initGame3D() {
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
@@ -1110,24 +1131,157 @@ function initGame3D() {
   dirLight.position.set(10, 20, 15);
   gameScene.add(dirLight);
   
-  // Simple particle system
+  // Concentric / Twinkling Starfields
+  // 1. Static far stars (white)
   const starCount = 800;
   const starGeom = new THREE.BufferGeometry();
   const starPos = new Float32Array(starCount * 3);
   for(let i = 0; i < starCount * 3; i += 3) {
-    starPos[i] = (Math.random() - 0.5) * 200;
-    starPos[i+1] = (Math.random() - 0.5) * 150 + 20;
-    starPos[i+2] = (Math.random() - 0.5) * 200;
+    starPos[i] = (Math.random() - 0.5) * 250;
+    starPos[i+1] = (Math.random() - 0.5) * 200 + 30;
+    starPos[i+2] = (Math.random() - 0.5) * 250;
   }
   starGeom.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-  const starMat = new THREE.PointsMaterial({ size: 0.8, color: 0xffffff, transparent: true, opacity: 0.6 });
+  const starMat = new THREE.PointsMaterial({ size: 0.7, color: 0xffffff, transparent: true, opacity: 0.5 });
   gameStars = new THREE.Points(starGeom, starMat);
   gameScene.add(gameStars);
-  
+
+  // 2. Twinkling Cyan Stars
+  const starCountA = 400;
+  const starGeomA = new THREE.BufferGeometry();
+  const starPosA = new Float32Array(starCountA * 3);
+  for(let i = 0; i < starCountA * 3; i += 3) {
+    starPosA[i] = (Math.random() - 0.5) * 250;
+    starPosA[i+1] = (Math.random() - 0.5) * 200 + 30;
+    starPosA[i+2] = (Math.random() - 0.5) * 250;
+  }
+  starGeomA.setAttribute("position", new THREE.BufferAttribute(starPosA, 3));
+  const starMatA = new THREE.PointsMaterial({ size: 0.9, color: 0x06b6d4, transparent: true, opacity: 0.7 });
+  gameStarsTwinkleA = new THREE.Points(starGeomA, starMatA);
+  gameScene.add(gameStarsTwinkleA);
+
+  // 3. Twinkling Purple Stars
+  const starCountB = 400;
+  const starGeomB = new THREE.BufferGeometry();
+  const starPosB = new Float32Array(starCountB * 3);
+  for(let i = 0; i < starCountB * 3; i += 3) {
+    starPosB[i] = (Math.random() - 0.5) * 250;
+    starPosB[i+1] = (Math.random() - 0.5) * 200 + 30;
+    starPosB[i+2] = (Math.random() - 0.5) * 250;
+  }
+  starGeomB.setAttribute("position", new THREE.BufferAttribute(starPosB, 3));
+  const starMatB = new THREE.PointsMaterial({ size: 0.8, color: 0xd946ef, transparent: true, opacity: 0.6 });
+  gameStarsTwinkleB = new THREE.Points(starGeomB, starMatB);
+  gameScene.add(gameStarsTwinkleB);
+
+  // Dynamic Background Nebula / Gas Clouds
+  gameNebulaClouds = [];
+  const nebulaColors = ["#0284c7", "#7c3aed", "#0891b2"];
+  const nebulaPositions = [
+    { x: -70, y: -20, z: -100 },
+    { x: 80, y: 30, z: -80 },
+    { x: -50, y: 50, z: 90 }
+  ];
+  const nebulaScales = [150, 180, 160];
+
+  for (let i = 0; i < 3; i++) {
+    const nebTex = createNebulaTexture(nebulaColors[i]);
+    const nebMat = new THREE.MeshBasicMaterial({
+      map: nebTex,
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide
+    });
+    const nebGeom = new THREE.PlaneGeometry(nebulaScales[i], nebulaScales[i]);
+    const nebMesh = new THREE.Mesh(nebGeom, nebMat);
+    nebMesh.position.set(nebulaPositions[i].x, nebulaPositions[i].y, nebulaPositions[i].z);
+    
+    // Rotate to face scene center generally
+    nebMesh.lookAt(0, 0, 0);
+    gameScene.add(nebMesh);
+    gameNebulaClouds.push(nebMesh);
+  }
+
   // Grid floor helper
   const gridHelper = new THREE.GridHelper(60, 30, 0x06b6d4, 0x1d1836);
   gridHelper.position.y = -1.5;
   gameScene.add(gridHelper);
+
+  // Futuristic Canvas-Based Ground / Tech Grid Floor Deck
+  const techCanvas = document.createElement("canvas");
+  techCanvas.width = 1024;
+  techCanvas.height = 1024;
+  const ctx = techCanvas.getContext("2d");
+  
+  // Fill dark background
+  ctx.fillStyle = "rgba(7, 10, 32, 0.45)";
+  ctx.fillRect(0, 0, 1024, 1024);
+  
+  // Draw glowing cyan tech borders
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(16, 16, 992, 992);
+  
+  // Corner brackets
+  ctx.strokeStyle = "#06b6d4";
+  ctx.lineWidth = 10;
+  const bracketLen = 80;
+  ctx.beginPath(); ctx.moveTo(16, 16 + bracketLen); ctx.lineTo(16, 16); ctx.lineTo(16 + bracketLen, 16); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(1008 - bracketLen, 16); ctx.lineTo(1008, 16); ctx.lineTo(1008, 16 + bracketLen); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(16, 1008 - bracketLen); ctx.lineTo(16, 1008); ctx.lineTo(16 + bracketLen, 1008); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(1008 - bracketLen, 1008); ctx.lineTo(1008, 1008); ctx.lineTo(1008, 1008 - bracketLen); ctx.stroke();
+  
+  // Concentric radar sector circles
+  ctx.strokeStyle = "rgba(145, 94, 255, 0.3)";
+  ctx.lineWidth = 2;
+  const center = 512;
+  const radiuses = [120, 260, 400];
+  radiuses.forEach(r => {
+    ctx.beginPath();
+    ctx.arc(center, center, r, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+  
+  // Dashed lines
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+  ctx.setLineDash([12, 18]);
+  ctx.beginPath();
+  ctx.arc(center, center, 320, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Center crosshair axis lines
+  ctx.strokeStyle = "rgba(6, 182, 212, 0.18)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(512, 40); ctx.lineTo(512, 984);
+  ctx.moveTo(40, 512); ctx.lineTo(984, 512);
+  ctx.stroke();
+  
+  // Telemetry indicators
+  ctx.fillStyle = "#06b6d4";
+  ctx.font = "bold 16px monospace";
+  ctx.fillText("STATION CONTROL DECK AREA A-1 // SYS: SECURE", 40, 50);
+  ctx.fillText("RADAR LINK STATUS: ONLINE // BEACON STABLE", 40, 75);
+  
+  ctx.fillStyle = "#915eff";
+  ctx.fillText("DOCKING GRID: SYMMETRICAL SECTORS", 680, 50);
+  ctx.fillText("POWER CORES: 98% FLUID REACTION", 680, 75);
+  
+  const floorTex = new THREE.CanvasTexture(techCanvas);
+  const floorMat = new THREE.MeshBasicMaterial({
+    map: floorTex,
+    transparent: true,
+    opacity: 0.75,
+    side: THREE.DoubleSide
+  });
+  const floorGeom = new THREE.PlaneGeometry(60, 60);
+  gameTechFloor = new THREE.Mesh(floorGeom, floorMat);
+  gameTechFloor.rotation.x = Math.PI / 2;
+  gameTechFloor.position.y = -1.48; // resting slightly above the gridHelper line floor
+  gameScene.add(gameTechFloor);
   
   // Giant rotating hologram planet underneath the scene grid
   const globeGeom = new THREE.SphereGeometry(30, 24, 24);
@@ -1827,6 +1981,21 @@ function gameAnimate() {
   if (gameUnderGlobe) {
     gameUnderGlobe.rotation.y += 0.0015;
     gameUnderGlobe.rotation.x += 0.0008;
+  }
+
+  // Twinkle star systems
+  if (gameStarsTwinkleA) {
+    gameStarsTwinkleA.material.opacity = 0.4 + Math.sin(time * 3.5) * 0.3;
+  }
+  if (gameStarsTwinkleB) {
+    gameStarsTwinkleB.material.opacity = 0.3 + Math.sin(time * 2.5 + 1.0) * 0.3;
+  }
+
+  // Rotate background cosmic nebula sheets very slowly
+  if (gameNebulaClouds && gameNebulaClouds.length > 0) {
+    gameNebulaClouds.forEach((neb, idx) => {
+      neb.rotation.z += 0.00015 * (idx % 2 === 0 ? 1 : -1);
+    });
   }
 
   // Rotate central station core elements (energy rings & radar array)
