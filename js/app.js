@@ -990,6 +990,8 @@ let gameTechFloor = null;
 let gameWalkwayTextures = [];
 let gameBlackHoleGroup = null;
 let gameBgPlanets = [];
+let gameSweepRing = null;
+let gameFenceBeacons = [];
 let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let is3DMode = true;
@@ -1273,6 +1275,8 @@ function initGame3D() {
   gameCameraRadius = 16;
   gameCameraPitchAngle = 0.5;
   gameWalkwayTextures = [];
+  gameSweepRing = null;
+  gameFenceBeacons = [];
 
   if (gameInitialized) {
     if (!gameAnimationId) {
@@ -1644,6 +1648,75 @@ function initGame3D() {
   gameTechFloor.position.y = -1.48; // resting slightly above the gridHelper line floor
   gameScene.add(gameTechFloor);
   
+  // Dynamic expanding radar energy pulse sweep ring
+  const sweepGeom = new THREE.RingGeometry(0.9, 1.0, 64);
+  const sweepMat = new THREE.MeshBasicMaterial({
+    color: 0x00ffff,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false
+  });
+  gameSweepRing = new THREE.Mesh(sweepGeom, sweepMat);
+  gameSweepRing.rotation.x = Math.PI / 2;
+  gameSweepRing.position.set(0, -1.46, 0); // slightly above tech floor
+  gameScene.add(gameSweepRing);
+  
+  // Perimeter neon fence posts & beacons (Skip node paths/walkways)
+  gameFenceBeacons = [];
+  const fenceGroup = new THREE.Group();
+  const postGeom = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
+  const postMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.8 });
+  const beaconGeom = new THREE.SphereGeometry(0.08, 8, 8);
+  
+  const numPosts = 16;
+  const fenceRadius = 27.5;
+  for (let i = 0; i < numPosts; i++) {
+    const angle = (i / numPosts) * Math.PI * 2;
+    
+    let closeToWalkway = false;
+    for (let k = 0; k < 4; k++) {
+      const targetAngle = (k * Math.PI) / 2;
+      const diff = Math.min(
+        Math.abs(angle - targetAngle),
+        Math.abs(angle - targetAngle - Math.PI * 2),
+        Math.abs(angle - targetAngle + Math.PI * 2)
+      );
+      if (diff < 0.25) {
+        closeToWalkway = true;
+        break;
+      }
+    }
+    if (closeToWalkway) continue;
+    
+    const px = Math.cos(angle) * fenceRadius;
+    const pz = Math.sin(angle) * fenceRadius;
+    
+    const postGroup = new THREE.Group();
+    postGroup.position.set(px, -1.0, pz);
+    
+    const postMesh = new THREE.Mesh(postGeom, postMat);
+    postGroup.add(postMesh);
+    
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.9 });
+    const beaconMesh = new THREE.Mesh(beaconGeom, beaconMat);
+    beaconMesh.position.y = 0.5;
+    postGroup.add(beaconMesh);
+    
+    gameFenceBeacons.push(beaconMesh);
+    fenceGroup.add(postGroup);
+  }
+  
+  // Perimeter rails connecting fence posts
+  const railsGeom = new THREE.TorusGeometry(27.5, 0.02, 4, 128);
+  const railsMat = new THREE.MeshBasicMaterial({ color: 0x915eff, transparent: true, opacity: 0.35 });
+  const railsMesh = new THREE.Mesh(railsGeom, railsMat);
+  railsMesh.rotation.x = Math.PI / 2;
+  railsMesh.position.y = -1.0;
+  fenceGroup.add(railsMesh);
+  
+  gameScene.add(fenceGroup);
+  
   // Multi-layered Gyroscopic Energy Reactor Core deep below grid floor
   gameUnderGlobe = new THREE.Group();
   gameUnderGlobe.position.set(0, -28, 0); // Positioned deep below grid floor
@@ -1933,6 +2006,7 @@ function initGame3D() {
     const borderGeom = new THREE.TorusGeometry(2.6, 0.08, 8, 32);
     const borderMat = new THREE.MeshBasicMaterial({ color: def.color });
     const borderMesh = new THREE.Mesh(borderGeom, borderMat);
+    borderMesh.name = "pad_ring";
     borderMesh.rotation.x = Math.PI / 2;
     borderMesh.position.y = -1.1;
     nodeGroup.add(borderMesh);
@@ -2487,6 +2561,37 @@ function gameAnimate() {
   if (gameWalkwayTextures && gameWalkwayTextures.length > 0) {
     gameWalkwayTextures.forEach(tex => {
       tex.offset.y -= 0.012;
+    });
+  }
+
+  // Animate dynamic expanding radar energy pulse sweep ring
+  if (gameSweepRing) {
+    let nextScale = gameSweepRing.scale.x + 0.15;
+    if (nextScale > 45) {
+      nextScale = 1.0;
+    }
+    gameSweepRing.scale.set(nextScale, nextScale, 1);
+    
+    const progress = nextScale / 45;
+    gameSweepRing.material.opacity = Math.max(0, (1.0 - progress) * 0.4);
+  }
+
+  // Blink perimeter fence beacons
+  if (gameFenceBeacons && gameFenceBeacons.length > 0) {
+    gameFenceBeacons.forEach((beacon, idx) => {
+      beacon.material.opacity = 0.35 + Math.sin(time * 6.0 + idx) * 0.65;
+    });
+  }
+
+  // Rotate and pulsate landing pad rings
+  if (gameNodes && gameNodes.length > 0) {
+    gameNodes.forEach(node => {
+      const ring = node.getObjectByName("pad_ring");
+      if (ring) {
+        ring.rotation.z += 0.012;
+        const sc = 1.0 + Math.sin(time * 4) * 0.06;
+        ring.scale.set(sc, sc, 1);
+      }
     });
   }
 
