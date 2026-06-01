@@ -31,8 +31,8 @@
     <!-- Scanline effect -->
     <div class="scanlines absolute inset-0 pointer-events-none"></div>
 
-    <div
-      class="max-w-5xl w-full mx-4 p-6 md:p-10 rounded-2xl bg-[#030511]/90 border border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+    <div id="bootloader-card"
+      class="max-w-5xl w-full mx-4 p-6 md:p-10 rounded-2xl bg-[#030511]/90 border border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.15)] relative overflow-hidden flex flex-col justify-between min-h-[500px] transition-all duration-500">
 
       <!-- Tech framing corner brackets -->
       <div class="absolute top-3 left-3 text-cyan-500/60 font-mono text-[10px] sm:text-xs pointer-events-none">┌──
@@ -174,8 +174,48 @@
 
   <!-- 3D Interactive Cyber-Oasis Container -->
   <div id="game-container" class="fixed inset-0 w-full h-full z-20 bg-[#050816] hidden select-none">
-    <!-- Game Canvas -->
+    <!-- Starfield/Drift background canvas -->
     <canvas id="canvas-game-3d" class="w-full h-full block"></canvas>
+
+    <!-- Tech Viewport Scanline & Vignette Effect Overlay -->
+    <div class="absolute inset-0 pointer-events-none z-15 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(2,3,10,0.75)_100%)] opacity-80"></div>
+    <div class="absolute inset-0 pointer-events-none z-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(6,182,212,0.04),rgba(168,85,247,0.02),rgba(6,182,212,0.04))] bg-[size:100%_4px,6px_100%] opacity-25"></div>
+
+    <!-- Return / Exit 3D Mode Button (Top Left) -->
+    <button id="exit-3d-btn" class="absolute top-6 left-6 px-4 py-2 rounded-xl glass-panel border border-rose-500/20 hover:border-rose-500/60 text-xs font-mono font-bold tracking-widest text-rose-400 hover:text-rose-300 bg-[#0c102b]/80 z-30 transition-all flex items-center gap-2 pointer-events-auto">
+      <i class="fa-solid fa-arrow-left text-[10px]"></i>
+      <span data-vi="THOÁT KHÔNG GIAN 3D" data-en="EXIT 3D SPACE">THOÁT KHÔNG GIAN 3D</span>
+    </button>
+
+    <!-- Futuristic Crosshair Targeting HUD (Center Screen) -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-15 flex justify-center items-center opacity-65">
+      <!-- Target ring -->
+      <div class="w-20 h-20 rounded-full border border-dashed border-cyan-400/20 animate-[spin_40s_linear_infinite]"></div>
+      <!-- Center tiny dot -->
+      <div class="absolute w-1.5 h-1.5 rounded-full bg-cyan-400/80 shadow-[0_0_8px_#06b6d4]"></div>
+      <!-- Corner notches -->
+      <div class="absolute w-6 h-0.5 bg-cyan-400/30 -translate-x-12"></div>
+      <div class="absolute w-6 h-0.5 bg-cyan-400/30 translate-x-12"></div>
+      <div class="absolute w-0.5 h-6 bg-cyan-400/30 -translate-y-12"></div>
+      <div class="absolute w-0.5 h-6 bg-cyan-400/30 translate-y-12"></div>
+    </div>
+
+    <!-- Transition Loader Overlay (entering 3D space station) -->
+    <div id="transition-loader" class="absolute inset-0 bg-transparent z-50 flex flex-col justify-center items-center select-none opacity-0 hidden transition-all duration-500">
+      <div class="scanlines absolute inset-0 pointer-events-none"></div>
+      <div class="flex flex-col items-center max-w-sm w-full px-8 text-center relative z-10">
+        <div class="mb-4 text-cyan-400 font-mono text-[10px] sm:text-xs tracking-[0.25em] uppercase font-bold animate-pulse">
+          INITIALIZING HYPERDRIVE // WARPING SPACE
+        </div>
+        <div class="relative w-full h-1.5 bg-purple-950/40 rounded-full border border-purple-500/20 overflow-hidden mb-3">
+          <div id="transition-progress-bar" class="absolute h-full left-0 top-0 bg-gradient-to-r from-cyan-400 to-purple-500 shadow-[0_0_10px_#06b6d4] transition-all duration-75" style="width: 0%;"></div>
+        </div>
+        <div class="flex justify-between w-full font-mono text-[9px] text-zinc-500">
+          <span id="transition-status" class="uppercase">TUNING SPACE-TIME INDEX...</span>
+          <span id="transition-percentage" class="text-cyan-400 font-bold">0%</span>
+        </div>
+      </div>
+    </div>
 
     <!-- On-screen controls & HUD -->
     <!-- Virtual Joystick (Left) -->
@@ -204,6 +244,7 @@
         </div>
         <div data-vi="• Chuột trái & Kéo để xoay camera" data-en="• Left-Click & Drag to rotate camera">• Chuột trái &
           Kéo để xoay camera</div>
+        <div data-vi="• Cuộn chuột để phóng to / thu nhỏ" data-en="• Scroll wheel to Zoom in / out">• Cuộn chuột để phóng to / thu nhỏ</div>
         <div data-vi="• Đến gần các địa danh để xem thông tin" data-en="• Approach nodes to view info">• Đến gần các địa
           danh để xem thông tin</div>
       </div>

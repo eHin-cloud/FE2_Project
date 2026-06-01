@@ -286,3 +286,19 @@ h1, h2, h3, h4, .font-display {
     box-shadow: 0 0 15px rgba(145, 94, 255, 0.6);
   }
 }
+
+#joystick-zone,
+#instructions-hud {
+  transition: opacity 0.5s ease-out;
+}
+
+/* 3D tilt hover effect on project cards */
+.bg-\[\#151030\] {
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease !important;
+  perspective: 1000px;
+}
+.bg-\[\#151030\]:hover {
+  transform: translateY(-8px) rotateY(6deg) rotateX(4deg) !important;
+  box-shadow: 0 15px 35px rgba(145, 94, 255, 0.25) !important;
+  border-color: rgba(145, 94, 255, 0.4) !important;
+}

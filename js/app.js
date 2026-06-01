@@ -3,6 +3,8 @@
 // ==========================================================================
 let audioCtx;
 let chargingOsc, chargingLFO, chargingGain;
+let starfieldSpeedMultiplier = 1.0;
+let transitionLoadingActive = false;
 
 function initAudio() {
   console.log("initAudio called. Current state:", audioCtx ? audioCtx.state : "uninitialized");
@@ -364,13 +366,57 @@ function startBootloader() {
         startBtn.classList.remove("hidden");
         startBtn.addEventListener("click", () => {
           playBeep(880, 0.15, 'triangle', 0.08);
-          // Dismiss loader screen
-          if (overlay) {
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 500);
+          
+          // Fade out the diagnostic card container
+          const bootloaderCard = document.getElementById("bootloader-card");
+          if (bootloaderCard) {
+            bootloaderCard.style.opacity = '0';
           }
-          // Trigger animations inside site
-          startSiteAnimations();
+          
+          // Set overlay background to transparent so we see the stars behind it
+          if (overlay) {
+            overlay.style.backgroundColor = 'transparent';
+          }
+          
+          // Accelerate background stars to warp speed!
+          starfieldSpeedMultiplier = 20.0;
+          
+          setTimeout(() => {
+            // Dismiss bootloader overlay screen completely
+            if (overlay) {
+              overlay.style.opacity = '0';
+              setTimeout(() => {
+                overlay.remove();
+                // Reset background starfield speed
+                starfieldSpeedMultiplier = 1.0;
+              }, 500);
+            }
+            
+            // Trigger animations inside site
+            startSiteAnimations();
+            
+            // Trigger appropriate view mode transitions
+            if (typeof setupViewModeToggle === 'function') {
+              const btn = document.getElementById("view-mode-btn");
+              if (btn) {
+                const mainContent = document.getElementById("main-content");
+                const gameContainer = document.getElementById("game-container");
+                const canvasBg = document.getElementById("canvas-bg");
+                const text = document.getElementById("view-mode-text");
+                
+                if (is3DMode && mainContent && gameContainer && canvasBg) {
+                  if (text) {
+                    text.textContent = currentLang === "vi" ? "📄 CHẾ ĐỘ THƯỜNG" : "📄 LIST VIEW";
+                  }
+                  mainContent.classList.add("hidden");
+                  gameContainer.classList.remove("hidden");
+                  canvasBg.style.display = "none";
+                  initGame3D();
+                  triggerSpaceTransition();
+                }
+              }
+            }
+          }, 1200); // 1.2s of warp speed intro flight
         });
       }
     }
@@ -547,9 +593,22 @@ function initStarfieldBackground() {
   const animate = () => {
     requestAnimationFrame(animate);
 
-    // Drifting animation
-    starField.rotation.y += 0.0005;
-    starField.rotation.x += 0.0002;
+    // Move particles forward towards camera
+    const pos = geometry.attributes.position.array;
+    for (let i = 2; i < pos.length; i += 3) {
+      const speed = (starfieldSpeedMultiplier > 1.0) ? (0.6 * starfieldSpeedMultiplier) : 0.4;
+      pos[i] -= speed;
+      if (pos[i] < -200) {
+        pos[i] = 200;
+        pos[i-2] = (Math.random() - 0.5) * 600;
+        pos[i-1] = (Math.random() - 0.5) * 600;
+      }
+    }
+    geometry.attributes.position.needsUpdate = true;
+
+    // Drifting rotation animation (slight secondary rotation)
+    starField.rotation.y += 0.0002;
+    starField.rotation.x += 0.0001;
 
     // Parallax mouse movements
     camera.position.x += (mouseX - camera.position.x) * 0.05;
@@ -919,7 +978,9 @@ let gamePlayer;
 let gameNodes = [];
 let gameUnderGlobe;
 let moveIndicator;
+let gameStars = null;
 let gameInitialized = false;
+let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let is3DMode = true;
 let gameAnimationId = null;
 let activeModalNode = null;
@@ -982,7 +1043,7 @@ const nodeDefs = [
   }
 ];
 
-function createTextSprite(text, color = '#ffffff') {
+function createTextTexture(text, color = '#ffffff') {
   const canvas = document.createElement('canvas');
   canvas.width = 256;
   canvas.height = 64;
@@ -998,7 +1059,11 @@ function createTextSprite(text, color = '#ffffff') {
   ctx.fillStyle = color;
   ctx.fillText(text, 128, 32);
   
-  const texture = new THREE.CanvasTexture(canvas);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createTextSprite(text, color = '#ffffff') {
+  const texture = createTextTexture(text, color);
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
   const sprite = new THREE.Sprite(material);
   sprite.scale.set(6, 1.5, 1);
@@ -1047,7 +1112,7 @@ function initGame3D() {
   }
   starGeom.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
   const starMat = new THREE.PointsMaterial({ size: 0.8, color: 0xffffff, transparent: true, opacity: 0.6 });
-  const gameStars = new THREE.Points(starGeom, starMat);
+  gameStars = new THREE.Points(starGeom, starMat);
   gameScene.add(gameStars);
   
   // Grid floor helper
@@ -1153,21 +1218,93 @@ function initGame3D() {
     borderMesh.position.y = -1.1;
     nodeGroup.add(borderMesh);
     
-    // Icon shape
-    let iconMesh;
-    if (def.iconType === "icosahedron") {
-      iconMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.0, 0), new THREE.MeshPhongMaterial({ color: def.color, wireframe: true }));
-    } else if (def.iconType === "torusKnot") {
-      iconMesh = new THREE.Mesh(new THREE.TorusKnotGeometry(0.6, 0.2, 40, 8), new THREE.MeshPhongMaterial({ color: def.color, wireframe: true }));
-    } else if (def.iconType === "octahedron") {
-      iconMesh = new THREE.Mesh(new THREE.OctahedronGeometry(1.0, 0), new THREE.MeshPhongMaterial({ color: def.color, wireframe: true }));
-    } else {
-      iconMesh = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.0, 1.0), new THREE.MeshPhongMaterial({ color: def.color, wireframe: true }));
-    }
+    // 3D Sci-Fi Planet creation
+    let iconMesh = new THREE.Group();
     iconMesh.position.y = 0.3;
+    
+    // Core planet sphere
+    const coreGeom = new THREE.SphereGeometry(0.8, 32, 32);
+    const coreMat = new THREE.MeshPhongMaterial({
+      color: 0x0a0a1a,
+      emissive: def.color,
+      emissiveIntensity: 0.85,
+      specular: 0xffffff,
+      shininess: 40
+    });
+    const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+    iconMesh.add(coreMesh);
+    
+    // Unique orbiting features for each planet
+    if (def.id === "about") {
+      // Purple plasma planet with outer energy lattice
+      const shellGeom = new THREE.SphereGeometry(1.05, 12, 12);
+      const shellMat = new THREE.MeshBasicMaterial({
+        color: def.color,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.4
+      });
+      const shellMesh = new THREE.Mesh(shellGeom, shellMat);
+      shellMesh.name = "sub_shell";
+      iconMesh.add(shellMesh);
+      
+    } else if (def.id === "experience") {
+      // Ringed planet (Saturn style)
+      const ringGeom = new THREE.RingGeometry(1.2, 2.0, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: def.color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5
+      });
+      const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+      ringMesh.rotation.x = Math.PI / 2.5;
+      ringMesh.rotation.y = Math.PI / 12;
+      ringMesh.name = "sub_ring";
+      iconMesh.add(ringMesh);
+      
+    } else if (def.id === "projects") {
+      // Technology planet with energy orbits
+      const orbitGroup = new THREE.Group();
+      orbitGroup.name = "sub_orbits";
+      
+      const ringGeom1 = new THREE.TorusGeometry(1.3, 0.02, 8, 48);
+      const ringMat1 = new THREE.MeshBasicMaterial({ color: def.color });
+      const ring1 = new THREE.Mesh(ringGeom1, ringMat1);
+      orbitGroup.add(ring1);
+      
+      const ring2 = new THREE.Mesh(ringGeom1, ringMat1);
+      ring2.rotation.x = Math.PI / 2;
+      orbitGroup.add(ring2);
+      
+      const ring3 = new THREE.Mesh(ringGeom1, ringMat1);
+      ring3.rotation.y = Math.PI / 2;
+      orbitGroup.add(ring3);
+      
+      iconMesh.add(orbitGroup);
+      
+    } else if (def.id === "contact") {
+      // Red planet with orbiting mini moons
+      const moonGroup = new THREE.Group();
+      moonGroup.name = "sub_moons";
+      
+      const moonGeom = new THREE.SphereGeometry(0.16, 8, 8);
+      const moonMat = new THREE.MeshPhongMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 0.5 });
+      
+      const moon1 = new THREE.Mesh(moonGeom, moonMat);
+      moon1.position.set(1.4, 0.2, 0);
+      moonGroup.add(moon1);
+      
+      const moon2 = new THREE.Mesh(moonGeom, moonMat);
+      moon2.position.set(-1.4, -0.2, 0);
+      moonGroup.add(moon2);
+      
+      iconMesh.add(moonGroup);
+    }
+    
     nodeGroup.add(iconMesh);
     
-    // Sprite
+    // Floating text label sprite above planet
     const nameSprite = createTextSprite(currentLang === 'vi' ? def.name : def.nameEn, '#' + def.color.toString(16).padStart(6, '0'));
     nameSprite.position.y = 2.0;
     nodeGroup.add(nameSprite);
@@ -1249,6 +1386,50 @@ function initGame3D() {
       }
     }
   });
+
+  canvas.addEventListener("wheel", (e) => {
+    // Zoom in or out by adjusting camera radius
+    gameCameraRadius += e.deltaY * 0.012;
+    // Limit zoom distance (6 is close, 30 is far)
+    gameCameraRadius = Math.max(6, Math.min(30, gameCameraRadius));
+    updateGameCameraPosition();
+  }, { passive: true });
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (!gameCamera) return;
+    const rect = canvas.getBoundingClientRect();
+    const mouse = new THREE.Vector2();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, gameCamera);
+
+    const targets = [];
+    gameNodes.forEach(node => {
+      node.group.traverse(child => {
+        if (child.isMesh || child.isSprite) {
+          targets.push(child);
+          child.userData.nodeRef = node;
+        }
+      });
+    });
+
+    const intersects = raycaster.intersectObjects(targets);
+
+    // Reset previous hovers
+    gameNodes.forEach(node => {
+      node.isHovered = false;
+    });
+
+    if (intersects.length > 0) {
+      const hitObject = intersects[0].object;
+      const node = hitObject.userData.nodeRef;
+      if (node) {
+        node.isHovered = true;
+      }
+    }
+  });
   
   window.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
@@ -1312,6 +1493,75 @@ function initGame3D() {
     zone.addEventListener("touchcancel", resetJoy);
   }
   
+  // Portal Gate to Return to list view
+  gamePortalGroup = new THREE.Group();
+  gamePortalGroup.position.set(0, 1.0, 24);
+  
+  // Portal ring frame
+  const portalRingGeom = new THREE.TorusGeometry(2.5, 0.15, 16, 64);
+  const portalRingMat = new THREE.MeshPhongMaterial({
+    color: 0xf43f5e,
+    emissive: 0xf43f5e,
+    emissiveIntensity: 1.0,
+    shininess: 30
+  });
+  gamePortalRing = new THREE.Mesh(portalRingGeom, portalRingMat);
+  gamePortalGroup.add(gamePortalRing);
+  
+  // Portal vortex (swirling translucent field)
+  const portalVortexGeom = new THREE.CircleGeometry(2.4, 32);
+  const portalVortexCanvas = document.createElement('canvas');
+  portalVortexCanvas.width = 256;
+  portalVortexCanvas.height = 256;
+  const portalVCtx = portalVortexCanvas.getContext('2d');
+  
+  // Draw sci-fi radar/spiral grid on the portal vortex canvas
+  portalVCtx.strokeStyle = '#f43f5e';
+  portalVCtx.lineWidth = 4;
+  portalVCtx.beginPath();
+  portalVCtx.arc(128, 128, 110, 0, Math.PI * 2);
+  portalVCtx.stroke();
+  
+  portalVCtx.strokeStyle = 'rgba(244, 63, 94, 0.3)';
+  portalVCtx.lineWidth = 2;
+  for (let r = 20; r < 100; r += 20) {
+    portalVCtx.beginPath();
+    portalVCtx.arc(128, 128, r, 0, Math.PI * 2);
+    portalVCtx.stroke();
+  }
+  
+  portalVCtx.beginPath();
+  portalVCtx.moveTo(128, 18);
+  portalVCtx.lineTo(128, 238);
+  portalVCtx.moveTo(18, 128);
+  portalVCtx.lineTo(238, 128);
+  portalVCtx.stroke();
+  
+  const portalVortexTexture = new THREE.CanvasTexture(portalVortexCanvas);
+  const portalVortexMat = new THREE.MeshBasicMaterial({
+    map: portalVortexTexture,
+    transparent: true,
+    opacity: 0.65,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending
+  });
+  gamePortalVortex = new THREE.Mesh(portalVortexGeom, portalVortexMat);
+  gamePortalGroup.add(gamePortalVortex);
+  
+  // Add text label sprite above portal: "EXIT PORTAL"
+  gamePortalSprite = createTextSprite(currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL', '#f43f5e');
+  gamePortalSprite.position.y = 3.5;
+  gamePortalGroup.add(gamePortalSprite);
+  
+  // Underneath base
+  const portalBaseGeom = new THREE.CylinderGeometry(3.2, 3.5, 0.6, 6);
+  const portalBaseMat = new THREE.MeshPhongMaterial({ color: 0x151030, shininess: 50 });
+  const portalBase = new THREE.Mesh(portalBaseGeom, portalBaseMat);
+  portalBase.position.y = -2.0;
+  gamePortalGroup.add(portalBase);
+  
+  gameScene.add(gamePortalGroup);
+
   updateGameCameraPosition();
   
   gameInitialized = true;
@@ -1464,9 +1714,37 @@ function gameAnimate() {
   }
 
   gameNodes.forEach(node => {
-    node.mesh.rotation.y += 0.008;
-    node.mesh.rotation.x += 0.004;
-    node.sprite.lookAt(gameCamera.position);
+    // Smoothly scale node on hover
+    const targetScale = node.isHovered ? 1.3 : 1.0;
+    const currentScale = node.group.scale.x;
+    const nextScale = currentScale + (targetScale - currentScale) * 0.15;
+    node.group.scale.set(nextScale, nextScale, nextScale);
+
+    // Rotate core planet sphere
+    const spinSpeed = node.isHovered ? 0.035 : 0.008;
+    node.mesh.rotation.y += spinSpeed;
+    
+    // Rotate the sub-elements for each specific planet style
+    node.mesh.children.forEach(child => {
+      if (child.name === "sub_shell") {
+        child.rotation.y -= spinSpeed * 1.5;
+        child.rotation.x += spinSpeed * 0.5;
+      } else if (child.name === "sub_ring") {
+        child.rotation.z += spinSpeed * 0.5;
+      } else if (child.name === "sub_orbits") {
+        child.rotation.y += spinSpeed * 1.8;
+        child.rotation.x += spinSpeed * 0.8;
+      } else if (child.name === "sub_moons") {
+        child.rotation.y += spinSpeed * 2.2;
+      }
+    });
+
+    // Make floating text sprite face camera with gentle bobbing
+    if (node.sprite) {
+      node.sprite.lookAt(gameCamera.position);
+      const time = performance.now() * 0.0015;
+      node.sprite.position.y = 2.0 + Math.sin(time * 2.0 + node.group.position.x) * 0.08;
+    }
     
     const dist = gamePlayer.position.distanceTo(node.group.position);
     if (dist < minDistance) {
@@ -1474,6 +1752,29 @@ function gameAnimate() {
       closestNode = node;
     }
   });
+  
+  // Animate exit portal and check for collision to warp back to list view
+  if (gamePortalGroup && gamePortalVortex && gamePortalRing && gamePlayer) {
+    gamePortalVortex.rotation.z += 0.015;
+    const scalePulse = 1.0 + Math.sin(performance.now() * 0.003) * 0.04;
+    gamePortalRing.scale.set(scalePulse, scalePulse, 1.0);
+    
+    if (gamePortalSprite) {
+      gamePortalSprite.lookAt(gameCamera.position);
+    }
+    
+    const portalDist = gamePlayer.position.distanceTo(gamePortalGroup.position);
+    if (portalDist < 3.2 && is3DMode) {
+      // Set position back to origin to prevent double triggering
+      gamePlayer.position.set(0, 0.5, 0);
+      gamePlayerTargetPos = null;
+      
+      const exitBtn = document.getElementById("exit-3d-btn") || document.getElementById("view-mode-btn");
+      if (exitBtn) {
+        exitBtn.click();
+      }
+    }
+  }
   
   const interactionHud = document.getElementById("interaction-hud");
   const interactionText = document.getElementById("interaction-text");
@@ -1501,6 +1802,20 @@ function gameAnimate() {
     }
   }
   
+  if (gameStars && gameStars.geometry && gameStars.geometry.attributes.position) {
+    const pos = gameStars.geometry.attributes.position.array;
+    for (let i = 2; i < pos.length; i += 3) {
+      const speed = transitionLoadingActive ? 12.0 : 0.15;
+      pos[i] -= speed;
+      if (pos[i] < -200) {
+        pos[i] = 200;
+        pos[i-2] = (Math.random() - 0.5) * 200;
+        pos[i-1] = (Math.random() - 0.5) * 150 + 20;
+      }
+    }
+    gameStars.geometry.attributes.position.needsUpdate = true;
+  }
+
   updateGameCameraPosition();
   gameRenderer.render(gameScene, gameCamera);
 }
@@ -1585,28 +1900,124 @@ function closeGameModal() {
 function updateGameLanguageUI() {
   if (!gameInitialized) return;
   gameNodes.forEach(node => {
-    const colorHex = '#' + node.def.color.toString(16).padStart(6, '0');
-    const newText = currentLang === 'vi' ? node.def.name : node.def.nameEn;
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'rgba(0,0,0,0)';
-    ctx.fillRect(0, 0, 256, 64);
-    
-    ctx.font = 'Bold 26px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = colorHex;
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = colorHex;
-    ctx.fillText(newText, 128, 32);
-    
-    const texture = new THREE.CanvasTexture(canvas);
-    node.sprite.material.map = texture;
-    node.sprite.material.needsUpdate = true;
+    if (node.sprite) {
+      const colorHex = '#' + node.def.color.toString(16).padStart(6, '0');
+      const newText = currentLang === 'vi' ? node.def.name : node.def.nameEn;
+      const texture = createTextTexture(newText, colorHex);
+      node.sprite.material.map = texture;
+      node.sprite.material.needsUpdate = true;
+    }
   });
+  
+  if (gamePortalSprite) {
+    const portalText = currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL';
+    const texture = createTextTexture(portalText, '#f43f5e');
+    gamePortalSprite.material.map = texture;
+    gamePortalSprite.material.needsUpdate = true;
+  }
+}
+
+function triggerSpaceTransition(callback) {
+  const loader = document.getElementById("transition-loader");
+  const joystick = document.getElementById("joystick-zone");
+  const hud = document.getElementById("instructions-hud");
+  const interaction = document.getElementById("interaction-hud");
+  
+  if (!loader) {
+    if (callback) callback();
+    return;
+  }
+  
+  // Set active state to accelerate background stars
+  transitionLoadingActive = true;
+  
+  // Show loader overlay
+  loader.classList.remove("hidden");
+  // Force reflow
+  loader.offsetHeight;
+  loader.style.opacity = "1";
+  
+  // Fade out 3D models so only stars show in Three.js
+  if (gamePlayer) gamePlayer.visible = false;
+  if (gameUnderGlobe) gameUnderGlobe.visible = false;
+  if (gamePortalGroup) gamePortalGroup.visible = false;
+  gameNodes.forEach(node => {
+    if (node.group) node.group.visible = false;
+  });
+  
+  if (joystick) joystick.style.opacity = "0";
+  if (hud) hud.style.opacity = "0";
+  if (interaction) interaction.classList.add("hidden");
+  
+  const bar = document.getElementById("transition-progress-bar");
+  const percentText = document.getElementById("transition-percentage");
+  const statusText = document.getElementById("transition-status");
+  
+  let progress = 0;
+  
+  const tick = () => {
+    progress += Math.floor(Math.random() * 3) + 1;
+    if (progress > 100) progress = 100;
+    
+    if (bar) bar.style.width = `${progress}%`;
+    if (percentText) percentText.textContent = `${progress}%`;
+    
+    if (progress % 4 === 0 && typeof playScrambleChirp === 'function') {
+      playScrambleChirp();
+    }
+    
+    if (statusText) {
+      if (progress < 25) {
+        statusText.textContent = currentLang === 'vi' ? "Đang dò tọa độ thời không..." : "TUNING SPACE-TIME INDEX...";
+      } else if (progress < 55) {
+        statusText.textContent = currentLang === 'vi' ? "Đang tích lũy plasma động năng..." : "CHARGING PLASMA FLUX ENERGY...";
+      } else if (progress < 80) {
+        statusText.textContent = currentLang === 'vi' ? "Uốn cong ma trận không gian..." : "WARPING SPACE-TIME MATRIX...";
+      } else {
+        statusText.textContent = currentLang === 'vi' ? "Đang đồng bộ thực thể drone..." : "SYNCHRONIZING DRONE AVATAR...";
+      }
+    }
+    
+    if (progress < 100) {
+      setTimeout(tick, 15 + Math.random() * 15);
+    } else {
+      if (typeof playSuccessChime === 'function') {
+        playSuccessChime();
+      }
+      
+      // Fade out transition overlay
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        loader.classList.add("hidden");
+        
+        // Show space station 3D world elements
+        transitionLoadingActive = false;
+        
+        if (gamePlayer) gamePlayer.visible = true;
+        if (gameUnderGlobe) gameUnderGlobe.visible = true;
+        if (gamePortalGroup) gamePortalGroup.visible = true;
+        gameNodes.forEach(node => {
+          if (node.group) node.group.visible = true;
+        });
+        
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const joystickZone = document.getElementById("joystick-zone");
+        if (joystickZone) {
+          if (isTouchDevice) {
+            joystickZone.style.display = "flex";
+            joystickZone.style.opacity = "1";
+          } else {
+            joystickZone.style.display = "none";
+          }
+        }
+        if (hud) hud.style.opacity = "1";
+        
+        if (callback) callback();
+      }, 600);
+    }
+  };
+  
+  setTimeout(tick, 150);
 }
 
 function setupViewModeToggle() {
@@ -1615,25 +2026,83 @@ function setupViewModeToggle() {
   const mainContent = document.getElementById("main-content");
   const gameContainer = document.getElementById("game-container");
   const canvasBg = document.getElementById("canvas-bg");
+  const mainNav = document.getElementById("main-nav");
   
   if (!btn) return;
   
-  const updateToggleUI = () => {
+  const updateToggleUI = (skipTransition = false) => {
+    // Keep 3D game hidden while the first-load bootloader overlay is active
+    if (document.getElementById("bootloader-overlay")) {
+      mainContent.classList.remove("hidden");
+      gameContainer.classList.add("hidden");
+      canvasBg.style.display = "block";
+      if (mainNav) mainNav.classList.remove("hidden");
+      return;
+    }
+
     if (is3DMode) {
       text.textContent = currentLang === "vi" ? "📄 CHẾ ĐỘ THƯỜNG" : "📄 LIST VIEW";
       text.setAttribute("data-vi", "📄 CHẾ ĐỘ THƯỜNG");
       text.setAttribute("data-en", "📄 LIST VIEW");
+      if (mainNav) mainNav.classList.add("hidden");
       
-      mainContent.classList.add("hidden");
-      gameContainer.classList.remove("hidden");
-      canvasBg.style.display = "none";
-      
-      initGame3D();
+      if (!skipTransition) {
+        // Accelerate background stars of canvas-bg
+        starfieldSpeedMultiplier = 20.0;
+        
+        // Fade out regular page content
+        mainContent.style.transition = "opacity 0.5s ease-out";
+        mainContent.style.opacity = "0";
+        
+        setTimeout(() => {
+          mainContent.classList.add("hidden");
+          gameContainer.classList.remove("hidden");
+          canvasBg.style.display = "none";
+          
+          // Reset 2D background speed multiplier
+          starfieldSpeedMultiplier = 1.0;
+          
+          initGame3D();
+          triggerSpaceTransition();
+        }, 500);
+      } else {
+        mainContent.style.opacity = "";
+        mainContent.classList.add("hidden");
+        gameContainer.classList.remove("hidden");
+        canvasBg.style.display = "none";
+        
+        initGame3D();
+        
+        const loader = document.getElementById("transition-loader");
+        if (loader) loader.classList.add("hidden");
+        
+        if (gamePlayer) gamePlayer.visible = true;
+        if (gameUnderGlobe) gameUnderGlobe.visible = true;
+        if (gamePortalGroup) gamePortalGroup.visible = true;
+        gameNodes.forEach(node => {
+          if (node.group) node.group.visible = true;
+        });
+
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const joystickZone = document.getElementById("joystick-zone");
+        if (joystickZone) {
+          if (isTouchDevice) {
+            joystickZone.style.display = "flex";
+            joystickZone.style.opacity = "1";
+          } else {
+            joystickZone.style.display = "none";
+          }
+        }
+        const hud = document.getElementById("instructions-hud");
+        if (hud) hud.style.opacity = "1";
+      }
     } else {
       text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
       text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
       text.setAttribute("data-en", "🎮 3D WORKSPACE");
+      if (mainNav) mainNav.classList.remove("hidden");
       
+      mainContent.style.opacity = "";
       mainContent.classList.remove("hidden");
       gameContainer.classList.add("hidden");
       canvasBg.style.display = "block";
@@ -1645,11 +2114,24 @@ function setupViewModeToggle() {
   btn.addEventListener("click", () => {
     is3DMode = !is3DMode;
     localStorage.setItem("view-mode-3d", is3DMode);
-    updateToggleUI();
+    updateToggleUI(false);
     if (typeof playBeep === 'function') {
       playBeep(900, 0.1, 'triangle', 0.05);
     }
   });
+
+  // Exit 3D Space Station button inside 3D container
+  const exitBtn = document.getElementById("exit-3d-btn");
+  if (exitBtn) {
+    exitBtn.addEventListener("click", () => {
+      is3DMode = false;
+      localStorage.setItem("view-mode-3d", false);
+      updateToggleUI(false);
+      if (typeof playBeep === 'function') {
+        playBeep(900, 0.1, 'triangle', 0.05);
+      }
+    });
+  }
 
   // Portal Crack Button - Direct entry to 3D Space Station
   const portalBtn = document.getElementById("portal-crack-btn");
@@ -1658,14 +2140,13 @@ function setupViewModeToggle() {
       if (!is3DMode) {
         is3DMode = true;
         localStorage.setItem("view-mode-3d", is3DMode);
-        updateToggleUI();
+        updateToggleUI(false);
         if (typeof playBeep === 'function') {
           playBeep(1200, 0.15, 'sine', 0.08);
           setTimeout(() => playBeep(1500, 0.1, 'sine', 0.05), 150);
           setTimeout(() => playBeep(1800, 0.08, 'sine', 0.03), 300);
         }
       } else {
-        // Already in 3D mode, scroll to game area
         const gameContainer = document.getElementById("game-container");
         if (gameContainer) gameContainer.scrollIntoView({ behavior: 'smooth' });
       }
@@ -1679,7 +2160,7 @@ function setupViewModeToggle() {
     is3DMode = true; // Enabled by default
   }
   
-  updateToggleUI();
+  updateToggleUI(true);
 }
 
 // ==========================================================================
