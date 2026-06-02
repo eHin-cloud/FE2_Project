@@ -1804,7 +1804,7 @@ function initGame3D() {
   });
   gameSweepRing = new THREE.Mesh(sweepGeom, sweepMat);
   gameSweepRing.rotation.x = Math.PI / 2;
-  gameSweepRing.position.set(0, -1.46, 0); // slightly above tech floor
+  gameSweepRing.position.set(0, -1.40, 0); // slightly above tech floor
   gameScene.add(gameSweepRing);
 
   // Perimeter neon fence posts & beacons (Skip node paths/walkways)
@@ -3170,10 +3170,16 @@ function triggerSpaceTransition(callback, isExit = false) {
             if (isTouchDevice) {
               joystickZone.style.display = "flex";
               joystickZone.style.opacity = "1";
-              if (locationHud) locationHud.style.bottom = "11rem";
+              if (locationHud) {
+                locationHud.style.bottom = "2rem";
+                locationHud.style.left = "9.5rem";
+              }
             } else {
               joystickZone.style.display = "none";
-              if (locationHud) locationHud.style.bottom = "2rem";
+              if (locationHud) {
+                locationHud.style.bottom = "2rem";
+                locationHud.style.left = "2rem";
+              }
             }
           }
           if (hud) hud.style.opacity = "1";
@@ -3257,10 +3263,16 @@ function setupViewModeToggle() {
           if (isTouchDevice) {
             joystickZone.style.display = "flex";
             joystickZone.style.opacity = "1";
-            if (locationHud) locationHud.style.bottom = "11rem";
+            if (locationHud) {
+              locationHud.style.bottom = "2rem";
+              locationHud.style.left = "9.5rem";
+            }
           } else {
             joystickZone.style.display = "none";
-            if (locationHud) locationHud.style.bottom = "2rem";
+            if (locationHud) {
+              locationHud.style.bottom = "2rem";
+              locationHud.style.left = "2rem";
+            }
           }
         }
         const hud = document.getElementById("instructions-hud");

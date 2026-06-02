@@ -12,7 +12,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780377876658">
+  <link rel="stylesheet" href="./css/style.css?v=1780378843471">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -148,7 +148,7 @@
 
     <!-- Bottom Left Location HUD Box -->
     <div id="location-hud-container" class="absolute bottom-8 left-8 z-30 pointer-events-auto select-none">
-      <div class="cyber-hud-panel px-5 py-3.5 rounded-lg flex flex-col gap-0.5 min-w-[200px] text-left">
+      <div class="cyber-hud-panel px-4 py-3 sm:px-5 sm:py-3.5 rounded-lg flex flex-col gap-0.5 min-w-[150px] sm:min-w-[200px] text-left">
         <span class="text-[9px] font-mono font-bold tracking-[0.25em] text-cyan-400/80" data-vi="ĐANG ĐỨNG TẠI"
           data-en="CURRENT POSITION">ĐANG ĐỨNG TẠI</span>
         <span id="current-location-text" class="text-xs font-bold text-white tracking-wide" data-vi="Trạm Không Gian"
@@ -256,14 +256,14 @@
        HEADER & NAVIGATION BAR
        ========================================================================== -->
   <nav id="main-nav"
-    class="hidden w-full fixed top-0 z-40 bg-[#050816]/75 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-16 flex justify-between items-center transition-transform duration-500">
+    class="hidden w-full fixed top-0 z-40 bg-[#050816]/75 backdrop-blur-md border-b border-white/5 py-3 px-4 md:px-16 flex justify-between items-center transition-transform duration-500">
     <div class="flex items-center gap-2">
       <!-- Minimalist code icon logo -->
       <div
-        class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#915eff] to-[#f43f5e] flex justify-center items-center text-white font-bold text-lg shadow-md shadow-purple-900/50">
+        class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#915eff] to-[#f43f5e] flex justify-center items-center text-white font-bold text-lg shadow-md shadow-purple-900/50 flex-shrink-0">
         H
       </div>
-      <a href="#" class="text-white text-lg font-bold font-display cursor-pointer flex">
+      <a href="#" class="text-white text-sm sm:text-lg font-bold font-display cursor-pointer flex whitespace-nowrap">
         Nguyễn Thanh Hiền&nbsp;<span class="sm:block hidden text-[#915eff]">| Vibe Coder</span>
       </a>
     </div>
@@ -281,17 +281,17 @@
       </li>
     </ul>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-1.5 sm:gap-3">
       <!-- View Mode Toggle button -->
       <button id="view-mode-btn"
-        class="px-3 py-1.5 rounded-xl border border-purple-500/20 hover:border-purple-500/50 text-xs font-mono font-bold tracking-widest text-purple-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
+        class="px-2.5 py-1.5 sm:px-3 rounded-xl border border-purple-500/20 hover:border-purple-500/50 text-xs font-mono font-bold tracking-widest text-purple-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
         <i class="fa-solid fa-gamepad text-[10px]"></i>
-        <span id="view-mode-text" data-vi="📄 CHẾ ĐỘ THƯỜNG" data-en="📄 LIST VIEW">📄 CHẾ ĐỘ THƯỜNG</span>
+        <span id="view-mode-text" class="hidden sm:inline" data-vi="📄 CHẾ ĐỘ THƯỜNG" data-en="📄 LIST VIEW">📄 CHẾ ĐỘ THƯỜNG</span>
       </button>
 
       <!-- Lang Toggle button -->
       <button id="lang-toggle-btn"
-        class="px-3 py-1.5 rounded-xl border border-cyan-500/20 hover:border-cyan-500/50 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
+        class="px-2.5 py-1.5 sm:px-3 rounded-xl border border-cyan-500/20 hover:border-cyan-500/50 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
         <i class="fa-solid fa-globe text-[10px]"></i>
         <span id="lang-text">VI</span>
       </button>
@@ -1249,7 +1249,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780377876658"></script>
+    <script src="./js/app.js?v=1780378843471"></script>
 
 </body>
 
