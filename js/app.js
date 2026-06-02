@@ -3721,3 +3721,24 @@ Hãy tự động phát hiện ngôn ngữ của câu hỏi và phản hồi b�
     }
   }
 });
+
+// Lock developer tools & right click to prevent inspect
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+document.addEventListener('keydown', e => {
+  // Block F12 (123)
+  if (e.keyCode === 123 || e.key === 'F12') {
+    e.preventDefault();
+    return false;
+  }
+  // Block Ctrl+Shift+I (73), Ctrl+Shift+J (74), Ctrl+Shift+C (67)
+  if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'i' || e.key === 'j' || e.key === 'c')) {
+    e.preventDefault();
+    return false;
+  }
+  // Block Ctrl+U (85)
+  if (e.ctrlKey && (e.keyCode === 85 || e.key === 'u' || e.key === 'U')) {
+    e.preventDefault();
+    return false;
+  }
+});
