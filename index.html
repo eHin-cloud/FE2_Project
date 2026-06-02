@@ -180,15 +180,76 @@
       <div class="cyber-screen-corner bottom-right"></div>
     </div>
 
-    <!-- Top Left Status Panel -->
-    <div class="absolute top-8 left-8 flex flex-col gap-2 z-30 pointer-events-none select-none">
-      <div
-        class="cyber-hud-panel-green px-4 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-mono font-bold tracking-widest text-emerald-400 w-max">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span data-vi="CYBER PORTFOLIO ACTIVE" data-en="CYBER PORTFOLIO ACTIVE">CYBER PORTFOLIO ACTIVE</span>
+    <!-- Left Side HUD Container (Minimap & Quest Board) -->
+    <div class="absolute top-8 left-8 z-30 pointer-events-auto select-none flex flex-col gap-3 max-w-[220px]">
+      <!-- Minimap HUD -->
+      <div id="minimap-hud" class="transition-all duration-300 w-max">
+        <div class="cyber-hud-panel-purple p-2 rounded-full border border-purple-500/25 bg-[#050816]/90 backdrop-blur-md flex flex-col items-center justify-center relative shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+          <canvas id="minimap-canvas" width="110" height="110" class="rounded-full block bg-black/40"></canvas>
+          <div class="absolute inset-2 rounded-full border border-purple-500/10 pointer-events-none"></div>
+        </div>
       </div>
-      <div class="cyber-hud-panel px-3.5 py-1 rounded-lg text-[9px] font-mono text-cyan-400/80 tracking-wider w-max">
-        <span data-vi="3D WebGL Engine Active" data-en="3D WebGL Engine Active">3D WebGL Engine Active</span>
+
+      <!-- Quest Board HUD -->
+      <div id="quest-hud" class="transition-all duration-300">
+        <div class="cyber-hud-panel-purple p-4 rounded-xl flex flex-col gap-2 min-w-[200px] border border-purple-500/25 bg-[#050816]/90 backdrop-blur-md">
+          <div id="quest-header" class="flex justify-between items-center cursor-pointer text-purple-400 font-mono font-bold text-[10px] tracking-widest uppercase border-b border-purple-500/10 pb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-scroll text-purple-400 animate-pulse"></i>
+              <span data-vi="NHIỆM VỤ: KHÁM PHÁ" data-en="QUEST: EXPLORE">NHIỆM VỤ: KHÁM PHÁ</span>
+            </div>
+            <i id="quest-toggle-icon" class="fa-solid fa-chevron-down text-purple-400/80 text-xs transition-transform duration-300"></i>
+          </div>
+          
+          <div id="quest-content" class="flex flex-col gap-2.5 mt-2 transition-all duration-300">
+            <div class="flex flex-col gap-2 font-mono text-[9px] text-zinc-400" id="quest-list">
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-about">
+                  <i class="fa-regular fa-square"></i> <span data-vi="Sao Kim (Giới Thiệu)" data-en="Venus (About)">Sao Kim (Giới Thiệu)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-skills">
+                  <i class="fa-regular fa-square"></i> <span data-vi="Sao Hỏa (Kỹ Năng)" data-en="Mars (Skills)">Sao Hỏa (Kỹ Năng)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-experience">
+                  <i class="fa-regular fa-square"></i> <span data-vi="Sao Mộc (Kinh Nghiệm)" data-en="Jupiter (Experience)">Sao Mộc (Kinh Nghiệm)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-projects">
+                  <i class="fa-regular fa-square"></i> <span data-vi="Sao Thổ (Sản Phẩm)" data-en="Saturn (Projects)">Sao Thổ (Sản Phẩm)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-testimonials">
+                  <i class="fa-regular fa-square"></i> <span data-vi="S.Thiên Vương (Đánh Giá)" data-en="Uranus (Reviews)">S.Thiên Vương (Đánh Giá)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-contact">
+                  <i class="fa-regular fa-square"></i> <span data-vi="Sao Hải Vương (Liên Hệ)" data-en="Neptune (Contact)">Sao Hải Vương (Liên Hệ)</span>
+                </span>
+              </div>
+            </div>
+            
+            <div class="border-t border-purple-500/10 pt-2 flex flex-col gap-1">
+              <div class="flex justify-between items-center text-[9px] font-mono">
+                <span class="text-zinc-500 uppercase tracking-widest" data-vi="TIẾN TRÌNH" data-en="PROGRESS">TIẾN TRÌNH</span>
+                <span class="text-purple-400 font-bold" id="quest-progress-text">0/6</span>
+              </div>
+              <div class="w-full h-1 bg-purple-950/40 rounded-full overflow-hidden border border-purple-500/10">
+                <div id="quest-progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div id="quest-pluto-status" class="text-[8px] font-mono text-center text-rose-500/80 tracking-wide uppercase border-t border-purple-500/5 pt-1.5">
+              <span data-vi="🔒 PLUTO: ĐANG KHÓA" data-en="🔒 PLUTO: LOCKED">🔒 PLUTO: ĐANG KHÓA</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -1193,17 +1193,25 @@ let gameStarsTwinkleA = null;
 let gameStarsTwinkleB = null;
 let gameNebulaClouds = [];
 let gameTechFloor = null;
+let gameGridHelper = null;
+let gameFloorPointLight = null;
 let gameWalkwayTextures = [];
 let gameBlackHoleGroup = null;
 let gameBgPlanets = [];
 let gameSweepRing = null;
 let gameFenceBeacons = [];
+let gamePerimeterRail = null;
+let gameWalkwayMeshes = [];
+let gamePlayerVeloY = 0;
 let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
+let portalAngle = 0, portalDist = 30.0;
 let is3DMode = false;
 let gameAnimationId = null;
 let activeModalNode = null;
 let lastOpenedNode = null;
+localStorage.removeItem("visitedNodes");
+let visitedNodes = [];
 
 let joystickActive = false;
 let joystickStartPos = { x: 0, y: 0 };
@@ -1222,44 +1230,84 @@ let gamePlayerTargetPos = null;
 
 const nodeDefs = [
   {
-    id: "about",
-    name: "GIỚI THIỆU",
-    nameEn: "ABOUT",
-    color: 0x915eff, // fuchsia/purple
+    id: "home",
+    name: "SAO THỦY (TRANG CHỦ)",
+    nameEn: "MERCURY (HOME)",
+    color: 0x94a3b8, // grey
     x: 0,
-    z: -16,
-    iconType: "icosahedron",
+    z: -28,
+    iconType: "mercury",
+    targetId: "hero"
+  },
+  {
+    id: "about",
+    name: "SAO KIM (GIỚI THIỆU)",
+    nameEn: "VENUS (ABOUT)",
+    color: 0xeab308, // yellow
+    x: 0,
+    z: -22,
+    iconType: "venus",
     targetId: "about"
   },
   {
+    id: "skills",
+    name: "SAO HỎA (KỸ NĂNG)",
+    nameEn: "MARS (SKILLS)",
+    color: 0xef4444, // red
+    x: 19,
+    z: -11,
+    iconType: "mars",
+    targetId: "skills"
+  },
+  {
     id: "experience",
-    name: "KINH NGHIỆM",
-    nameEn: "EXPERIENCE",
-    color: 0xc084fc, // light purple
-    x: 16,
-    z: 0,
-    iconType: "torusKnot",
+    name: "SAO MỘC (KINH NGHIỆM)",
+    nameEn: "JUPITER (EXPERIENCE)",
+    color: 0xf97316, // orange
+    x: 19,
+    z: 11,
+    iconType: "jupiter",
     targetId: "experience"
   },
   {
     id: "projects",
-    name: "SẢN PHẨM",
-    nameEn: "PROJECTS",
-    color: 0x06b6d4, // cyan
-    x: -16,
-    z: 0,
-    iconType: "octahedron",
+    name: "SAO THỔ (SẢN PHẨM)",
+    nameEn: "SATURN (PROJECTS)",
+    color: 0xf59e0b, // amber yellow
+    x: -19,
+    z: 11,
+    iconType: "saturn",
     targetId: "projects"
   },
   {
+    id: "testimonials",
+    name: "SAO THIÊN VƯƠNG (ĐÁNH GIÁ)",
+    nameEn: "URANUS (REVIEWS)",
+    color: 0x06b6d4, // cyan
+    x: -19,
+    z: -11,
+    iconType: "uranus",
+    targetId: "testimonials"
+  },
+  {
     id: "contact",
-    name: "LIÊN HỆ",
-    nameEn: "CONTACT",
-    color: 0xf43f5e, // rose
+    name: "SAO HẢI VƯƠNG (LIÊN HỆ)",
+    nameEn: "NEPTUNE (CONTACT)",
+    color: 0x3b82f6, // blue
     x: 0,
-    z: 16,
-    iconType: "box",
+    z: 22,
+    iconType: "neptune",
     targetId: "contact"
+  },
+  {
+    id: "cv",
+    name: "SAO DIÊM VƯƠNG (KHOÁ - 0/6)",
+    nameEn: "PLUTO (LOCKED - 0/6)",
+    color: 0xa8a29e, // slate gray
+    x: 0,
+    z: -38,
+    iconType: "pluto",
+    targetId: "cv"
   }
 ];
 
@@ -1317,17 +1365,17 @@ function createWalkwayTexture() {
   ctx.fillStyle = "rgba(10, 15, 36, 0.9)";
   ctx.fillRect(0, 0, 64, 256);
 
-  // Outer metallic blue rails
-  ctx.fillStyle = "rgba(6, 182, 212, 0.4)";
+  // Outer metallic white rails
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
   ctx.fillRect(0, 0, 6, 256);
   ctx.fillRect(58, 0, 6, 256);
 
   // Translucent glowing center stripe
-  ctx.fillStyle = "rgba(6, 182, 212, 0.1)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
   ctx.fillRect(6, 0, 52, 256);
 
   // Chevron flow arrows pointing forward
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.8)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
   ctx.lineWidth = 3.5;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -1341,7 +1389,7 @@ function createWalkwayTexture() {
   }
 
   // Horizontal grid lines
-  ctx.strokeStyle = "rgba(145, 94, 255, 0.25)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
   ctx.lineWidth = 1;
   for (let y = 0; y < 256; y += 16) {
     ctx.beginPath();
@@ -1352,6 +1400,63 @@ function createWalkwayTexture() {
 
   const tex = new THREE.CanvasTexture(canvas);
   return tex;
+}
+
+function createClickIndicatorTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, 128, 128);
+
+  // Draw 4 inward pointing green arrows
+  ctx.strokeStyle = "#10b981"; // Emerald green
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  // Arrow size/length
+  // Center is (64, 64)
+  const d1 = 45;
+  const d2 = 25;
+  const w = 12;
+
+  // Top chevron pointing down
+  ctx.beginPath();
+  ctx.moveTo(64 - w, d1);
+  ctx.lineTo(64, d2);
+  ctx.lineTo(64 + w, d1);
+  ctx.stroke();
+
+  // Bottom chevron pointing up
+  ctx.beginPath();
+  ctx.moveTo(64 - w, 128 - d1);
+  ctx.lineTo(64, 128 - d2);
+  ctx.lineTo(64 + w, 128 - d1);
+  ctx.stroke();
+
+  // Left chevron pointing right
+  ctx.beginPath();
+  ctx.moveTo(d1, 64 - w);
+  ctx.lineTo(d2, 64);
+  ctx.lineTo(d1, 64 + w);
+  ctx.stroke();
+
+  // Right chevron pointing left
+  ctx.beginPath();
+  ctx.moveTo(128 - d1, 64 - w);
+  ctx.lineTo(128 - d2, 64);
+  ctx.lineTo(128 - d1, 64 + w);
+  ctx.stroke();
+
+  // Also draw a small central glow dot
+  ctx.fillStyle = "#34d399";
+  ctx.beginPath();
+  ctx.arc(64, 64, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  return new THREE.CanvasTexture(canvas);
 }
 
 function createAccretionDiskTexture() {
@@ -1476,6 +1581,366 @@ function createLavaPlanetTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 
+function createEarthTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+
+  // Deep Ocean Blue
+  ctx.fillStyle = "#1d4ed8";
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Paint realistic organic continents (green & brown tones)
+  ctx.fillStyle = "#15803d"; // Forest green
+
+  // Continent shapes
+  // North America
+  ctx.beginPath();
+  ctx.arc(100, 70, 45, 0, Math.PI * 2);
+  ctx.arc(140, 100, 30, 0, Math.PI * 2);
+  ctx.arc(70, 90, 25, 0, Math.PI * 2);
+  ctx.fill();
+
+  // South America
+  ctx.beginPath();
+  ctx.arc(150, 160, 35, 0, Math.PI * 2);
+  ctx.arc(160, 200, 20, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Africa
+  ctx.beginPath();
+  ctx.arc(280, 140, 40, 0, Math.PI * 2);
+  ctx.arc(310, 180, 25, 0, Math.PI * 2);
+  ctx.arc(260, 110, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Europe & Asia
+  ctx.beginPath();
+  ctx.arc(300, 60, 35, 0, Math.PI * 2);
+  ctx.arc(360, 65, 45, 0, Math.PI * 2);
+  ctx.arc(420, 80, 40, 0, Math.PI * 2);
+  ctx.arc(450, 120, 35, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Australia
+  ctx.beginPath();
+  ctx.arc(430, 190, 22, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Antarctica & Greenland (Ice caps)
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0, 0, 512, 16);
+  ctx.fillRect(0, 240, 512, 16);
+
+  // Clouds layer
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+  for (let i = 0; i < 18; i++) {
+    const rx = (i * 28 + 15) % 512;
+    const ry = (i * 17 + 35) % 200 + 20;
+    const size = 15 + (i % 4) * 8;
+    ctx.beginPath();
+    ctx.arc(rx, ry, size, 0, Math.PI * 2);
+    ctx.arc(rx + size * 0.5, ry + size * 0.2, size * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createSunTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 256);
+  gradient.addColorStop(0, "#f97316"); // Hot orange
+  gradient.addColorStop(0.5, "#facc15"); // Bright yellow
+  gradient.addColorStop(1, "#ea580c"); // Darker orange
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 512, 256);
+
+  ctx.fillStyle = "rgba(254, 240, 138, 0.6)"; // Very light yellow flares
+  for (let i = 0; i < 25; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 512, Math.random() * 256, Math.random() * 45 + 15, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "rgba(194, 65, 12, 0.45)"; // Dark solar orange
+  for (let i = 0; i < 15; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 512, Math.random() * 256, Math.random() * 15 + 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createMercuryTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#78716c"; // Gray rocky base
+  ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = "rgba(41, 37, 36, 0.4)";
+  for (let i = 0; i < 40; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 256, Math.random() * 128, Math.random() * 8 + 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createVenusTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 128);
+  gradient.addColorStop(0, "#d97706");
+  gradient.addColorStop(0.5, "#eab308");
+  gradient.addColorStop(1, "#ca8a04");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = "rgba(254, 240, 138, 0.35)";
+  for (let i = 0; i < 15; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 256, Math.random() * 128, Math.random() * 25 + 10, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createMarsTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#c2410c"; // Mars rust red
+  ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = "rgba(127, 29, 29, 0.5)";
+  for (let i = 0; i < 20; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 256, Math.random() * 128, Math.random() * 20 + 8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, 256, 8);
+  ctx.fillRect(0, 120, 256, 8);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createJupiterTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512; canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fed7aa"; // Beige
+  ctx.fillRect(0, 0, 512, 256);
+  const colors = ["#ea580c", "#d97706", "#c2410c", "#fed7aa", "#ffedd5"];
+  for (let y = 0; y < 256; y += 12) {
+    ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+    ctx.fillRect(0, y, 512, Math.random() * 16 + 4);
+  }
+  ctx.fillStyle = "#991b1b"; // Great Red Spot
+  ctx.beginPath();
+  ctx.ellipse(320, 160, 32, 20, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 512, Math.random() * 256, Math.random() * 12 + 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createSaturnTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fef08a"; // Butterscotch yellow
+  ctx.fillRect(0, 0, 256, 128);
+  const colors = ["#fef08a", "#fef9c3", "#ca8a04", "#eab308"];
+  for (let y = 0; y < 128; y += 8) {
+    ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+    ctx.fillRect(0, y, 256, Math.random() * 10 + 2);
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createUranusTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 128);
+  gradient.addColorStop(0, "#a5f3fc");
+  gradient.addColorStop(0.5, "#22d3ee");
+  gradient.addColorStop(1, "#0891b2");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 128);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createNeptuneTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 128);
+  gradient.addColorStop(0, "#1d4ed8");
+  gradient.addColorStop(0.5, "#3b82f6");
+  gradient.addColorStop(1, "#1e3a8a");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = "rgba(30, 58, 138, 0.4)";
+  for (let i = 0; i < 4; i++) {
+    ctx.fillRect(0, Math.random() * 128, 256, Math.random() * 12 + 4);
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createPlutoTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#5c534e"; // Dark icy brown-gray
+  ctx.fillRect(0, 0, 256, 128);
+
+  // Paint Tombaugh Regio (the famous heart of Pluto)
+  ctx.fillStyle = "#d6d3d1"; // Light ice gray
+  ctx.beginPath();
+  // Left lobe of the heart
+  ctx.arc(100, 75, 18, 0, Math.PI * 2);
+  // Right lobe of the heart
+  ctx.arc(122, 75, 18, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(82, 79);
+  ctx.lineTo(111, 108);
+  ctx.lineTo(140, 79);
+  ctx.fill();
+
+  // Darker patches on the side
+  ctx.fillStyle = "rgba(28, 25, 23, 0.6)";
+  for (let i = 0; i < 15; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random() * 256, Math.random() * 128, Math.random() * 10 + 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return new THREE.CanvasTexture(canvas);
+}
+
+function getNodeName(nodeDef, lang) {
+  if (nodeDef.id === "cv") {
+    const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    const isUnlocked = coreVisitedCount === 6;
+    if (lang === 'vi') {
+      return isUnlocked ? "SAO DIÊM VƯƠNG (CV)" : `SAO DIÊM VƯƠNG (KHOÁ ${coreVisitedCount}/6)`;
+    } else {
+      return isUnlocked ? "PLUTO (CV)" : `PLUTO (LOCKED ${coreVisitedCount}/6)`;
+    }
+  }
+  return lang === 'vi' ? nodeDef.name : nodeDef.nameEn;
+}
+
+function updatePlutoLabel() {
+  if (!gameNodes) return;
+  const plutoNode = gameNodes.find(n => n.def.id === "cv");
+  if (!plutoNode) return;
+  const nameSprite = plutoNode.group.getObjectByName("name_label");
+  if (!nameSprite) return;
+
+  const nameStr = getNodeName(plutoNode.def, currentLang);
+  nameSprite.material.map = createTextTexture(nameStr, '#' + plutoNode.def.color.toString(16).padStart(6, '0'));
+}
+
+function updateQuestUI() {
+  const corePlanets = ["about", "skills", "experience", "projects", "testimonials", "contact"];
+  let completedCount = 0;
+
+  corePlanets.forEach(id => {
+    const itemEl = document.getElementById(`quest-item-${id}`);
+    if (itemEl) {
+      if (visitedNodes.includes(id)) {
+        completedCount++;
+        itemEl.classList.remove("text-zinc-500");
+        itemEl.classList.add("text-emerald-400", "font-bold");
+        itemEl.innerHTML = `<i class="fa-regular fa-square-check text-emerald-400"></i> ` + 
+          (id === "about" ? (currentLang === 'vi' ? 'Sao Kim (Giới Thiệu)' : 'Venus (About)') :
+           id === "skills" ? (currentLang === 'vi' ? 'Sao Hỏa (Kỹ Năng)' : 'Mars (Skills)') :
+           id === "experience" ? (currentLang === 'vi' ? 'Sao Mộc (Kinh Nghiệm)' : 'Jupiter (Experience)') :
+           id === "projects" ? (currentLang === 'vi' ? 'Sao Thổ (Sản Phẩm)' : 'Saturn (Projects)') :
+           id === "testimonials" ? (currentLang === 'vi' ? 'S.Thiên Vương (Đánh Giá)' : 'Uranus (Reviews)') :
+           (currentLang === 'vi' ? 'Sao Hải Vương (Liên Hệ)' : 'Neptune (Contact)'));
+      } else {
+        itemEl.classList.add("text-zinc-500");
+        itemEl.classList.remove("text-emerald-400", "font-bold");
+        itemEl.innerHTML = `<i class="fa-regular fa-square"></i> ` + 
+          (id === "about" ? (currentLang === 'vi' ? 'Sao Kim (Giới Thiệu)' : 'Venus (About)') :
+           id === "skills" ? (currentLang === 'vi' ? 'Sao Hỏa (Kỹ Năng)' : 'Mars (Skills)') :
+           id === "experience" ? (currentLang === 'vi' ? 'Sao Mộc (Kinh Nghiệm)' : 'Jupiter (Experience)') :
+           id === "projects" ? (currentLang === 'vi' ? 'Sao Thổ (Sản Phẩm)' : 'Saturn (Projects)') :
+           id === "testimonials" ? (currentLang === 'vi' ? 'S.Thiên Vương (Đánh Giá)' : 'Uranus (Reviews)') :
+           (currentLang === 'vi' ? 'Sao Hải Vương (Liên Hệ)' : 'Neptune (Contact)'));
+      }
+    }
+  });
+
+  const progressText = document.getElementById("quest-progress-text");
+  if (progressText) {
+    progressText.textContent = `${completedCount}/6`;
+  }
+
+  const progressBar = document.getElementById("quest-progress-bar");
+  if (progressBar) {
+    progressBar.style.width = `${(completedCount / 6) * 100}%`;
+  }
+
+  const plutoStatus = document.getElementById("quest-pluto-status");
+  if (plutoStatus) {
+    if (completedCount === 6) {
+      plutoStatus.innerHTML = currentLang === 'vi' ? 
+        `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: ĐÃ MỞ KHÓA</span>` : 
+        `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: UNLOCKED</span>`;
+    } else {
+      plutoStatus.innerHTML = currentLang === 'vi' ? 
+        `<span class="text-rose-500/80">🔒 PLUTO: ĐANG KHÓA</span>` : 
+        `<span class="text-rose-500/80">🔒 PLUTO: LOCKED</span>`;
+    }
+  }
+}
+
+function updatePlutoLockState() {
+  if (!gameNodes) return;
+  const plutoNode = gameNodes.find(n => n.def.id === "cv");
+  if (!plutoNode) return;
+
+  const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+  const isUnlocked = coreVisitedCount === 6;
+
+  const lockShield = plutoNode.group.getObjectByName("lock_shield");
+  if (isUnlocked) {
+    if (lockShield) {
+      plutoNode.group.remove(lockShield);
+    }
+  } else {
+    if (!lockShield) {
+      const shieldGeom = new THREE.SphereGeometry(0.7 * 1.4, 12, 12);
+      const shieldMat = new THREE.MeshBasicMaterial({
+        color: 0xef4444,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.45
+      });
+      const newShield = new THREE.Mesh(shieldGeom, shieldMat);
+      newShield.name = "lock_shield";
+      newShield.position.y = 0.3; // matches iconMesh.position.y
+      plutoNode.group.add(newShield);
+    }
+  }
+  updatePlutoLabel();
+  updateQuestUI();
+}
+
 function initGame3D() {
   playBgMusic();
   gameCameraTargetRadius = 16;
@@ -1490,6 +1955,54 @@ function initGame3D() {
     return;
   }
 
+  // Check if positions are already saved in localStorage to keep them persistent (on F5/reload)
+  let savedPositions = null;
+  try {
+    savedPositions = JSON.parse(localStorage.getItem("gameNodePositions"));
+  } catch (e) {}
+
+  if (savedPositions && savedPositions.nodes && typeof savedPositions.portalAngle === 'number') {
+    portalAngle = savedPositions.portalAngle;
+    portalDist = savedPositions.portalDist;
+    nodeDefs.forEach(def => {
+      const saved = savedPositions.nodes[def.id];
+      if (saved) {
+        def.x = saved.x;
+        def.z = saved.z;
+      }
+    });
+  } else {
+    // Randomize node coordinates (sectors prevent overlaps)
+    const baseAngleOffset = Math.random() * Math.PI * 2;
+    const numSectors = nodeDefs.length + 1; // 8 planets + 1 portal = 9 sectors
+
+    // Sector index for the portal
+    const portalSectorIndex = 8;
+    const portalSectorAngle = (portalSectorIndex * Math.PI * 2) / numSectors + baseAngleOffset;
+    portalAngle = portalSectorAngle + (Math.random() - 0.5) * 0.15;
+    portalDist = 28.0 + Math.random() * 6.0;
+
+    nodeDefs.forEach((def, index) => {
+      const sectorAngle = (index * Math.PI * 2) / numSectors + baseAngleOffset;
+      const angle = sectorAngle + (Math.random() - 0.5) * 0.15;
+      const distance = 32.0 + Math.random() * 12.0; // Spans from 32.0 to 44.0 units
+
+      def.x = Math.sin(angle) * distance;
+      def.z = Math.cos(angle) * distance;
+    });
+
+    // Save positions to keep them persistent
+    const toSave = {
+      portalAngle,
+      portalDist,
+      nodes: {}
+    };
+    nodeDefs.forEach(def => {
+      toSave.nodes[def.id] = { x: def.x, z: def.z };
+    });
+    localStorage.setItem("gameNodePositions", JSON.stringify(toSave));
+  }
+
   gameWalkwayTextures = [];
   gameSweepRing = null;
   gameFenceBeacons = [];
@@ -1497,6 +2010,7 @@ function initGame3D() {
   const canvas = document.getElementById("canvas-game-3d");
   if (!canvas) return;
   canvas.addEventListener("contextmenu", e => e.preventDefault());
+  canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
 
   gameScene = new THREE.Scene();
 
@@ -1558,6 +2072,65 @@ function initGame3D() {
   const starMatB = new THREE.PointsMaterial({ size: 0.8, color: 0xd946ef, transparent: true, opacity: 0.6 });
   gameStarsTwinkleB = new THREE.Points(starGeomB, starMatB);
   gameScene.add(gameStarsTwinkleB);
+
+  // 4. Milky Way Galaxy Band (Dải thiên hà chạy xéo qua bầu trời)
+  const galaxyCount = 1800;
+  const galaxyGeom = new THREE.BufferGeometry();
+  const galaxyPos = new Float32Array(galaxyCount * 3);
+  const galaxyColors = new Float32Array(galaxyCount * 3);
+
+  const warmColor = new THREE.Color("#ffe7d6"); // Warm starlight core
+  const blueColor = new THREE.Color("#60a5fa"); // Cosmic blue gas
+  const pinkColor = new THREE.Color("#f472b6"); // Nebula pink
+
+  for (let i = 0; i < galaxyCount; i++) {
+    // Parameter along the galaxy band line
+    const t = (Math.random() - 0.5) * 350; // Length of the band
+    
+    // Core line of the band running diagonally across the sky
+    const cx = t * 0.8;
+    const cy = t * 0.3 + 30.0 + (Math.random() - 0.5) * 10.0; // Lifted up in the sky
+    const cz = -t * 0.5;
+
+    // Radial spread (denser at center, sparse at edges)
+    const angle = Math.random() * Math.PI * 2;
+    const radius = Math.pow(Math.random(), 2) * 28.0; // Quadratic distribution for dense core
+
+    const px = cx + Math.cos(angle) * radius;
+    const py = cy + Math.sin(angle) * radius * 0.6; // Slightly flattened band
+    const pz = cz + Math.sin(angle) * radius * 0.8;
+
+    const idx = i * 3;
+    galaxyPos[idx] = px;
+    galaxyPos[idx + 1] = py;
+    galaxyPos[idx + 2] = pz;
+
+    // Assign colors based on distance from core
+    let starColor = warmColor;
+    if (radius > 15.0) {
+      starColor = Math.random() > 0.5 ? blueColor : pinkColor;
+    } else if (radius > 8.0) {
+      starColor = Math.random() > 0.3 ? warmColor : blueColor;
+    }
+    
+    galaxyColors[idx] = starColor.r;
+    galaxyColors[idx + 1] = starColor.g;
+    galaxyColors[idx + 2] = starColor.b;
+  }
+
+  galaxyGeom.setAttribute("position", new THREE.BufferAttribute(galaxyPos, 3));
+  galaxyGeom.setAttribute("color", new THREE.BufferAttribute(galaxyColors, 3));
+
+  const galaxyMat = new THREE.PointsMaterial({
+    size: 1.0,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending
+  });
+
+  const galaxyBand = new THREE.Points(galaxyGeom, galaxyMat);
+  gameScene.add(galaxyBand);
 
   // Dynamic Background Nebula / Gas Clouds
   gameNebulaClouds = [];
@@ -1699,9 +2272,14 @@ function initGame3D() {
   gameBgPlanets.push(planetCGroup);
 
   // Grid floor helper
-  const gridHelper = new THREE.GridHelper(60, 30, 0x06b6d4, 0x1d1836);
-  gridHelper.position.y = -1.5;
-  gameScene.add(gridHelper);
+  gameGridHelper = new THREE.GridHelper(100, 50, 0xffffff, 0x444444);
+  gameGridHelper.position.y = -1.5;
+  gameScene.add(gameGridHelper);
+
+  // Dynamic floor glow point light under player/active node
+  gameFloorPointLight = new THREE.PointLight(0xffffff, 0, 50);
+  gameFloorPointLight.position.set(0, -1.0, 0);
+  gameScene.add(gameFloorPointLight);
 
   // Futuristic Canvas-Based Ground / Tech Grid Floor Deck
   const techCanvas = document.createElement("canvas");
@@ -1717,7 +2295,7 @@ function initGame3D() {
   const hexSize = 24;
   const hA = hexSize / 2;
   const hB = hexSize * Math.sqrt(3) / 2;
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.04)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
   ctx.lineWidth = 1;
   for (let y = -hB; y < 1024 + hB; y += hB * 2) {
     for (let x = -hexSize; x < 1024 + hexSize; x += hexSize * 3) {
@@ -1746,12 +2324,12 @@ function initGame3D() {
   }
 
   // Draw glowing cyan tech borders
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
   ctx.lineWidth = 4;
   ctx.strokeRect(16, 16, 992, 992);
 
   // Corner brackets
-  ctx.strokeStyle = "#06b6d4";
+  ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 10;
   const bracketLen = 80;
   ctx.beginPath(); ctx.moveTo(16, 16 + bracketLen); ctx.lineTo(16, 16); ctx.lineTo(16 + bracketLen, 16); ctx.stroke();
@@ -1760,13 +2338,13 @@ function initGame3D() {
   ctx.beginPath(); ctx.moveTo(1008 - bracketLen, 1008); ctx.lineTo(1008, 1008); ctx.lineTo(1008, 1008 - bracketLen); ctx.stroke();
 
   // Central core docking base circle
-  ctx.strokeStyle = "rgba(145, 94, 255, 0.4)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(512, 512, 60, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
   ctx.setLineDash([8, 12]);
   ctx.beginPath();
   ctx.arc(512, 512, 85, 0, Math.PI * 2);
@@ -1774,7 +2352,7 @@ function initGame3D() {
   ctx.setLineDash([]);
 
   // Concentric radar sector circles
-  ctx.strokeStyle = "rgba(145, 94, 255, 0.25)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
   ctx.lineWidth = 2;
   const center = 512;
   const radiuses = [160, 320, 440];
@@ -1785,7 +2363,7 @@ function initGame3D() {
   });
 
   // Center crosshair axis lines
-  ctx.strokeStyle = "rgba(6, 182, 212, 0.15)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(512, 40); ctx.lineTo(512, 984);
@@ -1794,52 +2372,59 @@ function initGame3D() {
 
   // Custom Node Target Landing Pads (Exact math alignment to 3D Nodes)
   const drawLandingPad = (cx, cy, label, colorHex) => {
-    // Outer dashed ring
+     // Outer dashed ring
     ctx.strokeStyle = colorHex + "44";
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 8]);
     ctx.beginPath();
-    ctx.arc(cx, cy, 48, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 64, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
 
     // Inner solid ring
     ctx.strokeStyle = colorHex + "88";
     ctx.beginPath();
-    ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 54, 0, Math.PI * 2);
     ctx.stroke();
 
     // Crosshair ticks
     ctx.strokeStyle = colorHex + "aa";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx - 56, cy); ctx.lineTo(cx - 44, cy);
-    ctx.moveTo(cx + 44, cy); ctx.lineTo(cx + 56, cy);
-    ctx.moveTo(cx, cy - 56); ctx.lineTo(cx, cy - 44);
-    ctx.moveTo(cx, cy + 44); ctx.lineTo(cx, cy + 56);
+    ctx.moveTo(cx - 76, cy); ctx.lineTo(cx - 60, cy);
+    ctx.moveTo(cx + 60, cy); ctx.lineTo(cx + 76, cy);
+    ctx.moveTo(cx, cy - 76); ctx.lineTo(cx, cy - 60);
+    ctx.moveTo(cx, cy + 60); ctx.lineTo(cx, cy + 76);
     ctx.stroke();
 
     // Text label
     ctx.fillStyle = colorHex;
     ctx.font = "bold 13px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(label, cx, cy + 68);
+    ctx.fillText(label, cx, cy + 86);
   };
 
-  drawLandingPad(512, 239, "BAY 01 // ABOUT", "#915eff");
-  drawLandingPad(785, 512, "BAY 02 // EXPERIENCE", "#c084fc");
-  drawLandingPad(239, 512, "BAY 03 // PROJECTS", "#06b6d4");
-  drawLandingPad(512, 785, "BAY 04 // CONTACT", "#f43f5e");
-  drawLandingPad(512, 922, "DEPARTURE GATE // WARP GATE", "#ec4899");
+  // Draw landing pads dynamically for all 6 nodes
+  nodeDefs.forEach((def, index) => {
+    const cx = 512 + def.x * (1024 / 100);
+    const cy = 512 + def.z * (1024 / 100);
+    const label = `BAY 0${index + 1} // ${def.nameEn}`;
+    drawLandingPad(cx, cy, label, "#" + def.color.toString(16).padStart(6, '0'));
+  });
+
+  // Draw Departure Gate (Exit Portal at randomized location)
+  const portalCx = 512 + Math.sin(portalAngle) * portalDist * (1024 / 100);
+  const portalCy = 512 + Math.cos(portalAngle) * portalDist * (1024 / 100);
+  drawLandingPad(portalCx, portalCy, "DEPARTURE GATE // WARP GATE", "#f43f5e");
 
   // Telemetry indicators
   ctx.textAlign = "left";
-  ctx.fillStyle = "#06b6d4";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
   ctx.font = "bold 15px monospace";
   ctx.fillText("STATION CONTROL DECK AREA A-1 // SYS: SECURE", 40, 50);
   ctx.fillText("RADAR LINK STATUS: ONLINE // BEACON STABLE", 40, 75);
 
-  ctx.fillStyle = "#915eff";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
   ctx.fillText("DOCKING GRID: SYMMETRICAL SECTORS", 680, 50);
   ctx.fillText("POWER CORES: 98% FLUID REACTION", 680, 75);
 
@@ -1850,7 +2435,7 @@ function initGame3D() {
     opacity: 0.75,
     side: THREE.DoubleSide
   });
-  const floorGeom = new THREE.PlaneGeometry(60, 60);
+  const floorGeom = new THREE.PlaneGeometry(100, 100);
   gameTechFloor = new THREE.Mesh(floorGeom, floorMat);
   gameTechFloor.rotation.x = Math.PI / 2;
   gameTechFloor.position.y = -1.48; // resting slightly above the gridHelper line floor
@@ -1872,19 +2457,21 @@ function initGame3D() {
 
   // Perimeter neon fence posts & beacons (Skip node paths/walkways)
   gameFenceBeacons = [];
+  gameWalkwayMeshes = [];
   const fenceGroup = new THREE.Group();
   const postGeom = new THREE.CylinderGeometry(0.04, 0.04, 1.0, 8);
   const postMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.8 });
   const beaconGeom = new THREE.SphereGeometry(0.08, 8, 8);
 
   const numPosts = 16;
-  const fenceRadius = 27.5;
+  const fenceRadius = 33.0;
   for (let i = 0; i < numPosts; i++) {
     const angle = (i / numPosts) * Math.PI * 2;
 
     let closeToWalkway = false;
-    for (let k = 0; k < 4; k++) {
-      const targetAngle = (k * Math.PI) / 2;
+    for (let k = 0; k < nodeDefs.length; k++) {
+      const def = nodeDefs[k];
+      const targetAngle = Math.atan2(def.x, def.z);
       const diff = Math.min(
         Math.abs(angle - targetAngle),
         Math.abs(angle - targetAngle - Math.PI * 2),
@@ -1894,6 +2481,15 @@ function initGame3D() {
         closeToWalkway = true;
         break;
       }
+    }
+    // Check exit portal walkway angle too
+    const diffPortal = Math.min(
+      Math.abs(angle - portalAngle),
+      Math.abs(angle - portalAngle - Math.PI * 2),
+      Math.abs(angle - portalAngle + Math.PI * 2)
+    );
+    if (diffPortal < 0.25) {
+      closeToWalkway = true;
     }
     if (closeToWalkway) continue;
 
@@ -1916,12 +2512,12 @@ function initGame3D() {
   }
 
   // Perimeter rails connecting fence posts
-  const railsGeom = new THREE.TorusGeometry(27.5, 0.02, 4, 128);
+  const railsGeom = new THREE.TorusGeometry(33.0, 0.02, 4, 128);
   const railsMat = new THREE.MeshBasicMaterial({ color: 0x915eff, transparent: true, opacity: 0.35 });
-  const railsMesh = new THREE.Mesh(railsGeom, railsMat);
-  railsMesh.rotation.x = Math.PI / 2;
-  railsMesh.position.y = -1.0;
-  fenceGroup.add(railsMesh);
+  gamePerimeterRail = new THREE.Mesh(railsGeom, railsMat);
+  gamePerimeterRail.rotation.x = Math.PI / 2;
+  gamePerimeterRail.position.y = -1.0;
+  fenceGroup.add(gamePerimeterRail);
 
   gameScene.add(fenceGroup);
 
@@ -2000,13 +2596,15 @@ function initGame3D() {
 
   gameScene.add(gameUnderGlobe);
 
-  // Destination indicator mesh (sky blue ring/circle)
-  const indGeom = new THREE.RingGeometry(0.01, 0.4, 32);
+  // Destination indicator mesh (LMHT green arrows)
+  const indGeom = new THREE.PlaneGeometry(1.6, 1.6);
   const indMat = new THREE.MeshBasicMaterial({
-    color: 0x00d2ff, // Sky blue
+    map: createClickIndicatorTexture(),
     side: THREE.DoubleSide,
     transparent: true,
-    opacity: 0
+    opacity: 0,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
   });
   moveIndicator = new THREE.Mesh(indGeom, indMat);
   moveIndicator.rotation.x = Math.PI / 2;
@@ -2014,41 +2612,59 @@ function initGame3D() {
   moveIndicator.visible = false;
   gameScene.add(moveIndicator);
 
-  // Create player Group (cyber drone)
+  // Create player Group (cyber drone - Sleek Recon Starship shape)
   gamePlayer = new THREE.Group();
 
-  const coreGeom = new THREE.SphereGeometry(0.7, 16, 16);
-  const coreMat = new THREE.MeshPhongMaterial({ color: 0x06b6d4, shininess: 100, emissive: 0x014b5c });
-  const coreMesh = new THREE.Mesh(coreGeom, coreMat);
-  gamePlayer.add(coreMesh);
+  // Central chassis: Octahedron for a cool geometric stealth/tech look
+  const bodyGeom = new THREE.OctahedronGeometry(0.6);
+  const bodyMat = new THREE.MeshPhongMaterial({ color: 0x0f172a, shininess: 120, specular: 0x00ffff });
+  const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+  gamePlayer.add(bodyMesh);
 
-  const ringGeom = new THREE.TorusGeometry(1.1, 0.1, 8, 24);
-  const ringMat = new THREE.MeshPhongMaterial({ color: 0x915eff, emissive: 0x3b0066 });
-  const ringMesh = new THREE.Mesh(ringGeom, ringMat);
-  ringMesh.rotation.x = Math.PI / 2;
-  gamePlayer.add(ringMesh);
+  // Glowing center visor/cockpit
+  const visorGeom = new THREE.BoxGeometry(0.7, 0.2, 0.4);
+  const visorMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+  const visorMesh = new THREE.Mesh(visorGeom, visorMat);
+  visorMesh.position.set(0, 0.1, 0.35); // Facing forward (positive Z)
+  gamePlayer.add(visorMesh);
 
-  const thrusterGeom = new THREE.ConeGeometry(0.3, 0.8, 8);
-  const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+  // Cool swept-back Tech Wings
+  const wingGeom = new THREE.BoxGeometry(1.6, 0.05, 0.4);
+  const wingMat = new THREE.MeshPhongMaterial({ color: 0x915eff, shininess: 80 });
+  const leftWing = new THREE.Mesh(wingGeom, wingMat);
+  leftWing.position.set(-0.8, -0.1, -0.1);
+  leftWing.rotation.z = -Math.PI / 16; // tilted down slightly
+  leftWing.rotation.y = Math.PI / 6;  // swept back
+  gamePlayer.add(leftWing);
+
+  const rightWing = leftWing.clone();
+  rightWing.position.x = 0.8;
+  rightWing.rotation.z = Math.PI / 16;
+  rightWing.rotation.y = -Math.PI / 6;
+  gamePlayer.add(rightWing);
+
+  // Thruster fire plume (Cone pointing down/back)
+  const thrusterGeom = new THREE.ConeGeometry(0.25, 0.9, 4);
+  const thrusterMat = new THREE.MeshBasicMaterial({ 
+    color: 0xec4899, // Pink thruster trail to stand out
+    transparent: true, 
+    opacity: 0.8 
+  });
   const thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
-  thrusterMesh.position.y = -0.9;
-  thrusterMesh.rotation.x = Math.PI;
+  thrusterMesh.position.set(0, -0.1, -0.75); // positioned at the rear
+  thrusterMesh.rotation.x = Math.PI / 2; // pointing backwards
   gamePlayer.add(thrusterMesh);
 
-  const playerLight = new THREE.PointLight(0x06b6d4, 2, 6);
-  playerLight.position.y = -0.5;
+  // Glow light inside
+  const playerLight = new THREE.PointLight(0x00f3ff, 2, 8);
+  playerLight.position.set(0, 0, 0);
   gamePlayer.add(playerLight);
 
-  // Small glowing energy orb sphere under the core body
-  const energyOrbGeom = new THREE.SphereGeometry(0.3, 16, 16);
-  const energyOrbMat = new THREE.MeshBasicMaterial({
-    color: 0x00ffff,
-    transparent: true,
-    opacity: 0.8
-  });
-  const energyOrb = new THREE.Mesh(energyOrbGeom, energyOrbMat);
-  energyOrb.position.y = -0.45;
-  gamePlayer.add(energyOrb);
+  // Add text label sprite "YOU" above the player
+  const playerLabel = createTextSprite(currentLang === 'vi' ? 'BẠN (YOU)' : 'YOU', '#00f3ff');
+  playerLabel.position.y = 1.3;
+  playerLabel.name = "player_label";
+  gamePlayer.add(playerLabel);
 
   gameScene.add(gamePlayer);
   gamePlayer.position.set(0, 0.5, 0);
@@ -2059,66 +2675,33 @@ function initGame3D() {
   centralCoreGroup = new THREE.Group();
   centralCoreGroup.position.set(0, 0, 0);
 
-  // Main high-tech cylindrical core reactor tower
-  const reactorTowerGeom = new THREE.CylinderGeometry(1.6, 2.0, 5.0, 8);
-  const reactorTowerMat = new THREE.MeshPhongMaterial({
-    color: 0x0f172a,
-    emissive: 0x070c1e,
-    specular: 0x06b6d4,
-    shininess: 90,
-    flatShading: true
+  // Central Sun (Mặt trời)
+  const sunGeom = new THREE.SphereGeometry(3.2, 32, 32);
+  const sunMat = new THREE.MeshBasicMaterial({
+    map: createSunTexture(),
   });
-  const reactorTower = new THREE.Mesh(reactorTowerGeom, reactorTowerMat);
-  reactorTower.position.y = -0.5; // aligned to go down slightly below grid floor
-  centralCoreGroup.add(reactorTower);
+  const sunMesh = new THREE.Mesh(sunGeom, sunMat);
+  sunMesh.name = "sun_mesh";
+  sunMesh.position.y = 0.5; // Raised slightly above deck level
+  centralCoreGroup.add(sunMesh);
 
-  // Central glowing core energy rings
-  const reactorRingGeom1 = new THREE.TorusGeometry(2.1, 0.08, 8, 32);
-  const reactorRingMat1 = new THREE.MeshBasicMaterial({ color: 0x06b6d4 });
-  const reactorRing1 = new THREE.Mesh(reactorRingGeom1, reactorRingMat1);
-  reactorRing1.rotation.x = Math.PI / 2;
-  reactorRing1.position.y = 0.8;
-  centralCoreGroup.add(reactorRing1);
-
-  const reactorRing2 = reactorRing1.clone();
-  reactorRing2.position.y = -1.2;
-  reactorRing2.scale.set(1.05, 1.05, 1);
-  reactorRing2.material = new THREE.MeshBasicMaterial({ color: 0x915eff });
-  centralCoreGroup.add(reactorRing2);
-
-  // Sci-Fi Tech Solar Array Panels (Left/Right Wings)
-  const solarWingGeom = new THREE.BoxGeometry(6.5, 0.04, 1.0);
-  const solarWingMat = new THREE.MeshPhongMaterial({
-    color: 0x0284c7,
-    emissive: 0x0c2540,
-    specular: 0xffffff,
-    shininess: 100
+  // Solar Corona Atmosphere Glow
+  const coronaGeom = new THREE.SphereGeometry(3.6, 32, 32);
+  const coronaMat = new THREE.MeshBasicMaterial({
+    color: 0xf59e0b,
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide
   });
+  const coronaMesh = new THREE.Mesh(coronaGeom, coronaMat);
+  coronaMesh.position.y = 0.5;
+  centralCoreGroup.add(coronaMesh);
 
-  // Left Solar Wing
-  const leftWing = new THREE.Mesh(solarWingGeom, solarWingMat);
-  leftWing.position.set(-4.5, 1.0, 0);
-  centralCoreGroup.add(leftWing);
-
-  // Right Solar Wing
-  const rightWing = leftWing.clone();
-  rightWing.position.x = 4.5;
-  centralCoreGroup.add(rightWing);
-
-  // Antenna Mast & Rotating Sat Dish on top
-  const antennaMastGeom = new THREE.CylinderGeometry(0.1, 0.1, 2.0, 8);
-  const antennaMastMat = new THREE.MeshPhongMaterial({ color: 0x475569 });
-  const antennaMast = new THREE.Mesh(antennaMastGeom, antennaMastMat);
-  antennaMast.position.y = 2.8;
-  centralCoreGroup.add(antennaMast);
-
-  const dishGeom = new THREE.ConeGeometry(0.9, 0.35, 16, 1, true);
-  const dishMat = new THREE.MeshPhongMaterial({ color: 0x334155, side: THREE.DoubleSide });
-  const dishMesh = new THREE.Mesh(dishGeom, dishMat);
-  dishMesh.name = "station_dish";
-  dishMesh.position.y = 3.8;
-  dishMesh.rotation.x = -Math.PI / 4;
-  centralCoreGroup.add(dishMesh);
+  // Sun Light source radiating from center
+  const sunLight = new THREE.PointLight(0xf59e0b, 2.0, 70, 0.8);
+  sunLight.position.set(0, 0.5, 0);
+  centralCoreGroup.add(sunLight);
 
   gameScene.add(centralCoreGroup);
 
@@ -2163,13 +2746,19 @@ function initGame3D() {
     rightRail.position.x = 0.42;
     walkway.add(rightRail);
 
+    walkway.name = "walkway_" + def.id;
+    const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    walkway.visible = visitedNodes.includes(def.id) || def.id === "home" || (def.id === "cv" && coreVisitedCount === 6);
+
     gameScene.add(walkway);
+    gameWalkwayMeshes.push(walkway);
   });
 
-  // Walkway to Exit Portal (Portal at 0, 1, 24)
-  const portalDist = 24.0;
+  // Walkway to Exit Portal (Portal at randomized coordinates)
   const portalLen = portalDist - 2.0 - 3.2; // portal base radius is 3.2
   const portalBridgeDist = 2.0 + portalLen / 2;
+  const portalPx = portalBridgeDist * Math.sin(portalAngle);
+  const portalPz = portalBridgeDist * Math.cos(portalAngle);
 
   const portalWalkwayTex = createWalkwayTexture();
   portalWalkwayTex.wrapT = THREE.RepeatWrapping;
@@ -2183,7 +2772,8 @@ function initGame3D() {
   });
 
   const portalWalkway = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, portalLen), portalWalkwayMat);
-  portalWalkway.position.set(0, -1.35, portalBridgeDist);
+  portalWalkway.position.set(portalPx, -1.35, portalPz);
+  portalWalkway.rotation.y = portalAngle;
 
   // Side glowing pink guide rails for exit portal bridge
   const portalRailMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
@@ -2196,6 +2786,7 @@ function initGame3D() {
   portalWalkway.add(portalRightRail);
 
   gameScene.add(portalWalkway);
+  gameWalkwayMeshes.push(portalWalkway);
 
   // Build Nodes/Platforms
   gameNodes = [];
@@ -2203,15 +2794,15 @@ function initGame3D() {
     const nodeGroup = new THREE.Group();
     nodeGroup.position.set(def.x, 0, def.z);
 
-    // Base cylinder
-    const baseGeom = new THREE.CylinderGeometry(2.5, 2.7, 0.4, 6);
+    // Base cylinder (Scaled up to 3.5 radius)
+    const baseGeom = new THREE.CylinderGeometry(3.5, 3.8, 0.5, 6);
     const baseMat = new THREE.MeshPhongMaterial({ color: 0x151030, shininess: 50, emissive: 0x0a0518 });
     const baseMesh = new THREE.Mesh(baseGeom, baseMat);
     baseMesh.position.y = -1.3;
     nodeGroup.add(baseMesh);
 
-    // Outer border ring
-    const borderGeom = new THREE.TorusGeometry(2.6, 0.08, 8, 32);
+    // Outer border ring (Scaled up to 3.7 radius)
+    const borderGeom = new THREE.TorusGeometry(3.7, 0.1, 8, 32);
     const borderMat = new THREE.MeshBasicMaterial({ color: def.color });
     const borderMesh = new THREE.Mesh(borderGeom, borderMat);
     borderMesh.name = "pad_ring";
@@ -2223,95 +2814,140 @@ function initGame3D() {
     let iconMesh = new THREE.Group();
     iconMesh.position.y = 0.3;
 
-    // Core planet sphere
-    const coreGeom = new THREE.SphereGeometry(0.8, 32, 32);
+    // Core planet sphere with relative physical size scaling & procedural textures
+    let planetRadius = 1.4;
+    let planetTex = null;
+
+    if (def.id === "home") {
+      planetRadius = 0.8; // Mercury
+      planetTex = createMercuryTexture();
+    } else if (def.id === "about") {
+      planetRadius = 1.2; // Venus
+      planetTex = createVenusTexture();
+    } else if (def.id === "skills") {
+      planetRadius = 1.0; // Mars
+      planetTex = createMarsTexture();
+    } else if (def.id === "experience") {
+      planetRadius = 2.0; // Jupiter
+      planetTex = createJupiterTexture();
+    } else if (def.id === "projects") {
+      planetRadius = 1.7; // Saturn
+      planetTex = createSaturnTexture();
+    } else if (def.id === "testimonials") {
+      planetRadius = 1.4; // Uranus
+      planetTex = createUranusTexture();
+    } else if (def.id === "contact") {
+      planetRadius = 1.4; // Neptune
+      planetTex = createNeptuneTexture();
+    }
+
+    const coreGeom = new THREE.SphereGeometry(planetRadius, 32, 32);
     const coreMat = new THREE.MeshPhongMaterial({
-      color: 0x0a0a1a,
-      emissive: def.color,
-      emissiveIntensity: 0.85,
-      specular: 0xffffff,
-      shininess: 40
+      map: planetTex,
+      shininess: 40,
+      specular: 0x111111
     });
     const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+    coreMesh.name = "planet_core";
     iconMesh.add(coreMesh);
 
-    // Unique orbiting features for each planet
+    // Unique orbiting features matching actual planet properties
     if (def.id === "about") {
-      // Purple plasma planet with outer energy lattice
-      const shellGeom = new THREE.SphereGeometry(1.05, 12, 12);
-      const shellMat = new THREE.MeshBasicMaterial({
-        color: def.color,
-        wireframe: true,
+      // Venus yellowish atmospheric haze
+      const hazeGeom = new THREE.SphereGeometry(planetRadius * 1.08, 32, 32);
+      const hazeMat = new THREE.MeshBasicMaterial({
+        color: 0xfef08a,
         transparent: true,
-        opacity: 0.4
+        opacity: 0.15,
+        blending: THREE.AdditiveBlending
       });
-      const shellMesh = new THREE.Mesh(shellGeom, shellMat);
-      shellMesh.name = "sub_shell";
-      iconMesh.add(shellMesh);
+      const hazeMesh = new THREE.Mesh(hazeGeom, hazeMat);
+      iconMesh.add(hazeMesh);
 
-    } else if (def.id === "experience") {
-      // Ringed planet (Saturn style)
-      const ringGeom = new THREE.RingGeometry(1.2, 2.0, 32);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: def.color,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.5
-      });
-      const ringMesh = new THREE.Mesh(ringGeom, ringMat);
-      ringMesh.rotation.x = Math.PI / 2.5;
-      ringMesh.rotation.y = Math.PI / 12;
-      ringMesh.name = "sub_ring";
-      iconMesh.add(ringMesh);
-
-    } else if (def.id === "projects") {
-      // Technology planet with energy orbits
-      const orbitGroup = new THREE.Group();
-      orbitGroup.name = "sub_orbits";
-
-      const ringGeom1 = new THREE.TorusGeometry(1.3, 0.02, 8, 48);
-      const ringMat1 = new THREE.MeshBasicMaterial({ color: def.color });
-      const ring1 = new THREE.Mesh(ringGeom1, ringMat1);
-      orbitGroup.add(ring1);
-
-      const ring2 = new THREE.Mesh(ringGeom1, ringMat1);
-      ring2.rotation.x = Math.PI / 2;
-      orbitGroup.add(ring2);
-
-      const ring3 = new THREE.Mesh(ringGeom1, ringMat1);
-      ring3.rotation.y = Math.PI / 2;
-      orbitGroup.add(ring3);
-
-      iconMesh.add(orbitGroup);
-
-    } else if (def.id === "contact") {
-      // Red planet with orbiting mini moons
+    } else if (def.id === "skills") {
+      // Mars: Phobos and Deimos orbiting moons
       const moonGroup = new THREE.Group();
       moonGroup.name = "sub_moons";
+      const moonGeom = new THREE.SphereGeometry(0.18, 8, 8);
+      const moonMat = new THREE.MeshPhongMaterial({ color: 0xa8a29e });
+      
+      const phobos = new THREE.Mesh(moonGeom, moonMat);
+      phobos.position.set(1.6, 0.2, 0);
+      moonGroup.add(phobos);
 
-      const moonGeom = new THREE.SphereGeometry(0.16, 8, 8);
-      const moonMat = new THREE.MeshPhongMaterial({ color: def.color, emissive: def.color, emissiveIntensity: 0.5 });
-
-      const moon1 = new THREE.Mesh(moonGeom, moonMat);
-      moon1.position.set(1.4, 0.2, 0);
-      moonGroup.add(moon1);
-
-      const moon2 = new THREE.Mesh(moonGeom, moonMat);
-      moon2.position.set(-1.4, -0.2, 0);
-      moonGroup.add(moon2);
+      const deimos = new THREE.Mesh(moonGeom, moonMat);
+      deimos.position.set(-2.0, -0.2, 0.4);
+      moonGroup.add(deimos);
 
       iconMesh.add(moonGroup);
+
+    } else if (def.id === "experience") {
+      // Jupiter: 4 Galilean moons
+      const moonGroup = new THREE.Group();
+      moonGroup.name = "sub_moons";
+      const moonGeom = new THREE.SphereGeometry(0.2, 8, 8);
+      const moonMat1 = new THREE.MeshPhongMaterial({ color: 0x93c5fd }); // Io
+      const moonMat2 = new THREE.MeshPhongMaterial({ color: 0xfde047 }); // Europa
+      const moonMat3 = new THREE.MeshPhongMaterial({ color: 0xd97706 }); // Ganymede
+      const moonMat4 = new THREE.MeshPhongMaterial({ color: 0xcbd5e1 }); // Callisto
+
+      const io = new THREE.Mesh(moonGeom, moonMat1); io.position.set(2.6, 0.1, 0); moonGroup.add(io);
+      const europa = new THREE.Mesh(moonGeom, moonMat2); europa.position.set(-2.9, 0.3, 0.5); moonGroup.add(europa);
+      const ganymede = new THREE.Mesh(moonGeom, moonMat3); ganymede.position.set(3.4, -0.2, -0.6); moonGroup.add(ganymede);
+      const callisto = new THREE.Mesh(moonGeom, moonMat4); callisto.position.set(-3.8, -0.4, -1.0); moonGroup.add(callisto);
+
+      iconMesh.add(moonGroup);
+
+    } else if (def.id === "projects") {
+      // Saturn: Beautiful tilted rings
+      const saturnRingsGeom = new THREE.RingGeometry(2.1, 3.8, 64);
+      const saturnRingsMat = new THREE.MeshPhongMaterial({
+        color: 0xe2ba86,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.8
+      });
+      const saturnRingsMesh = new THREE.Mesh(saturnRingsGeom, saturnRingsMat);
+      saturnRingsMesh.rotation.x = Math.PI / 2.5; // Tilted rings
+      saturnRingsMesh.rotation.y = Math.PI / 8;
+      iconMesh.add(saturnRingsMesh);
+
+    } else if (def.id === "testimonials") {
+      // Uranus: Vertical rings
+      const uranusRingsGeom = new THREE.RingGeometry(1.8, 2.5, 64);
+      const uranusRingsMat = new THREE.MeshPhongMaterial({
+        color: 0xa5f3fc,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.45
+      });
+      const uranusRingsMesh = new THREE.Mesh(uranusRingsGeom, uranusRingsMat);
+      uranusRingsMesh.rotation.y = Math.PI / 2.2; // vertical rings!
+      iconMesh.add(uranusRingsMesh);
+
+    } else if (def.id === "contact") {
+      // Neptune deep blue atmosphere haze
+      const hazeGeom = new THREE.SphereGeometry(planetRadius * 1.1, 32, 32);
+      const hazeMat = new THREE.MeshBasicMaterial({
+        color: 0x3b82f6,
+        transparent: true,
+        opacity: 0.2,
+        blending: THREE.AdditiveBlending
+      });
+      const hazeMesh = new THREE.Mesh(hazeGeom, hazeMat);
+      iconMesh.add(hazeMesh);
     }
 
     nodeGroup.add(iconMesh);
 
-    // Floating text label sprite above planet
+    // Floating text label sprite above planet (lifted higher to y = 2.8)
     const nameSprite = createTextSprite(currentLang === 'vi' ? def.name : def.nameEn, '#' + def.color.toString(16).padStart(6, '0'));
-    nameSprite.position.y = 2.0;
+    nameSprite.position.y = 2.8;
+    nameSprite.name = "name_label";
     nodeGroup.add(nameSprite);
 
     // Beam cylinder light
-    const beamGeom = new THREE.CylinderGeometry(1.5, 1.5, 3.5, 16, 1, true);
+    const beamGeom = new THREE.CylinderGeometry(2.2, 2.2, 4.5, 16, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({
       color: def.color,
       transparent: true,
@@ -2320,7 +2956,7 @@ function initGame3D() {
       blending: THREE.AdditiveBlending
     });
     const beamMesh = new THREE.Mesh(beamGeom, beamMat);
-    beamMesh.position.y = 0.5;
+    beamMesh.position.y = 0.8;
     nodeGroup.add(beamMesh);
 
     gameScene.add(nodeGroup);
@@ -2332,6 +2968,9 @@ function initGame3D() {
       def: def
     });
   });
+
+  // Initialize Pluto lock state
+  updatePlutoLockState();
 
   // Listeners
   window.addEventListener("keydown", handleGameKeyDown);
@@ -2349,6 +2988,7 @@ function initGame3D() {
         isDragging = true;
         prevX = e.clientX;
         prevY = e.clientY;
+        canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><path d=\'M16,4 L11,9 L15,9 L15,15 L9,15 L9,11 L4,16 L9,21 L9,17 L15,17 L15,23 L11,23 L16,28 L21,23 L17,23 L17,17 L23,17 L23,21 L28,16 L23,11 L23,15 L17,15 L17,9 L21,9 Z\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 16 16, auto';
       }
     }
   });
@@ -2368,18 +3008,17 @@ function initGame3D() {
       const targetPoint = new THREE.Vector3();
       raycaster.ray.intersectPlane(plane, targetPoint);
 
-      const limit = 26;
       gamePlayerTargetPos = {
-        x: Math.max(-limit, Math.min(limit, targetPoint.x)),
-        z: Math.max(-limit, Math.min(limit, targetPoint.z))
+        x: targetPoint.x,
+        z: targetPoint.z
       };
 
-      // Position and reveal the sky blue destination indicator dot/ring
+      // Position and reveal the LMHT green movement indicator
       if (moveIndicator) {
         moveIndicator.position.set(gamePlayerTargetPos.x, -1.47, gamePlayerTargetPos.z);
         moveIndicator.visible = true;
-        moveIndicator.scale.set(1, 1, 1);
-        moveIndicator.material.opacity = 0.85;
+        moveIndicator.scale.set(1.6, 1.6, 1.6);
+        moveIndicator.material.opacity = 1.0;
       }
 
       if (typeof playBeep === 'function') {
@@ -2422,12 +3061,20 @@ function initGame3D() {
       node.isHovered = false;
     });
 
+    let hovered = false;
     if (intersects.length > 0) {
       const hitObject = intersects[0].object;
       const node = hitObject.userData.nodeRef;
       if (node) {
         node.isHovered = true;
+        hovered = true;
       }
+    }
+
+    if (!isDragging) {
+      canvas.style.cursor = hovered
+        ? 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><circle cx=\'16\' cy=\'16\' r=\'6\' fill=\'none\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'16\' y1=\'4\' x2=\'16\' y2=\'10\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'16\' y1=\'22\' x2=\'16\' y2=\'28\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'4\' y1=\'16\' x2=\'10\' y2=\'16\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'22\' y1=\'16\' x2=\'28\' y2=\'16\' stroke=\'%23d946ef\' stroke-width=\'2\'/></svg>") 16 16, auto'
+        : 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
     }
   });
 
@@ -2445,6 +3092,7 @@ function initGame3D() {
 
   window.addEventListener("pointerup", () => {
     isDragging = false;
+    canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
   });
 
   // Touch joystick listener
@@ -2495,58 +3143,54 @@ function initGame3D() {
 
   // Portal Gate to Return to list view
   gamePortalGroup = new THREE.Group();
-  gamePortalGroup.position.set(0, 1.0, 24);
+  const portalX = Math.sin(portalAngle) * portalDist;
+  const portalZ = Math.cos(portalAngle) * portalDist;
+  gamePortalGroup.position.set(portalX, 1.0, portalZ);
 
-  // Portal ring frame
-  const portalRingGeom = new THREE.TorusGeometry(2.5, 0.15, 16, 64);
-  const portalRingMat = new THREE.MeshPhongMaterial({
-    color: 0xf43f5e,
-    emissive: 0xf43f5e,
-    emissiveIntensity: 1.0,
-    shininess: 30
+  // Portal Ring: Earth's Orbit / Ring (Cyan-Blue color instead of Pink)
+  const portalRingGeom = new THREE.TorusGeometry(3.6, 0.04, 8, 64);
+  const portalRingMat = new THREE.MeshBasicMaterial({
+    color: 0x60a5fa,
+    transparent: true,
+    opacity: 0.3
   });
   gamePortalRing = new THREE.Mesh(portalRingGeom, portalRingMat);
+  gamePortalRing.rotation.x = Math.PI / 2; // Flat horizontal orbit ring
   gamePortalGroup.add(gamePortalRing);
 
-  // Portal vortex (swirling translucent field)
-  const portalVortexGeom = new THREE.CircleGeometry(2.4, 32);
-  const portalVortexCanvas = document.createElement('canvas');
-  portalVortexCanvas.width = 256;
-  portalVortexCanvas.height = 256;
-  const portalVCtx = portalVortexCanvas.getContext('2d');
-
-  // Draw sci-fi radar/spiral grid on the portal vortex canvas
-  portalVCtx.strokeStyle = '#f43f5e';
-  portalVCtx.lineWidth = 4;
-  portalVCtx.beginPath();
-  portalVCtx.arc(128, 128, 110, 0, Math.PI * 2);
-  portalVCtx.stroke();
-
-  portalVCtx.strokeStyle = 'rgba(244, 63, 94, 0.3)';
-  portalVCtx.lineWidth = 2;
-  for (let r = 20; r < 100; r += 20) {
-    portalVCtx.beginPath();
-    portalVCtx.arc(128, 128, r, 0, Math.PI * 2);
-    portalVCtx.stroke();
-  }
-
-  portalVCtx.beginPath();
-  portalVCtx.moveTo(128, 18);
-  portalVCtx.lineTo(128, 238);
-  portalVCtx.moveTo(18, 128);
-  portalVCtx.lineTo(238, 128);
-  portalVCtx.stroke();
-
-  const portalVortexTexture = new THREE.CanvasTexture(portalVortexCanvas);
-  const portalVortexMat = new THREE.MeshBasicMaterial({
-    map: portalVortexTexture,
-    transparent: true,
-    opacity: 0.65,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending
+  // Exit Portal is Earth (Mesh Sphere with procedural Earth texture)
+  const portalVortexGeom = new THREE.SphereGeometry(1.6, 32, 32);
+  const portalVortexMat = new THREE.MeshPhongMaterial({
+    map: createEarthTexture(),
+    shininess: 30,
+    specular: 0x222222
   });
   gamePortalVortex = new THREE.Mesh(portalVortexGeom, portalVortexMat);
   gamePortalGroup.add(gamePortalVortex);
+
+  // Add a nice atmosphere glow
+  const atmosphereGeom = new THREE.SphereGeometry(1.72, 32, 32);
+  const atmosphereMat = new THREE.MeshBasicMaterial({
+    color: 0x3b82f6,
+    transparent: true,
+    opacity: 0.25,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide
+  });
+  const atmosphere = new THREE.Mesh(atmosphereGeom, atmosphereMat);
+  gamePortalGroup.add(atmosphere);
+
+  // Add a Moon orbiting the Earth
+  const moonGeom = new THREE.SphereGeometry(0.3, 16, 16);
+  const moonMat = new THREE.MeshPhongMaterial({
+    color: 0x94a3b8,
+    emissive: 0x1e293b,
+    shininess: 10
+  });
+  const portalMoon = new THREE.Mesh(moonGeom, moonMat);
+  portalMoon.name = "portal_moon";
+  portalMoon.position.set(3.4, 0.3, 0);
+  gamePortalGroup.add(portalMoon);
 
   // Add text label sprite above portal: "EXIT PORTAL"
   gamePortalSprite = createTextSprite(currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL', '#f43f5e');
@@ -2612,6 +3256,490 @@ function handleGameResize() {
   gameRenderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function checkIfPlayerOnDeck(px, pz) {
+  // Biên ranh giới viền trắng của sàn lưới 100x100 là +/-48 đơn vị.
+  // Người chơi đi quá viền này sẽ bị rơi xuống không gian.
+  return Math.abs(px) < 48.0 && Math.abs(pz) < 48.0;
+}
+
+function showSafetyNotice(msg, color) {
+  let notice = document.getElementById("quantum-safety-notice");
+  if (notice) notice.remove(); // Remove existing one
+
+  const noticeColor = color || "#f43f5e";
+  notice = document.createElement("div");
+  notice.id = "quantum-safety-notice";
+  notice.style.position = "fixed";
+  notice.style.top = "12%";
+  notice.style.left = "50%";
+  notice.style.transform = "translate(-50%, -20px)";
+  notice.style.background = "rgba(15, 23, 42, 0.9)";
+  notice.style.border = `1px solid ${noticeColor}80`;
+  notice.style.boxShadow = `0 0 25px ${noticeColor}50`;
+  notice.style.color = noticeColor;
+  notice.style.padding = "14px 28px";
+  notice.style.borderRadius = "10px";
+  notice.style.fontFamily = "monospace";
+  notice.style.fontWeight = "bold";
+  notice.style.fontSize = "13px";
+  notice.style.letterSpacing = "1px";
+  notice.style.zIndex = "999999";
+  notice.style.textAlign = "center";
+  notice.style.pointerEvents = "none";
+  notice.style.backdropFilter = "blur(8px)";
+  notice.style.transition = "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)";
+  notice.style.opacity = "0";
+
+  if (msg) {
+    notice.textContent = msg;
+  } else {
+    const viMsg = "⚠️ HỆ THỐNG AN TOÀN KÍCH HOẠT // KHÔI PHỤC QUỸ ĐẠO LÕI TRẠM";
+    const enMsg = "⚠️ QUANTUM DEFLECTOR ENGAGED // RE-ESTABLISHED STATION ORBIT";
+    notice.textContent = currentLang === 'vi' ? viMsg : enMsg;
+  }
+
+  document.body.appendChild(notice);
+
+  // Force reflow
+  notice.offsetHeight;
+
+  // Fade in
+  notice.style.opacity = "1";
+  notice.style.transform = "translate(-50%, 0)";
+
+  setTimeout(() => {
+    notice.style.opacity = "0";
+    notice.style.transform = "translate(-50%, -20px)";
+    setTimeout(() => notice.remove(), 400);
+  }, 3000);
+}
+
+// =====================================================================
+// PLANET UNLOCK CINEMATIC EFFECTS
+// =====================================================================
+
+function showPlanetUnlockEffect(nodeDef) {
+  const colorHex = '#' + nodeDef.color.toString(16).padStart(6, '0');
+  const rgb = hexToRgb(nodeDef.color);
+
+  // ── PHASE 1: Giant Lock Icon appears at center ──
+  const lockContainer = document.createElement("div");
+  lockContainer.style.cssText = `
+    position: fixed; top: 50%; left: 50%; z-index: 999999;
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    filter: drop-shadow(0 0 30px ${colorHex}80);
+  `;
+  lockContainer.innerHTML = `
+    <div id="unlock-lock-icon" style="font-size:72px;color:${colorHex};text-shadow:0 0 40px ${colorHex}60;">
+      <i class="fa-solid fa-lock"></i>
+    </div>
+  `;
+  document.body.appendChild(lockContainer);
+
+  // Lock sound: deep metallic clang
+  if (typeof playBeep === 'function') {
+    playBeep(180, 0.2, 'triangle', 0.06);
+  }
+
+  // Animate lock in (scale up + fade in)
+  requestAnimationFrame(() => {
+    lockContainer.style.opacity = "1";
+    lockContainer.style.transform = "translate(-50%, -50%) scale(1)";
+  });
+
+  // ── PHASE 2: Lock shakes violently (after 500ms) ──
+  setTimeout(() => {
+    lockContainer.style.animation = "lockShake 0.5s ease-in-out";
+    // Metallic rattling sounds
+    if (typeof playBeep === 'function') {
+      playBeep(300, 0.08, 'square', 0.02);
+      setTimeout(() => playBeep(350, 0.08, 'square', 0.02), 60);
+      setTimeout(() => playBeep(280, 0.08, 'square', 0.02), 120);
+      setTimeout(() => playBeep(400, 0.08, 'square', 0.02), 180);
+    }
+  }, 500);
+
+  // ── PHASE 3: Lock breaks open (after 1100ms) ──
+  setTimeout(() => {
+    const iconEl = lockContainer.querySelector("#unlock-lock-icon");
+    if (iconEl) {
+      // Switch to unlocked icon
+      iconEl.innerHTML = '<i class="fa-solid fa-lock-open"></i>';
+      iconEl.style.color = "#10b981";
+      iconEl.style.textShadow = "0 0 50px rgba(16, 185, 129, 0.7)";
+    }
+    lockContainer.style.filter = "drop-shadow(0 0 50px rgba(16, 185, 129, 0.8))";
+    lockContainer.style.transform = "translate(-50%, -50%) scale(1.3)";
+
+    // Unlock burst sound
+    if (typeof playBeep === 'function') {
+      playBeep(523, 0.15, 'sine', 0.05);
+      setTimeout(() => playBeep(784, 0.12, 'sine', 0.04), 80);
+    }
+
+    // Spawn particle sparks around the lock
+    for (let i = 0; i < 12; i++) {
+      const spark = document.createElement("div");
+      const angle = (i / 12) * Math.PI * 2;
+      const dist = 60 + Math.random() * 50;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      const size = 3 + Math.random() * 4;
+      spark.style.cssText = `
+        position: fixed; top: 50%; left: 50%; z-index: 999999;
+        width: ${size}px; height: ${size}px; border-radius: 50%;
+        background: ${colorHex};
+        box-shadow: 0 0 8px ${colorHex};
+        transform: translate(-50%, -50%);
+        transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 1;
+        pointer-events: none;
+      `;
+      document.body.appendChild(spark);
+      requestAnimationFrame(() => {
+        spark.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        spark.style.opacity = "0";
+      });
+      setTimeout(() => spark.remove(), 800);
+    }
+
+    // Make the walkway to this planet visible
+    if (typeof gameScene !== 'undefined' && gameScene) {
+      const walkway = gameScene.getObjectByName("walkway_" + nodeDef.id);
+      if (walkway) walkway.visible = true;
+    }
+  }, 1100);
+
+  // ── PHASE 4: Lock shrinks away, flash + shockwave + banner appear (after 1700ms) ──
+  setTimeout(() => {
+    // Shrink and fade the lock
+    lockContainer.style.transform = "translate(-50%, -50%) scale(0)";
+    lockContainer.style.opacity = "0";
+    setTimeout(() => lockContainer.remove(), 400);
+
+    // Full-screen flash overlay
+    const flash = document.createElement("div");
+    flash.style.cssText = `
+      position: fixed; inset: 0; z-index: 999998;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(${rgb}, 0.35) 0%, transparent 70%);
+      animation: unlockFlash 1.2s ease-out forwards;
+    `;
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1300);
+
+    // Shockwave ring
+    const ring = document.createElement("div");
+    ring.style.cssText = `
+      position: fixed; top: 50%; left: 50%; z-index: 999998;
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 2px solid rgba(${rgb}, 0.8);
+      box-shadow: 0 0 20px rgba(${rgb}, 0.5), inset 0 0 10px rgba(${rgb}, 0.3);
+      transform: translate(-50%, -50%) scale(1);
+      animation: shockwaveExpand 1s ease-out forwards;
+      pointer-events: none;
+    `;
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 1100);
+
+    // Achievement banner
+    const banner = document.createElement("div");
+    const planetName = currentLang === 'vi' ? nodeDef.name : nodeDef.nameEn;
+    const unlockMsg = currentLang === 'vi' ? 'ĐÃ MỞ KHÓA' : 'UNLOCKED';
+    
+    const completedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    const counterMsg = `${completedCount}/6`;
+
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:${colorHex};box-shadow:0 0 20px ${colorHex}80;display:flex;align-items:center;justify-content:center;animation:unlockPulseGlow 1.5s ease-in-out infinite;">
+          <i class="fa-solid fa-lock-open" style="color:#fff;font-size:14px;"></i>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <span style="font-size:8px;letter-spacing:3px;color:${colorHex};opacity:0.8;">${unlockMsg}</span>
+          <span style="font-size:14px;font-weight:900;color:#fff;text-shadow:0 0 10px ${colorHex}60;">${planetName}</span>
+        </div>
+        <div style="margin-left:12px;padding:4px 10px;border:1px solid ${colorHex}40;border-radius:6px;font-size:11px;color:${colorHex};font-weight:bold;letter-spacing:2px;">
+          ${counterMsg}
+        </div>
+      </div>
+    `;
+    banner.style.cssText = `
+      position: fixed; top: 10%; left: 50%; z-index: 999999;
+      transform: translate(-50%, -30px) scale(0.8);
+      background: rgba(5, 8, 22, 0.95);
+      border: 1px solid ${colorHex}50;
+      box-shadow: 0 0 40px ${colorHex}25, 0 4px 30px rgba(0,0,0,0.5);
+      padding: 16px 28px;
+      border-radius: 14px;
+      font-family: 'Courier New', monospace;
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    `;
+
+    document.body.appendChild(banner);
+    banner.offsetHeight;
+    banner.style.opacity = "1";
+    banner.style.transform = "translate(-50%, 0) scale(1)";
+
+    // Sound: ascending victory chime
+    if (typeof playBeep === 'function') {
+      playBeep(523, 0.12, 'sine', 0.04);
+      setTimeout(() => playBeep(659, 0.12, 'sine', 0.04), 80);
+      setTimeout(() => playBeep(784, 0.15, 'sine', 0.05), 160);
+    }
+
+    setTimeout(() => {
+      banner.style.opacity = "0";
+      banner.style.transform = "translate(-50%, -20px) scale(0.9)";
+      setTimeout(() => banner.remove(), 500);
+    }, 3500);
+  }, 1700);
+}
+
+function showAllUnlockedEffect() {
+  // Make Pluto's walkway visible
+  if (typeof gameScene !== 'undefined' && gameScene) {
+    const plutoWalkway = gameScene.getObjectByName("walkway_cv");
+    if (plutoWalkway) plutoWalkway.visible = true;
+  }
+
+  // Grand full-screen golden flash
+  const flash = document.createElement("div");
+  flash.style.cssText = `
+    position: fixed; inset: 0; z-index: 999997;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(234, 179, 8, 0.4) 0%, rgba(168, 85, 247, 0.15) 50%, transparent 80%);
+    animation: unlockFlash 2s ease-out forwards;
+  `;
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 2100);
+
+  // Double shockwave rings
+  for (let i = 0; i < 2; i++) {
+    const ring = document.createElement("div");
+    ring.style.cssText = `
+      position: fixed; top: 50%; left: 50%; z-index: 999998;
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 2px solid rgba(168, 85, 247, ${0.9 - i * 0.3});
+      box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+      transform: translate(-50%, -50%) scale(1);
+      animation: shockwaveExpand ${1.2 + i * 0.3}s ease-out forwards;
+      animation-delay: ${i * 0.2}s;
+      pointer-events: none;
+    `;
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 1600 + i * 300);
+  }
+
+  // Grand celebration banner
+  const banner = document.createElement("div");
+  const titleMsg = currentLang === 'vi' ? '🏆 TẤT CẢ HÀNH TINH ĐÃ KHÁM PHÁ!' : '🏆 ALL PLANETS EXPLORED!';
+  const subMsg = currentLang === 'vi'
+    ? 'SAO DIÊM VƯƠNG ĐÃ MỞ KHÓA — HÃY ĐẾN ĐỂ XEM CV'
+    : 'PLUTO UNLOCKED — PROCEED TO VIEW CV';
+  const arrowMsg = currentLang === 'vi' ? 'HƯỚNG VỀ SAO DIÊM VƯƠNG ↗' : 'HEAD TO PLUTO ↗';
+
+  banner.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#eab308);box-shadow:0 0 30px rgba(168,85,247,0.5);display:flex;align-items:center;justify-content:center;animation:unlockPulseGlow 1s ease-in-out infinite;">
+          <i class="fa-solid fa-trophy" style="color:#fff;font-size:20px;"></i>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <span style="font-size:15px;font-weight:900;color:#eab308;text-shadow:0 0 15px rgba(234,179,8,0.4);letter-spacing:1px;">${titleMsg}</span>
+          <span style="font-size:10px;color:#a78bfa;letter-spacing:2px;">${subMsg}</span>
+        </div>
+      </div>
+      <div style="margin-top:6px;padding:6px 18px;background:linear-gradient(90deg,rgba(168,85,247,0.2),rgba(234,179,8,0.2));border:1px solid rgba(168,85,247,0.4);border-radius:8px;font-size:11px;color:#c4b5fd;font-weight:bold;letter-spacing:3px;animation:unlockPulseGlow 2s ease-in-out infinite;">
+        ${arrowMsg}
+      </div>
+    </div>
+  `;
+  banner.style.cssText = `
+    position: fixed; top: 50%; left: 50%; z-index: 999999;
+    transform: translate(-50%, -50%) scale(0.7);
+    background: rgba(5, 8, 22, 0.97);
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 60px rgba(168, 85, 247, 0.2), 0 0 80px rgba(234, 179, 8, 0.1), 0 4px 40px rgba(0,0,0,0.6);
+    padding: 24px 36px;
+    border-radius: 18px;
+    font-family: 'Courier New', monospace;
+    pointer-events: none;
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+
+  document.body.appendChild(banner);
+  banner.offsetHeight;
+  banner.style.opacity = "1";
+  banner.style.transform = "translate(-50%, -50%) scale(1)";
+
+  // Victory fanfare sound sequence
+  if (typeof playBeep === 'function') {
+    playBeep(523.25, 0.12, 'sine', 0.05);
+    setTimeout(() => playBeep(659.25, 0.12, 'sine', 0.05), 100);
+    setTimeout(() => playBeep(783.99, 0.15, 'sine', 0.05), 200);
+    setTimeout(() => playBeep(1046.50, 0.2, 'sine', 0.06), 300);
+    setTimeout(() => playBeep(1318.51, 0.25, 'sine', 0.08), 450);
+    setTimeout(() => playBeep(1567.98, 0.3, 'sine', 0.1), 600);
+  }
+
+  setTimeout(() => {
+    banner.style.opacity = "0";
+    banner.style.transform = "translate(-50%, -50%) scale(0.9)";
+    setTimeout(() => banner.remove(), 600);
+  }, 5500);
+}
+
+// Helper: convert 0xRRGGBB integer to "R,G,B" string
+function hexToRgb(hexInt) {
+  const r = (hexInt >> 16) & 255;
+  const g = (hexInt >> 8) & 255;
+  const b = hexInt & 255;
+  return `${r},${g},${b}`;
+}
+
+function drawMinimap() {
+  const canvas = document.getElementById("minimap-canvas");
+  if (!canvas || !is3DMode) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, w, h);
+
+  // Draw background circular radar grid lines
+  ctx.strokeStyle = "rgba(168, 85, 247, 0.15)";
+  ctx.lineWidth = 1.0;
+
+  // Draw range rings
+  ctx.beginPath(); ctx.arc(cx, cy, 25, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 45, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 54, 0, Math.PI * 2); ctx.stroke();
+
+  // Draw crosshairs
+  ctx.strokeStyle = "rgba(168, 85, 247, 0.08)";
+  ctx.beginPath(); ctx.moveTo(cx - 54, cy); ctx.lineTo(cx + 54, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - 54); ctx.lineTo(cx, cy + 54); ctx.stroke();
+
+  // Radar sweep scanline
+  const time = Date.now() * 0.002;
+  ctx.fillStyle = "rgba(168, 85, 247, 0.04)";
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, 54, time, time + 0.4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Scale: 3D coordinates map to minimap pixels
+  // Radius of outer deck boundary is ~48 units, which should map to ~50 pixels on canvas
+  const scale = 50 / 48;
+
+  // Draw central Sun
+  ctx.fillStyle = "#eab308";
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+  ctx.shadowColor = "#f97316";
+  ctx.shadowBlur = 5;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Draw Exit Portal (Earth) at fixed position (0, 1.0, 30.0) -> (cx, cy + 30 * scale)
+  const pxPortal = cx;
+  const pyPortal = cy + 30 * scale;
+  ctx.fillStyle = "#3b82f6";
+  ctx.beginPath();
+  ctx.arc(pxPortal, pyPortal, 3.5, 0, Math.PI * 2);
+  ctx.shadowColor = "#06b6d4";
+  ctx.shadowBlur = 3;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Draw planet nodes
+  if (gameNodes) {
+    gameNodes.forEach(node => {
+      const nX = node.group.position.x;
+      const nZ = node.group.position.z;
+      
+      const px = cx + nX * scale;
+      const py = cy + nZ * scale;
+
+      const nodeColor = '#' + node.def.color.toString(16).padStart(6, '0');
+      const isVisited = node.def.id === "home" || node.def.id === "cv" ? true : visitedNodes.includes(node.def.id);
+
+      ctx.fillStyle = nodeColor;
+      ctx.strokeStyle = nodeColor;
+
+      ctx.beginPath();
+      if (node.def.id === "cv") {
+        const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+        if (coreVisitedCount < 6) {
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(px - 3, py - 3); ctx.lineTo(px + 3, py + 3);
+          ctx.moveTo(px + 3, py - 3); ctx.lineTo(px - 3, py + 3);
+          ctx.stroke();
+          return;
+        }
+      }
+
+      if (isVisited) {
+        ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.lineWidth = 1.2;
+        ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+  }
+
+  // Draw Player Drone
+  if (gamePlayer) {
+    const pX = gamePlayer.position.x;
+    const pZ = gamePlayer.position.z;
+
+    const px = cx + pX * scale;
+    const py = cy + pZ * scale;
+
+    const flash = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.4 + flash * 0.6})`;
+    ctx.shadowColor = "#10b981";
+    ctx.shadowBlur = 5;
+
+    ctx.beginPath();
+    ctx.arc(px, py, 4.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Draw direction vector (where camera is looking)
+    if (gameCamera) {
+      const dir = new THREE.Vector3();
+      gameCamera.getWorldDirection(dir);
+      const angle = Math.atan2(dir.x, dir.z);
+      
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.sin(angle) * 10, py + Math.cos(angle) * 10);
+      ctx.stroke();
+    }
+  }
+}
+
 function gameAnimate() {
   if (!is3DMode) return;
   gameAnimationId = requestAnimationFrame(gameAnimate);
@@ -2619,7 +3747,25 @@ function gameAnimate() {
   const time = performance.now() * 0.002;
 
   if (gamePlayer && !activeModalNode && !document.getElementById("bootloader-overlay")) {
-    gamePlayer.position.y = 0.5 + Math.sin(time * 2) * 0.12;
+    // Check if player is on deck
+    const isOnDeck = checkIfPlayerOnDeck(gamePlayer.position.x, gamePlayer.position.z);
+    if (isOnDeck) {
+      // Bobbing on the ground
+      gamePlayer.position.y = 0.5 + Math.sin(time * 2) * 0.12;
+      gamePlayerVeloY = 0;
+    } else {
+      // Apply gravity falling
+      gamePlayerVeloY -= 0.015;
+      gamePlayer.position.y += gamePlayerVeloY;
+
+      // Respawn if fallen too deep
+      if (gamePlayer.position.y < -15.0) {
+        gamePlayer.position.set(0, 0.5, 0);
+        gamePlayerVeloY = 0;
+        gamePlayerTargetPos = null;
+        showSafetyNotice();
+      }
+    }
     gamePlayer.children[1].rotation.z += 0.015;
     gamePlayer.children[2].scale.setScalar(0.95 + Math.sin(time * 6) * 0.05);
 
@@ -2675,10 +3821,6 @@ function gameAnimate() {
 
     gamePlayer.position.x += dx;
     gamePlayer.position.z += dz;
-
-    const limit = 26;
-    gamePlayer.position.x = Math.max(-limit, Math.min(limit, gamePlayer.position.x));
-    gamePlayer.position.z = Math.max(-limit, Math.min(limit, gamePlayer.position.z));
 
     if (dx !== 0 || dz !== 0) {
       const targetAngle = Math.atan2(dx, dz);
@@ -2752,16 +3894,16 @@ function gameAnimate() {
     });
   }
 
-  // Rotate central station core elements (energy rings & radar array)
+  // Rotate central Sun & Corona
   if (centralCoreGroup) {
-    const ring1 = centralCoreGroup.children[1];
-    const ring2 = centralCoreGroup.children[2];
-    if (ring1) ring1.rotation.z += 0.01;
-    if (ring2) ring2.rotation.z -= 0.008;
-
-    const dish = centralCoreGroup.getObjectByName("station_dish");
-    if (dish) {
-      dish.rotation.z += 0.005;
+    const sun = centralCoreGroup.getObjectByName("sun_mesh");
+    if (sun) {
+      sun.rotation.y += 0.003;
+    }
+    const corona = centralCoreGroup.children[1]; // coronaMesh
+    if (corona) {
+      corona.rotation.z -= 0.001;
+      corona.rotation.y += 0.002;
     }
   }
 
@@ -2805,21 +3947,18 @@ function gameAnimate() {
     });
   }
 
-  // Animate destination indicator dot (sky blue ring)
+  // Animate destination indicator dot (LMHT style)
   if (moveIndicator && moveIndicator.visible) {
-    moveIndicator.rotation.z += 0.03;
-    if (gamePlayerTargetPos) {
-      const d = Math.hypot(gamePlayerTargetPos.x - gamePlayer.position.x, gamePlayerTargetPos.z - gamePlayer.position.z);
-      if (d < 1.5) {
-        moveIndicator.material.opacity = Math.max(0, (d / 1.5) * 0.85);
-        const sc = Math.max(0.1, d / 1.5);
-        moveIndicator.scale.set(sc, sc, 1);
-      }
-    } else {
-      moveIndicator.material.opacity -= 0.1;
-      if (moveIndicator.material.opacity <= 0) {
-        moveIndicator.visible = false;
-      }
+    moveIndicator.rotation.z -= 0.02;
+
+    // Shrink scale to 0.9 (inward snap pulse)
+    moveIndicator.scale.x += (0.9 - moveIndicator.scale.x) * 0.18;
+    moveIndicator.scale.y = moveIndicator.scale.x;
+
+    // Fade out
+    moveIndicator.material.opacity -= 0.05;
+    if (moveIndicator.material.opacity <= 0) {
+      moveIndicator.visible = false;
     }
   }
 
@@ -2853,7 +3992,7 @@ function gameAnimate() {
     if (node.sprite) {
       node.sprite.lookAt(gameCamera.position);
       const time = performance.now() * 0.0015;
-      node.sprite.position.y = 2.0 + Math.sin(time * 2.0 + node.group.position.x) * 0.08;
+      node.sprite.position.y = 2.8 + Math.sin(time * 2.0 + node.group.position.x) * 0.08;
     }
 
     const dist = gamePlayer.position.distanceTo(node.group.position);
@@ -2863,9 +4002,26 @@ function gameAnimate() {
     }
   });
 
-  // Animate exit portal and check for collision to warp back to list view
+  // LookAt for player label
+  if (gamePlayer) {
+    const playerLabel = gamePlayer.getObjectByName("player_label");
+    if (playerLabel) {
+      playerLabel.lookAt(gameCamera.position);
+    }
+  }
+
+  // Animate exit portal (Earth & Moon) and check for collision to warp back to list view
   if (gamePortalGroup && gamePortalVortex && gamePortalRing && gamePlayer) {
-    gamePortalVortex.rotation.z += 0.015;
+    gamePortalVortex.rotation.y += 0.006; // Spin Earth
+
+    // Orbit the Moon
+    const portalMoon = gamePortalGroup.getObjectByName("portal_moon");
+    if (portalMoon) {
+      const moonAngle = (performance.now() * 0.001);
+      portalMoon.position.set(Math.sin(moonAngle) * 3.4, 0.3, Math.cos(moonAngle) * 3.4);
+      portalMoon.rotation.y += 0.015;
+    }
+
     const scalePulse = 1.0 + Math.sin(performance.now() * 0.003) * 0.04;
     gamePortalRing.scale.set(scalePulse, scalePulse, 1.0);
 
@@ -2892,8 +4048,10 @@ function gameAnimate() {
   if (minDistance < 3.8 && closestNode && !activeModalNode) {
     if (interactionHud && interactionText) {
       interactionHud.classList.remove("hidden");
-      const viMsg = `ĐANG Ở GẦN ĐỊA DANH ${closestNode.def.name} - ĐỨNG YÊN ĐỂ KẾT NỐI`;
-      const enMsg = `NEAR ${closestNode.def.nameEn} NODE - STAY STILL TO CONNECT`;
+      const nodeNameVi = getNodeName(closestNode.def, 'vi');
+      const nodeNameEn = getNodeName(closestNode.def, 'en');
+      const viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - ĐỨNG YÊN ĐỂ KẾT NỐI`;
+      const enMsg = `NEAR ${nodeNameEn} NODE - STAY STILL TO CONNECT`;
       interactionText.textContent = currentLang === 'vi' ? viMsg : enMsg;
       interactionText.setAttribute("data-vi", viMsg);
       interactionText.setAttribute("data-en", enMsg);
@@ -2902,13 +4060,13 @@ function gameAnimate() {
     // Update bottom-left location HUD text
     const locText = document.getElementById("current-location-text");
     if (locText) {
-      const displayVal = currentLang === 'vi' ? closestNode.def.name : closestNode.def.nameEn;
+      const displayVal = getNodeName(closestNode.def, currentLang);
       if (locText.textContent !== displayVal) {
         locText.textContent = displayVal;
       }
     }
 
-    if (minDistance < 2.0 && !activeModalNode && lastOpenedNode !== closestNode.def.id) {
+    if (minDistance < 3.2 && !activeModalNode && lastOpenedNode !== closestNode.def.id) {
       lastOpenedNode = closestNode.def.id;
       openGameModal(closestNode.def);
     }
@@ -2916,7 +4074,7 @@ function gameAnimate() {
     if (interactionHud) {
       interactionHud.classList.add("hidden");
     }
-    if (minDistance >= 3.8) {
+    if (minDistance >= 5.0) {
       lastOpenedNode = null;
       // Reset bottom-left location HUD text when in free space
       const locText = document.getElementById("current-location-text");
@@ -2928,6 +4086,61 @@ function gameAnimate() {
       }
     }
   }
+
+  // Calculate cycling rainbow color from the 6 node colors (RGB loop)
+  const cycleTime = performance.now() * 0.0005; // color change speed
+  const colorIndex = Math.floor(cycleTime) % nodeDefs.length;
+  const nextColorIndex = (colorIndex + 1) % nodeDefs.length;
+  const blendFactor = cycleTime % 1;
+
+  const colorA = new THREE.Color(nodeDefs[colorIndex].color);
+  const colorB = new THREE.Color(nodeDefs[nextColorIndex].color);
+  const idleColor = colorA.clone().lerp(colorB, blendFactor);
+
+  let targetFloorColor = idleColor.clone();
+  let targetGridColor = idleColor.clone();
+  let targetLightIntensity = 1.0; // gentle background glow
+  let targetLightColor = idleColor.clone();
+  let targetLightPos = new THREE.Vector3(0, -1.0, 0);
+
+  if (minDistance < 10.0 && closestNode) {
+    const factor = Math.max(0, Math.min(1, (10.0 - minDistance) / 6.0));
+    const nodeColor = new THREE.Color(closestNode.def.color);
+    targetFloorColor.lerp(nodeColor, factor);
+    targetGridColor.lerp(nodeColor, factor);
+
+    targetLightIntensity = 1.0 + factor * 3.0; // scales up to 4.0 intensity
+    targetLightColor.lerp(nodeColor, factor);
+
+    const nodePos = closestNode.group.position.clone();
+    nodePos.y = -1.0;
+    targetLightPos.lerp(nodePos, factor);
+  }
+
+  if (gameTechFloor && gameTechFloor.material) {
+    gameTechFloor.material.color.lerp(targetFloorColor, 0.1);
+  }
+  if (gameGridHelper && gameGridHelper.material) {
+    gameGridHelper.material.color.lerp(targetGridColor, 0.1);
+  }
+  if (gameFloorPointLight) {
+    gameFloorPointLight.intensity += (targetLightIntensity - gameFloorPointLight.intensity) * 0.1;
+    gameFloorPointLight.color.lerp(targetLightColor, 0.1);
+    gameFloorPointLight.position.lerp(targetLightPos, 0.1);
+  }
+  if (gamePerimeterRail && gamePerimeterRail.material) {
+    gamePerimeterRail.material.color.lerp(targetGridColor, 0.1);
+  }
+  gameFenceBeacons.forEach(beacon => {
+    if (beacon.material) {
+      beacon.material.color.lerp(targetGridColor, 0.1);
+    }
+  });
+  gameWalkwayMeshes.forEach(walkway => {
+    if (walkway.material) {
+      walkway.material.color.lerp(targetGridColor, 0.1);
+    }
+  });
 
   if (gameStars && gameStars.geometry && gameStars.geometry.attributes.position) {
     const pos = gameStars.geometry.attributes.position.array;
@@ -2947,6 +4160,7 @@ function gameAnimate() {
   gameCameraRadius += (gameCameraTargetRadius - gameCameraRadius) * 0.15;
 
   updateGameCameraPosition();
+  drawMinimap();
   gameRenderer.render(gameScene, gameCamera);
 }
 
@@ -2964,27 +4178,256 @@ function openGameModal(nodeDef) {
   const content = document.getElementById("game-modal-content");
   if (!modal || !content) return;
 
-  activeModalNode = nodeDef.id;
-
-  if (typeof playBeep === 'function') {
-    playBeep(880, 0.18, 'sine', 0.04);
+  // Block access to Pluto if locked
+  if (nodeDef.id === "cv") {
+    const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    if (coreVisitedCount < 6) {
+      if (typeof playBeep === 'function') {
+        playBeep(400, 0.15, 'sine', 0.05);
+      }
+      showSafetyNotice(
+        currentLang === 'vi' ? `🔒 VUI LÒNG MỞ KHÓA ${6 - coreVisitedCount} HÀNH TINH NỮA ĐỂ TRUY CẬP (${coreVisitedCount}/6)` : `🔒 PLEASE UNLOCK ${6 - coreVisitedCount} MORE PLANETS TO ACCESS (${coreVisitedCount}/6)`,
+        "#a855f7"
+      );
+      return;
+    }
   }
 
+  let isNewUnlock = false;
+  // Track visit to other planets
+  if (nodeDef.id !== "home" && nodeDef.id !== "cv" && !visitedNodes.includes(nodeDef.id)) {
+    visitedNodes.push(nodeDef.id);
+    localStorage.setItem("visitedNodes", JSON.stringify(visitedNodes));
+    updatePlutoLockState();
+    isNewUnlock = true;
+
+    // Show planet unlock cinematic effect
+    showPlanetUnlockEffect(nodeDef);
+
+    // Check if all 6 core planets are now unlocked
+    const coreIds = ["about", "skills", "experience", "projects", "testimonials", "contact"];
+    const totalVisited = coreIds.filter(id => visitedNodes.includes(id)).length;
+    if (totalVisited === 6) {
+      setTimeout(() => showAllUnlockedEffect(), 5500);
+    }
+  }
+
+  activeModalNode = nodeDef.id;
+
+  const showModalDelay = isNewUnlock ? 1700 : 0;
+
+  setTimeout(() => {
+    if (typeof playBeep === 'function') {
+      playBeep(880, 0.18, 'sine', 0.04);
+    }
+  }, showModalDelay);
+
   const srcSection = document.getElementById(nodeDef.targetId);
-  if (srcSection) {
+  if (srcSection || nodeDef.id === "home" || nodeDef.id === "cv") {
+    const colorHex = '#' + nodeDef.color.toString(16).padStart(6, '0');
+    let modalHTML = '';
+
+    if (nodeDef.id === "home") {
+      modalHTML = `
+        <div class="grid md:grid-cols-12 gap-8 items-center py-6">
+          <!-- Captain / Pilot Command avatar -->
+          <div class="md:col-span-4 flex flex-col items-center justify-center p-6 border border-pink-500/20 bg-pink-950/5 rounded-2xl relative overflow-hidden">
+            <div class="absolute inset-0 scanlines pointer-events-none opacity-10"></div>
+            <div class="w-32 h-32 rounded-full border border-dashed border-pink-500/40 flex justify-center items-center relative animate-[spin_40s_linear_infinite] mb-4">
+              <div class="absolute inset-2 border border-dashed border-rose-400/30 rounded-full animate-[spin_20s_linear_infinite_reverse]"></div>
+              <div class="w-24 h-24 rounded-full bg-pink-500/10 flex justify-center items-center text-pink-400 text-4xl shadow-[inset_0_0_20px_rgba(236,72,153,0.3)]">
+                <i class="fa-solid fa-satellite-dish animate-pulse"></i>
+              </div>
+            </div>
+            <div class="text-center font-mono">
+              <div class="text-[9px] text-zinc-500 uppercase tracking-widest">COM DECK PROTOCOL</div>
+              <div class="text-xs text-pink-400 font-bold tracking-widest mt-1">✓ ONLINE</div>
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="md:col-span-8 space-y-6">
+            <div class="border-b border-white/5 pb-4">
+              <h3 class="text-pink-500 font-mono text-xs uppercase tracking-widest mb-2">// DOCKING MAIN DECK</h3>
+              <p class="text-zinc-300 text-sm md:text-base leading-relaxed">
+                ${currentLang === 'vi' ? 
+                  'Chào mừng bạn đến với Tổng hành dinh Trạm Không Gian Portfolio. Nhấn nút bên dưới để đóng bảng mô phỏng và hạ cánh xuống giao diện giới thiệu chính.' : 
+                  'Welcome to the Space Station Command Deck. Press the button below to close the simulation and land on the main landing page.'}
+              </p>
+            </div>
+            
+            <div class="pt-2">
+              <button onclick="document.getElementById('game-modal-close').click(); const exitBtn = document.getElementById('exit-3d-btn') || document.getElementById('view-mode-btn'); if (exitBtn) exitBtn.click();" class="px-8 py-3 rounded-full border border-pink-500/40 hover:border-pink-500 bg-pink-950/20 text-pink-400 hover:text-white font-bold transition-all duration-300 transform hover:scale-105 shadow-[0_0_15px_rgba(236,72,153,0.2)] hover:shadow-[0_0_25px_rgba(236,72,153,0.4)] w-full sm:w-auto text-center">
+                ${currentLang === 'vi' ? 'HẠ CÁNH XUỐNG TRANG CHỦ ✓' : 'LAND TO PORTFOLIO HOME ✓'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (nodeDef.id === "about") {
+      const bioText = currentLang === 'vi' ? 
+        "Tôi là Thực tập sinh Web Developer & Laravel. Tôi đam mê xây dựng những giao diện người dùng đẹp mắt, mượt mà kết hợp với kiến trúc hệ thống vững chắc. Với tư duy tối ưu hóa hiệu năng và chất lượng sản phẩm, tôi hướng tới việc mang lại những sản phẩm web hoàn hảo nhất cho người sử dụng." :
+        "I am a Web Developer & Laravel Intern. I love building beautiful, smooth user interfaces combined with solid system architectures. With a focus on performance optimization and product quality, I strive to deliver perfect web applications.";
+      
+      const locationVal = "Thủ Đức, TP.HCM";
+      const jobVal = currentLang === 'vi' ? "Thực tập / Fulltime" : "Internship / Fulltime";
+
+      modalHTML = `
+        <div class="grid md:grid-cols-12 gap-8 items-start">
+          <!-- Avatar/Scanner Panel -->
+          <div class="md:col-span-4 flex flex-col items-center justify-center p-6 border border-[#915eff]/20 bg-purple-950/5 rounded-2xl relative overflow-hidden">
+            <div class="absolute inset-0 scanlines pointer-events-none opacity-10"></div>
+            <div class="w-32 h-32 rounded-full border border-dashed border-[#915eff]/40 flex justify-center items-center relative animate-[spin_60s_linear_infinite] mb-4">
+              <div class="absolute inset-2 border border-dashed border-cyan-500/30 rounded-full animate-[spin_30s_linear_infinite_reverse]"></div>
+              <div class="w-24 h-24 rounded-full bg-purple-500/10 flex justify-center items-center text-[#915eff] text-4xl shadow-[inset_0_0_20px_rgba(145,94,255,0.3)]">
+                <i class="fa-solid fa-user-astronaut animate-pulse"></i>
+              </div>
+            </div>
+            <div class="text-center font-mono">
+              <div class="text-[9px] text-zinc-500 uppercase tracking-widest">BIOMETRIC STATUS</div>
+              <div class="text-xs text-emerald-400 font-bold tracking-widest mt-1">✓ ONLINE / READY</div>
+            </div>
+          </div>
+
+          <!-- Bio Dossier Panel -->
+          <div class="md:col-span-8 space-y-6">
+            <div class="border-b border-white/5 pb-4">
+              <h3 class="text-[#915eff] font-mono text-xs uppercase tracking-widest mb-2">// CREW DATA REGISTER</h3>
+              <p class="text-zinc-300 text-sm md:text-base leading-relaxed">${bioText}</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4 font-mono text-xs">
+              <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
+                <span class="text-zinc-500 uppercase tracking-wider text-[10px]">${currentLang === 'vi' ? 'NƠI Ở' : 'LOCATION'}</span>
+                <div class="text-white mt-1.5 font-bold text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-location-dot text-[#915eff]"></i> ${locationVal}
+                </div>
+              </div>
+              <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
+                <span class="text-zinc-500 uppercase tracking-wider text-[10px]">${currentLang === 'vi' ? 'DẠNG LÀM VIỆC' : 'JOB TYPE'}</span>
+                <div class="text-white mt-1.5 font-bold text-sm flex items-center gap-2">
+                  <i class="fa-solid fa-briefcase text-[#915eff]"></i> ${jobVal}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Modules -->
+        <div class="mt-8 pt-8 border-t border-white/10">
+          <h3 class="text-zinc-400 font-mono text-xs uppercase tracking-widest mb-6">// CORE CAPABILITIES MODULES</h3>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="p-6 border border-white/5 bg-[#151030]/40 rounded-2xl flex flex-col items-center text-center">
+              <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex justify-center items-center text-[#915eff] text-2xl mb-4"><i class="fa-solid fa-laptop-code"></i></div>
+              <h4 class="text-white text-sm font-bold">Front-End Developer</h4>
+            </div>
+            <div class="p-6 border border-white/5 bg-[#151030]/40 rounded-2xl flex flex-col items-center text-center">
+              <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex justify-center items-center text-[#06b6d4] text-2xl mb-4"><i class="fa-solid fa-bug"></i></div>
+              <h4 class="text-white text-sm font-bold">QA / Manual Tester</h4>
+            </div>
+            <div class="p-6 border border-white/5 bg-[#151030]/40 rounded-2xl flex flex-col items-center text-center">
+              <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex justify-center items-center text-[#f43f5e] text-2xl mb-4"><i class="fa-solid fa-server"></i></div>
+              <h4 class="text-white text-sm font-bold">PHP & Laravel Backend</h4>
+            </div>
+            <div class="p-6 border border-white/5 bg-[#151030]/40 rounded-2xl flex flex-col items-center text-center">
+              <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex justify-center items-center text-[#10b981] text-2xl mb-4"><i class="fa-solid fa-database"></i></div>
+              <h4 class="text-white text-sm font-bold">${currentLang === 'vi' ? 'Kiến trúc Cơ sở dữ liệu' : 'Database Architect'}</h4>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (nodeDef.id === "cv") {
+      modalHTML = `
+        <div class="grid md:grid-cols-12 gap-8 items-start font-mono text-zinc-300">
+          <!-- Left Column: Avatar & Contact -->
+          <div class="md:col-span-4 flex flex-col items-center justify-center p-6 border border-white/10 bg-white/5 rounded-2xl relative overflow-hidden">
+            <div class="absolute inset-0 scanlines pointer-events-none opacity-10"></div>
+            <div class="w-32 h-32 rounded-full border border-dashed border-zinc-400 flex justify-center items-center relative mb-4">
+              <div class="w-24 h-24 rounded-full bg-zinc-700/20 flex justify-center items-center text-zinc-300 text-4xl shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]">
+                <i class="fa-solid fa-file-pdf animate-pulse"></i>
+              </div>
+            </div>
+            <h3 class="text-white text-lg font-bold text-center">NGUYỄN THANH HIỀN</h3>
+            <span class="text-zinc-400 text-xs mt-1 text-center">Web Developer & Laravel Intern</span>
+
+            <div class="w-full mt-6 space-y-3 text-xs border-t border-white/5 pt-4">
+              <div class="flex items-center gap-2 text-zinc-300">
+                <i class="fa-solid fa-envelope text-zinc-400 w-4"></i> hien.nguyen@email.com
+              </div>
+              <div class="flex items-center gap-2 text-zinc-300">
+                <i class="fa-solid fa-phone text-zinc-400 w-4"></i> +84 123 456 789
+              </div>
+              <div class="flex items-center gap-2 text-zinc-300">
+                <i class="fa-solid fa-location-dot text-zinc-400 w-4"></i> Thủ Đức, TP. HCM
+              </div>
+              <div class="flex items-center gap-2 text-zinc-300">
+                <i class="fa-solid fa-globe text-zinc-400 w-4 flex-shrink-0"></i> github.com/ehin-cloud
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Professional Profile -->
+          <div class="md:col-span-8 space-y-6">
+            <div>
+              <h3 class="text-zinc-400 text-xs uppercase tracking-widest mb-2">// HỒ SƠ CHUYÊN MÔN / PROFESSIONAL PROFILE</h3>
+              <p class="text-zinc-300 text-sm leading-relaxed">
+                ${currentLang === 'vi' ? 
+                  'Sinh viên ngành Công nghệ thông tin với định hướng phát triển chuyên sâu về lập trình Web Fullstack (Laravel & Frontend). Đam mê xây dựng hệ thống tối ưu, viết mã nguồn sạch và sáng tạo các giao diện người dùng giàu tương tác 3D.' : 
+                  'Information Technology student focusing on Fullstack Web Development (Laravel & Frontend). Passionate about optimizing system architectures, writing clean code, and crafting rich 3D user interfaces.'}
+              </p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
+                <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-2">// KỸ NĂNG CỐT LÕI</h4>
+                <ul class="text-xs text-zinc-400 space-y-1.5 list-disc pl-4">
+                  <li>PHP & Laravel Framework</li>
+                  <li>HTML5, CSS3 & JavaScript (ES6+)</li>
+                  <li>Tailwind CSS & WebGL / Three.js</li>
+                  <li>MySQL & Database Optimization</li>
+                </ul>
+              </div>
+              <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
+                <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-2">// HỌC VẤN & CHỨNG CHỈ</h4>
+                <ul class="text-xs text-zinc-400 space-y-1.5 list-disc pl-4">
+                  <li>Cao đẳng Công nghệ Thủ Đức (TDC)</li>
+                  <li>Chuyên ngành Công nghệ thông tin</li>
+                  <li>GPA: 3.2+ / 4.0</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="pt-4 flex flex-wrap gap-4">
+              <button onclick="window.print();" class="px-6 py-2.5 rounded-full border border-zinc-400/40 hover:border-zinc-300 bg-zinc-800/20 text-zinc-300 hover:text-white font-bold transition-all duration-300 flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> ${currentLang === 'vi' ? 'IN BẢN CV' : 'PRINT CV'}
+              </button>
+              <a href="#" onclick="alert('${currentLang === 'vi' ? 'Đang chuẩn bị file tải xuống...' : 'Preparing file download...'}'); return false;" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-zinc-600 to-zinc-500 hover:from-zinc-500 hover:to-zinc-400 text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-download"></i> ${currentLang === 'vi' ? 'TẢI PDF MẪU' : 'DOWNLOAD SAMPLE PDF'}
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      modalHTML = srcSection.innerHTML;
+    }
+
     content.innerHTML = `
       <div class="space-y-6">
+        <!-- Header -->
         <div class="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
-          <div class="w-10 h-10 rounded-xl flex justify-center items-center text-white text-lg font-bold" style="background-color: #${nodeDef.color.toString(16).padStart(6, '0')}">
+          <div class="w-10 h-10 rounded-xl flex justify-center items-center text-white text-lg font-bold" style="background-color: ${colorHex}">
             <i class="fa-solid fa-folder-open"></i>
           </div>
           <div>
-            <h2 class="text-2xl font-bold font-display text-white uppercase">${currentLang === 'vi' ? nodeDef.name : nodeDef.nameEn}</h2>
+            <h2 class="text-2xl font-bold font-display text-white uppercase">${getNodeName(nodeDef, currentLang)}</h2>
             <p class="text-zinc-500 text-xs font-mono uppercase tracking-widest mt-0.5">LOCAL FILE NODE DETECTED // INTEGRATED</p>
           </div>
         </div>
+
+        <!-- Section Content Clone -->
         <div class="section-content-clone">
-          ${srcSection.innerHTML}
+          ${modalHTML}
         </div>
       </div>
     `;
@@ -3007,10 +4450,15 @@ function openGameModal(nodeDef) {
     updateLanguageUI();
   }
 
-  modal.classList.remove("hidden");
   setTimeout(() => {
-    modal.classList.remove("opacity-0");
-  }, 50);
+    // Only show if the active modal node is still this one
+    if (activeModalNode === nodeDef.id) {
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+      }, 50);
+    }
+  }, showModalDelay);
 }
 
 function closeGameModal() {
@@ -3032,11 +4480,15 @@ function updateGameLanguageUI() {
   if (!gameInitialized) return;
   gameNodes.forEach(node => {
     if (node.sprite) {
-      const colorHex = '#' + node.def.color.toString(16).padStart(6, '0');
-      const newText = currentLang === 'vi' ? node.def.name : node.def.nameEn;
-      const texture = createTextTexture(newText, colorHex);
-      node.sprite.material.map = texture;
-      node.sprite.material.needsUpdate = true;
+      if (node.def.id === "cv") {
+        updatePlutoLabel();
+      } else {
+        const colorHex = '#' + node.def.color.toString(16).padStart(6, '0');
+        const newText = currentLang === 'vi' ? node.def.name : node.def.nameEn;
+        const texture = createTextTexture(newText, colorHex);
+        node.sprite.material.map = texture;
+        node.sprite.material.needsUpdate = true;
+      }
     }
   });
 
@@ -3046,6 +4498,9 @@ function updateGameLanguageUI() {
     gamePortalSprite.material.map = texture;
     gamePortalSprite.material.needsUpdate = true;
   }
+
+  // Update Quest Checklist language translation
+  updateQuestUI();
 }
 
 function triggerSpaceTransition(callback, isExit = false) {
@@ -3053,6 +4508,8 @@ function triggerSpaceTransition(callback, isExit = false) {
   const joystick = document.getElementById("joystick-zone");
   const hud = document.getElementById("instructions-hud");
   const interaction = document.getElementById("interaction-hud");
+  const questHud = document.getElementById("quest-hud");
+  const minimapHud = document.getElementById("minimap-hud");
   const transTitle = document.getElementById("transition-title");
 
   if (!loader) {
@@ -3101,6 +4558,8 @@ function triggerSpaceTransition(callback, isExit = false) {
 
   if (joystick) joystick.style.opacity = "0";
   if (hud) hud.style.opacity = "0";
+  if (questHud) questHud.style.opacity = "0";
+  if (minimapHud) minimapHud.style.opacity = "0";
   if (interaction) interaction.classList.add("hidden");
 
   const bar = document.getElementById("transition-progress-bar");
@@ -3247,6 +4706,8 @@ function triggerSpaceTransition(callback, isExit = false) {
             }
           }
           if (hud) hud.style.opacity = "1";
+          if (questHud) questHud.style.opacity = "1";
+          if (minimapHud) minimapHud.style.opacity = "1";
 
           if (callback) callback();
         }, 600);
@@ -3445,6 +4906,25 @@ window.addEventListener("DOMContentLoaded", () => {
         hudToggleIcon.style.transform = "rotate(-90deg)";
       } else {
         hudToggleIcon.style.transform = "rotate(0deg)";
+      }
+      if (typeof playBeep === "function") {
+        playBeep(isCollapsed ? 700 : 880, 0.08, isCollapsed ? "triangle" : "sine", 0.02);
+      }
+    });
+  }
+
+  // Bind Quest HUD collapsible header toggle
+  const questHeader = document.getElementById("quest-header");
+  const questContent = document.getElementById("quest-content");
+  const questToggleIcon = document.getElementById("quest-toggle-icon");
+
+  if (questHeader && questContent && questToggleIcon) {
+    questHeader.addEventListener("click", () => {
+      const isCollapsed = questContent.classList.toggle("hidden");
+      if (isCollapsed) {
+        questToggleIcon.style.transform = "rotate(-90deg)";
+      } else {
+        questToggleIcon.style.transform = "rotate(0deg)";
       }
       if (typeof playBeep === "function") {
         playBeep(isCollapsed ? 700 : 880, 0.08, isCollapsed ? "triangle" : "sine", 0.02);
