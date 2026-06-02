@@ -12,7 +12,17 @@ if (!fs.existsSync(distDir)) {
 
 // 2. Sao chép HTML và nén/mã hóa CSS sang thư mục dist
 console.log("📦 Đang sao chép HTML và nén bảo mật tệp CSS...");
-fs.copyFileSync(path.join(__dirname, 'index.html'), path.join(distDir, 'index.html'));
+const distHtmlPath = path.join(distDir, 'index.html');
+fs.copyFileSync(path.join(__dirname, 'index.html'), distHtmlPath);
+
+// Cache-busting: Thêm mã phiên bản ngẫu nhiên vào link CSS và JS trong dist/index.html
+const buildVersion = Date.now();
+let htmlContent = fs.readFileSync(distHtmlPath, 'utf8');
+htmlContent = htmlContent
+  .replace('href="./css/style.css"', `href="./css/style.css?v=${buildVersion}"`)
+  .replace('src="./js/app.js"', `src="./js/app.js?v=${buildVersion}"`);
+fs.writeFileSync(distHtmlPath, htmlContent);
+console.log(`⚡ Đã tự động thêm cache-busting: ?v=${buildVersion}`);
 
 const cssSrcDir = path.join(__dirname, 'css');
 const cssDistDir = path.join(distDir, 'css');
