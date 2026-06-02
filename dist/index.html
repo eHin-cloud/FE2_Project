@@ -3,6 +3,26 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <script>
+    // Self-Healing Version Sync to force-bypass browser cache
+    (function() {
+      var localVersion = "1780411766213";
+      if (window.location.protocol !== 'file:') {
+        fetch('./version.json?t=' + Date.now())
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data && data.version && data.version !== localVersion) {
+              window.location.reload();
+            }
+          })
+          .catch(function(err) {});
+      }
+    })();
+  </script>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#050816">
@@ -12,7 +32,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780393433272">
+  <link rel="stylesheet" href="./css/style.css?v=1780411766213">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1255,7 +1275,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780393433272"></script>
+    <script src="./js/app.js?v=1780411766213"></script>
 
 </body>
 

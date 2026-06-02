@@ -19,10 +19,15 @@ fs.copyFileSync(path.join(__dirname, 'index.html'), distHtmlPath);
 const buildVersion = Date.now();
 let htmlContent = fs.readFileSync(distHtmlPath, 'utf8');
 htmlContent = htmlContent
+  .replace('BUILD_VERSION_PLACEHOLDER', buildVersion)
   .replace('href="./css/style.css"', `href="./css/style.css?v=${buildVersion}"`)
   .replace('src="./js/app.js"', `src="./js/app.js?v=${buildVersion}"`);
 fs.writeFileSync(distHtmlPath, htmlContent);
 console.log(`⚡ Đã tự động thêm cache-busting: ?v=${buildVersion}`);
+
+// Tạo tệp phiên bản version.json cho tính năng Self-Healing Version Sync
+fs.writeFileSync(path.join(distDir, 'version.json'), JSON.stringify({ version: String(buildVersion) }));
+console.log(`⚡ Đã sinh tệp phiên bản version.json: ${buildVersion}`);
 
 // 2.1 Sao chép .htaccess cấu hình chống cache sang thư mục dist nếu có
 const htaccessPath = path.join(__dirname, '.htaccess');
