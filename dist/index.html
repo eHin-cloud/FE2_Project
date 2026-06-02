@@ -10,13 +10,48 @@
   <script>
     // Self-Healing Version Sync to force-bypass browser cache
     (function() {
-      var localVersion = "1780411766213";
+      var localVersion = "1780412472329";
       if (window.location.protocol !== 'file:') {
         fetch('./version.json?t=' + Date.now())
           .then(function(res) { return res.json(); })
           .then(function(data) {
             if (data && data.version && data.version !== localVersion) {
-              window.location.reload();
+              var showUpdateUI = function() {
+                if (!document.body) {
+                  setTimeout(showUpdateUI, 50);
+                  return;
+                }
+                var overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.background = 'rgba(5, 8, 22, 0.98)';
+                overlay.style.color = '#06b6d4';
+                overlay.style.zIndex = '999999';
+                overlay.style.display = 'flex';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.fontFamily = 'monospace';
+                overlay.style.padding = '20px';
+                overlay.style.textAlign = 'center';
+                
+                overlay.innerHTML = `
+                  <div style="border: 2px solid #06b6d4; padding: 40px 30px; background: rgba(6, 182, 212, 0.05); max-width: 480px; box-shadow: 0 0 35px rgba(6, 182, 212, 0.3); border-radius: 12px; box-sizing: border-box;">
+                    <h2 style="margin: 0 0 15px 0; color: #fff; font-size: 18px; letter-spacing: 2px;">▲ PHÁT HIỆN PHIÊN BẢN MỚI ▲</h2>
+                    <h3 style="margin: 0 0 20px 0; color: #06b6d4; font-size: 14px; letter-spacing: 1px;">NEW UPDATE DETECTED</h3>
+                    <p style="color: #aaa; font-size: 12px; margin-bottom: 25px; line-height: 1.6; text-align: left;">Trình duyệt của bạn đang hiển thị phiên bản cũ lưu trong bộ nhớ đệm (Cache). Hệ thống đang tự động tải lại phiên bản mới nhất từ máy chủ...</p>
+                    <button onclick="window.location.reload(true)" style="background: #06b6d4; color: #000; border: none; padding: 12px 24px; font-family: inherit; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; box-shadow: 0 0 15px rgba(6, 182, 212, 0.6); letter-spacing: 1px; transition: all 0.3s;">CẬP NHẬT NGAY / FORCE RELOAD</button>
+                  </div>
+                `;
+                document.body.appendChild(overlay);
+                
+                setTimeout(function() {
+                  window.location.reload(true);
+                }, 1200);
+              };
+              showUpdateUI();
             }
           })
           .catch(function(err) {});
@@ -32,7 +67,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780411766213">
+  <link rel="stylesheet" href="./css/style.css?v=1780412472329">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1275,7 +1310,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780411766213"></script>
+    <script src="./js/app.js?v=1780412472329"></script>
 
 </body>
 
