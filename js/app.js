@@ -6,6 +6,68 @@ let chargingOsc, chargingLFO, chargingGain;
 let starfieldSpeedMultiplier = 1.0;
 let transitionLoadingActive = false;
 
+// ==========================================================================
+// BACKGROUND MUSIC PLAYER (freefai1.mp3)
+// ==========================================================================
+let bgMusic = null;
+let isMusicMuted = false;
+
+function initBgMusic() {
+  if (!bgMusic) {
+    bgMusic = new Audio('./img/freefai1.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.4;
+  }
+}
+
+function playBgMusic() {
+  initBgMusic();
+  if (bgMusic && !isMusicMuted) {
+    bgMusic.play().catch(err => {
+      console.warn("Background music autoplay was blocked:", err);
+    });
+  }
+}
+
+function stopBgMusic() {
+  if (bgMusic) {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+  }
+}
+
+function toggleBgMusic() {
+  initBgMusic();
+  isMusicMuted = !isMusicMuted;
+  if (bgMusic) {
+    bgMusic.muted = isMusicMuted;
+    if (!isMusicMuted) {
+      bgMusic.play().catch(() => {});
+    }
+  }
+  
+  // Update button icon & text attributes
+  const musicIcon = document.getElementById("music-btn-icon");
+  const musicText = document.getElementById("music-btn-text");
+  if (musicIcon) {
+    if (isMusicMuted) {
+      musicIcon.className = "fa-solid fa-volume-xmark text-[10px]";
+      if (musicText) {
+        musicText.setAttribute("data-vi", "TẮT ÂM");
+        musicText.setAttribute("data-en", "MUTED");
+        musicText.textContent = currentLang === "vi" ? "TẮT ÂM" : "MUTED";
+      }
+    } else {
+      musicIcon.className = "fa-solid fa-volume-high text-[10px]";
+      if (musicText) {
+        musicText.setAttribute("data-vi", "ÂM THANH");
+        musicText.setAttribute("data-en", "AUDIO");
+        musicText.textContent = currentLang === "vi" ? "ÂM THANH" : "AUDIO";
+      }
+    }
+  }
+}
+
 function initAudio() {
   console.log("initAudio called. Current state:", audioCtx ? audioCtx.state : "uninitialized");
   if (!audioCtx) {
@@ -1138,7 +1200,7 @@ let gameSweepRing = null;
 let gameFenceBeacons = [];
 let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
-let is3DMode = true;
+let is3DMode = false;
 let gameAnimationId = null;
 let activeModalNode = null;
 let lastOpenedNode = null;
@@ -1415,6 +1477,7 @@ function createLavaPlanetTexture() {
 }
 
 function initGame3D() {
+  playBgMusic();
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
   gameCameraPitchAngle = 0.5;
@@ -2888,6 +2951,7 @@ function gameAnimate() {
 }
 
 function stopGame3D() {
+  stopBgMusic();
   if (gameAnimationId) {
     cancelAnimationFrame(gameAnimationId);
     gameAnimationId = null;
@@ -3319,6 +3383,17 @@ function setupViewModeToggle() {
     });
   }
 
+  // Music mute/unmute toggle inside 3D container
+  const musicToggleBtn = document.getElementById("toggle-music-btn");
+  if (musicToggleBtn) {
+    musicToggleBtn.addEventListener("click", () => {
+      toggleBgMusic();
+      if (typeof playBeep === 'function') {
+        playBeep(900, 0.05, 'sine', 0.03);
+      }
+    });
+  }
+
   // Portal Crack Button - Direct entry to 3D Space Station
   const portalBtn = document.getElementById("portal-crack-btn");
   if (portalBtn) {
@@ -3339,12 +3414,7 @@ function setupViewModeToggle() {
     });
   }
 
-  const savedMode = localStorage.getItem("view-mode-3d");
-  if (savedMode !== null) {
-    is3DMode = savedMode === "true";
-  } else {
-    is3DMode = true; // Enabled by default
-  }
+  is3DMode = false; // Always default to normal (2D) view on F5/page refresh
 
   updateToggleUI(true);
 }

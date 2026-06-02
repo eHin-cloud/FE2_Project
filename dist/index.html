@@ -12,7 +12,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780379500782">
+  <link rel="stylesheet" href="./css/style.css?v=1780393433272">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -139,6 +139,12 @@
 
     <!-- Top Right Cyber Controller Panel -->
     <div class="absolute top-8 right-8 flex items-center gap-3 z-30 pointer-events-auto">
+      <button id="toggle-music-btn"
+        class="cyber-hud-btn px-3 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all"
+        title="Bật/Tắt nhạc nền" aria-label="Toggle background music">
+        <i id="music-btn-icon" class="fa-solid fa-volume-high text-[10px]"></i>
+        <span id="music-btn-text" class="hidden sm:inline" data-vi="ÂM THANH" data-en="AUDIO">ÂM THANH</span>
+      </button>
       <button id="exit-3d-btn"
         class="cyber-hud-btn px-5 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all">
         <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -1249,7 +1255,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780379500782"></script>
+    <script src="./js/app.js?v=1780393433272"></script>
 
 </body>
 

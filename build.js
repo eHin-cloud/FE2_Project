@@ -32,6 +32,19 @@ if (fs.existsSync(htaccessPath)) {
   console.log("📦 Đang sao chép tệp .htaccess cấu hình chống cache...");
 }
 
+// 2.2 Sao chép thư mục img (hình ảnh & nhạc nền) sang thư mục dist
+const imgSrcDir = path.join(__dirname, 'img');
+const imgDistDir = path.join(distDir, 'img');
+if (!fs.existsSync(imgDistDir)) {
+  fs.mkdirSync(imgDistDir);
+}
+if (fs.existsSync(imgSrcDir)) {
+  fs.readdirSync(imgSrcDir).forEach(file => {
+    fs.copyFileSync(path.join(imgSrcDir, file), path.join(imgDistDir, file));
+  });
+  console.log("📦 Đang sao chép thư mục tài nguyên 'img'...");
+}
+
 const cssSrcDir = path.join(__dirname, 'css');
 const cssDistDir = path.join(distDir, 'css');
 if (!fs.existsSync(cssDistDir)) {
