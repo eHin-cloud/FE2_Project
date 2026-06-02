@@ -3171,7 +3171,7 @@ function triggerSpaceTransition(callback, isExit = false) {
               joystickZone.style.display = "flex";
               joystickZone.style.opacity = "1";
               if (locationHud) {
-                locationHud.style.bottom = "2rem";
+                locationHud.style.bottom = "7rem";
                 locationHud.style.left = "9.5rem";
               }
             } else {
@@ -3264,7 +3264,7 @@ function setupViewModeToggle() {
             joystickZone.style.display = "flex";
             joystickZone.style.opacity = "1";
             if (locationHud) {
-              locationHud.style.bottom = "2rem";
+              locationHud.style.bottom = "7rem";
               locationHud.style.left = "9.5rem";
             }
           } else {

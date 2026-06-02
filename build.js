@@ -24,6 +24,14 @@ htmlContent = htmlContent
 fs.writeFileSync(distHtmlPath, htmlContent);
 console.log(`⚡ Đã tự động thêm cache-busting: ?v=${buildVersion}`);
 
+// 2.1 Sao chép .htaccess cấu hình chống cache sang thư mục dist nếu có
+const htaccessPath = path.join(__dirname, '.htaccess');
+const distHtaccessPath = path.join(distDir, '.htaccess');
+if (fs.existsSync(htaccessPath)) {
+  fs.copyFileSync(htaccessPath, distHtaccessPath);
+  console.log("📦 Đang sao chép tệp .htaccess cấu hình chống cache...");
+}
+
 const cssSrcDir = path.join(__dirname, 'css');
 const cssDistDir = path.join(distDir, 'css');
 if (!fs.existsSync(cssDistDir)) {
