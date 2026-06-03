@@ -10,7 +10,7 @@
   <script>
     // Self-Healing Version Sync to force-bypass browser cache
     (function() {
-      var localVersion = "1780469406574";
+      var localVersion = "1780471291326";
       if (window.location.protocol !== 'file:') {
         fetch('./version.json?t=' + Date.now())
           .then(function(res) { return res.json(); })
@@ -67,7 +67,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780469406574">
+  <link rel="stylesheet" href="./css/style.css?v=1780471291326">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -252,6 +252,16 @@
 
             <div id="quest-pluto-status" class="text-[8px] font-mono text-center text-rose-500/80 tracking-wide uppercase border-t border-purple-500/5 pt-1.5">
               <span data-vi="🔒 PLUTO: ĐANG KHÓA (KHÁM PHÁ ĐỦ 7 HÀNH TINH)" data-en="🔒 PLUTO: LOCKED (EXPLORE ALL 7 PLANETS)">🔒 PLUTO: ĐANG KHÓA (KHÁM PHÁ ĐỦ 7 HÀNH TINH)</span>
+            </div>
+
+            <div id="quest-sun-energy-panel" class="border-t border-amber-500/10 pt-2 flex flex-col gap-1">
+              <div class="flex justify-between items-center text-[9px] font-mono">
+                <span class="text-amber-500 font-bold uppercase tracking-widest" data-vi="NĂNG LƯỢNG MẶT TRỜI" data-en="SOLAR ENERGY">NĂNG LƯỢNG MẶT TRỜI</span>
+                <span class="text-amber-400 font-bold" id="quest-sun-energy-text">12%</span>
+              </div>
+              <div class="w-full h-1 bg-amber-950/40 rounded-full overflow-hidden border border-amber-500/10">
+                <div id="quest-sun-energy-bar" class="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-300" style="width: 12%"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1367,7 +1377,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780469406574"></script>
+    <script src="./js/app.js?v=1780471291326"></script>
 
 </body>
 

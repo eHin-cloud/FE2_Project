@@ -1224,6 +1224,7 @@ let gameAnimationId = null;
 let activeModalNode = null;
 let lastOpenedNode = null;
 let visitedNodes = ["home"];
+let sunChargeSurge = 1.0;
 let isPortalHovered = false;
 
 let joystickActive = false;
@@ -1664,7 +1665,7 @@ function createEarthTexture() {
   return new THREE.CanvasTexture(canvas);
 }
 
-function createSunTexture() {
+function createSunTexture(energyRatio = 1.0) {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
   canvas.height = 256;
@@ -1691,7 +1692,36 @@ function createSunTexture() {
     ctx.fill();
   }
 
+  // Draw black/dark overlay on the upper part based on energyRatio
+  if (energyRatio < 1.0) {
+    const darkHeight = 256 * (1.0 - energyRatio);
+    // Draw solid black on the top part
+    ctx.fillStyle = "#0c0a09"; // Very dark charcoal/black
+    ctx.fillRect(0, 0, 512, Math.max(0, darkHeight - 30));
+
+    // Draw smooth transition gradient to merge dark into fiery orange/yellow
+    const transitionGrad = ctx.createLinearGradient(0, Math.max(0, darkHeight - 30), 0, Math.min(256, darkHeight + 20));
+    transitionGrad.addColorStop(0, "#0c0a09");
+    transitionGrad.addColorStop(1, "rgba(12, 10, 9, 0)");
+    ctx.fillStyle = transitionGrad;
+    ctx.fillRect(0, Math.max(0, darkHeight - 30), 512, 50);
+  }
+
   return new THREE.CanvasTexture(canvas);
+}
+
+function updateSunTexture() {
+  if (centralCoreGroup) {
+    const sun = centralCoreGroup.getObjectByName("sun_mesh");
+    if (sun && sun.material) {
+      const exploredCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact", "cv"].filter(id => visitedNodes.includes(id)).length;
+      const sunEnergyRatio = exploredCount / 8;
+
+      if (sun.material.map) sun.material.map.dispose();
+      sun.material.map = createSunTexture(sunEnergyRatio);
+      sun.material.needsUpdate = true;
+    }
+  }
 }
 
 function createMercuryTexture() {
@@ -1944,6 +1974,19 @@ function updateQuestUI() {
         `<span class="text-rose-500/80">🔒 PLUTO: ĐANG KHÓA (KHÁM PHÁ ĐỦ 7 HÀNH TINH)</span>` : 
         `<span class="text-rose-500/80">🔒 PLUTO: LOCKED (EXPLORE ALL 7 PLANETS)</span>`;
     }
+  }
+
+  const exploredCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact", "cv"].filter(id => visitedNodes.includes(id)).length;
+  const energyPercent = Math.min(100, Math.round((exploredCount / 8) * 100));
+
+  const sunEnergyText = document.getElementById("quest-sun-energy-text");
+  if (sunEnergyText) {
+    sunEnergyText.textContent = `${energyPercent}%`;
+  }
+
+  const sunEnergyBar = document.getElementById("quest-sun-energy-bar");
+  if (sunEnergyBar) {
+    sunEnergyBar.style.width = `${energyPercent}%`;
   }
 }
 
@@ -2879,8 +2922,10 @@ function initGame3D() {
 
   // Central Sun (Mặt trời)
   const sunGeom = new THREE.SphereGeometry(3.2, 32, 32);
+  const initExploredCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact", "cv"].filter(id => visitedNodes.includes(id)).length;
+  const initSunEnergyRatio = initExploredCount / 8;
   const sunMat = new THREE.MeshBasicMaterial({
-    map: createSunTexture(),
+    map: createSunTexture(initSunEnergyRatio),
   });
   const sunMesh = new THREE.Mesh(sunGeom, sunMat);
   sunMesh.name = "sun_mesh";
@@ -3290,8 +3335,7 @@ function initGame3D() {
       });
     }
 
-    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    const isSunClickable = (coreVisitedCount === 7);
+    const isSunClickable = visitedNodes.includes("cv");
 
     if (isSunClickable && centralCoreGroup) {
       const sun = centralCoreGroup.getObjectByName("sun_mesh");
@@ -3387,8 +3431,7 @@ function initGame3D() {
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, gameCamera);
 
-    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    if (coreVisitedCount === 7 && centralCoreGroup) {
+    if (visitedNodes.includes("cv") && centralCoreGroup) {
       const sun = centralCoreGroup.getObjectByName("sun_mesh");
       if (sun) {
         const intersects = raycaster.intersectObject(sun);
@@ -4328,16 +4371,50 @@ function gameAnimate() {
     });
   }
 
-  // Rotate central Sun & Corona
+  // Rotate central Sun & Corona, scale them dynamically according to explored planets (charging effect)
   if (centralCoreGroup) {
+    const exploredCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact", "cv"].filter(id => visitedNodes.includes(id)).length;
+    const sunEnergyRatio = exploredCount / 8; // 0.125 to 1.0
+
+    // Decay the surge multiplier back to 1.0
+    sunChargeSurge += (1.0 - sunChargeSurge) * 0.05;
+
+    // Create a continuous breathing/pulsing wave over time
+    // Frequency and amplitude of breath increase with energy!
+    const breathe = 1.0 + Math.sin(performance.now() * (0.001 + sunEnergyRatio * 0.003)) * (0.015 + sunEnergyRatio * 0.035);
+    const combinedScaleFactor = breathe * sunChargeSurge;
+
     const sun = centralCoreGroup.getObjectByName("sun_mesh");
     if (sun) {
-      sun.rotation.y += 0.003;
+      // Rotation speed increases with energy
+      sun.rotation.y += 0.003 + sunEnergyRatio * 0.007;
+
+      // Scale scales smoothly based on energy level and breathes/surges
+      const targetSunScale = (0.85 + sunEnergyRatio * 0.35) * combinedScaleFactor; // base 0.9 to 1.2
+      sun.scale.lerp(new THREE.Vector3(targetSunScale, targetSunScale, targetSunScale), 0.08);
     }
+
     const corona = centralCoreGroup.children[1]; // coronaMesh
     if (corona) {
-      corona.rotation.z -= 0.001;
-      corona.rotation.y += 0.002;
+      corona.rotation.z -= (0.001 + sunEnergyRatio * 0.003);
+      corona.rotation.y += (0.002 + sunEnergyRatio * 0.005);
+
+      // Scale scales smoothly based on energy level and breathes/surges
+      const targetCoronaScale = (0.95 + sunEnergyRatio * 0.45) * combinedScaleFactor * 1.05; // base 1.0 to 1.4
+      corona.scale.lerp(new THREE.Vector3(targetCoronaScale, targetCoronaScale, targetCoronaScale), 0.08);
+
+      // Glow opacity gets stronger, and surges on charge
+      if (corona.material) {
+        const targetOpacity = (0.2 + sunEnergyRatio * 0.25) * sunChargeSurge; // base 0.23 to 0.45
+        corona.material.opacity += (targetOpacity - corona.material.opacity) * 0.08;
+      }
+    }
+
+    // Light intensity gets brighter, and surges on charge
+    const sunLight = centralCoreGroup.children.find(c => c.isPointLight);
+    if (sunLight) {
+      const targetLightIntensity = (1.5 + sunEnergyRatio * 4.5) * sunChargeSurge; // base 2.0 to 6.0
+      sunLight.intensity += (targetLightIntensity - sunLight.intensity) * 0.08;
     }
   }
 
@@ -4589,7 +4666,15 @@ function gameAnimate() {
     }
 
     const portalDist = Math.hypot(gamePlayer.position.x - gamePortalGroup.position.x, gamePlayer.position.z - gamePortalGroup.position.z);
-    if (portalDist < 6.5 && is3DMode && !isShootingEarth) {
+    if (portalDist < 3.2 && is3DMode && visitedNodes.includes("exit_portal") && !transitionLoadingActive) {
+      // Exit immediately without shooting again!
+      gamePlayer.position.set(0, 1.78, 0);
+      gamePlayerTargetPos = null;
+      const exitBtn = document.getElementById("exit-3d-btn") || document.getElementById("view-mode-btn");
+      if (exitBtn) {
+        exitBtn.click();
+      }
+    } else if (portalDist < 6.5 && is3DMode && !isShootingEarth && !visitedNodes.includes("exit_portal")) {
       isShootingEarth = true;
       shootEarthTimeStart = performance.now();
       gamePlayerTargetPos = null;
@@ -5156,12 +5241,11 @@ function gameAnimate() {
     }
   }
 
-  // Central Sun proximity check for thank you letter (unlocked after exploring all 7 planets)
+  // Central Sun proximity check for thank you letter (unlocked after exploring Pluto CV node)
   if (gamePlayer) {
     const sunDist = Math.hypot(gamePlayer.position.x, gamePlayer.position.z);
-    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
 
-    if (coreVisitedCount === 7) {
+    if (visitedNodes.includes("cv")) {
       if (sunDist < 6.0 && !activeModalNode && !transitionLoadingActive && !isShootingPlanet && !isShootingEarth) {
         if (interactionHud && interactionText) {
           interactionHud.classList.remove("hidden");
@@ -5352,6 +5436,8 @@ function openGameModal(nodeDef) {
     visitedNodes.push(nodeDef.id);
     updatePlutoLockState();
     isNewUnlock = true;
+    sunChargeSurge = 1.6; // Trigger a sudden solar energy surge!
+    updateSunTexture(); // Redraw Sun texture with rising energy level!
 
     // Show planet unlock cinematic effect
     showPlanetUnlockEffect(nodeDef);
