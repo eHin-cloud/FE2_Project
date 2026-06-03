@@ -181,7 +181,7 @@
     </div>
 
     <!-- Left Side HUD Container (Minimap & Quest Board) -->
-    <div class="absolute top-8 left-8 z-30 pointer-events-auto select-none flex flex-col gap-3 max-w-[220px]">
+    <div id="left-hud-container" class="absolute top-8 left-8 z-30 pointer-events-auto select-none flex flex-col gap-3 max-w-[220px]">
       <!-- Minimap HUD -->
       <div id="minimap-hud" class="transition-all duration-300 w-max">
         <div class="cyber-hud-panel-purple p-2 rounded-full border border-purple-500/25 bg-[#050816]/90 backdrop-blur-md flex flex-col items-center justify-center relative shadow-[0_0_15px_rgba(168,85,247,0.15)]">
@@ -269,7 +269,7 @@
     </div>
 
     <!-- Top Right Cyber Controller Panel -->
-    <div class="absolute top-8 right-8 flex items-center gap-3 z-30 pointer-events-auto">
+    <div id="right-hud-container" class="absolute top-8 right-8 flex items-center gap-3 z-30 pointer-events-auto">
       <button id="toggle-music-btn"
         class="cyber-hud-btn px-3 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all"
         title="Bật/Tắt nhạc nền" aria-label="Toggle background music">

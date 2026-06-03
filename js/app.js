@@ -259,6 +259,155 @@ function playScrambleChirp() {
   } catch (e) { }
 }
 
+let currentDuckTimeout = null;
+
+function duckBgMusic(targetVolume = 0.08, duration = 3000) {
+  if (!bgMusic || isMusicMuted) return;
+  
+  // Transition volume down instantly
+  bgMusic.volume = targetVolume;
+  
+  if (currentDuckTimeout) clearTimeout(currentDuckTimeout);
+  
+  // Restore volume after duration
+  currentDuckTimeout = setTimeout(() => {
+    if (bgMusic && !isMusicMuted) {
+      bgMusic.volume = 0.4; // original volume
+    }
+  }, duration);
+}
+
+function playLaserShootSound() {
+  try {
+    initAudio();
+    if (!audioCtx || audioCtx.state === 'suspended') return;
+    
+    // Duck music during laser fire
+    duckBgMusic(0.12, 1800);
+
+    const time = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(880, time);
+    osc.frequency.exponentialRampToValueAtTime(110, time + 0.4);
+
+    osc2.type = "triangle";
+    osc2.frequency.setValueAtTime(880, time);
+    osc2.frequency.exponentialRampToValueAtTime(80, time + 0.45);
+
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(2000, time);
+    filter.frequency.exponentialRampToValueAtTime(400, time + 0.4);
+
+    gainNode.gain.setValueAtTime(0.08, time);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, time + 0.45);
+
+    osc.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    osc.start(time);
+    osc2.start(time);
+    osc.stop(time + 0.5);
+    osc2.stop(time + 0.5);
+  } catch (e) {
+    console.warn("Laser sound failed:", e);
+  }
+}
+
+function playExplosionSound() {
+  try {
+    initAudio();
+    if (!audioCtx || audioCtx.state === 'suspended') return;
+    
+    // Duck music deeply for explosion
+    duckBgMusic(0.04, 3800);
+
+    const time = audioCtx.currentTime;
+
+    // 1. Core "ĐÙNG" Shockwave (Triangle wave for grit/punch)
+    const oscBoom = audioCtx.createOscillator();
+    const boomGain = audioCtx.createGain();
+    oscBoom.type = "triangle";
+    oscBoom.frequency.setValueAtTime(120, time);
+    oscBoom.frequency.exponentialRampToValueAtTime(10, time + 0.5);
+
+    boomGain.gain.setValueAtTime(1.2, time);
+    boomGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.5);
+
+    oscBoom.connect(boomGain);
+    boomGain.connect(audioCtx.destination);
+    oscBoom.start(time);
+    oscBoom.stop(time + 0.5);
+
+    // 2. Sub-bass rumble (Sine wave for low-end body)
+    const oscSub = audioCtx.createOscillator();
+    const subGain = audioCtx.createGain();
+    oscSub.type = "sine";
+    oscSub.frequency.setValueAtTime(80, time);
+    oscSub.frequency.linearRampToValueAtTime(20, time + 0.8);
+
+    subGain.gain.setValueAtTime(0.8, time);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.8);
+
+    oscSub.connect(subGain);
+    subGain.connect(audioCtx.destination);
+    oscSub.start(time);
+    oscSub.stop(time + 0.8);
+
+    // 3. White noise debris explosion (massive blast & crackle)
+    const bufferSize = audioCtx.sampleRate * 2.5; // 2.5 seconds rumble
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = buffer;
+
+    // Lowpass filter for deep explosion rumble
+    const lowpass = audioCtx.createBiquadFilter();
+    lowpass.type = "lowpass";
+    lowpass.frequency.setValueAtTime(500, time);
+    lowpass.frequency.exponentialRampToValueAtTime(15, time + 2.2);
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.9, time);
+    noiseGain.gain.linearRampToValueAtTime(0.3, time + 0.3);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, time + 2.4);
+
+    noiseNode.connect(lowpass);
+    lowpass.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+
+    // Bandpass filter for physical "shattering/cracking" debris textures
+    const bandpass = audioCtx.createBiquadFilter();
+    bandpass.type = "bandpass";
+    bandpass.frequency.setValueAtTime(1000, time);
+    bandpass.frequency.exponentialRampToValueAtTime(80, time + 0.6);
+    bandpass.Q.setValueAtTime(3, time);
+
+    const bandpassGain = audioCtx.createGain();
+    bandpassGain.gain.setValueAtTime(0.5, time);
+    bandpassGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.6);
+
+    noiseNode.connect(bandpass);
+    bandpass.connect(bandpassGain);
+    bandpassGain.connect(audioCtx.destination);
+
+    noiseNode.start(time);
+    noiseNode.stop(time + 2.5);
+  } catch (e) {
+    console.warn("Explosion sound failed:", e);
+  }
+}
+
 
 // Scramble characters for sci-fi decoding effect
 function scrambleString(str, ratio) {
@@ -1225,6 +1374,8 @@ let activeModalNode = null;
 let lastOpenedNode = null;
 let visitedNodes = ["home"];
 let sunChargeSurge = 1.0;
+let laserSoundPlayed = false;
+let explosionSoundPlayed = false;
 let isPortalHovered = false;
 
 let joystickActive = false;
@@ -1965,7 +2116,12 @@ function updateQuestUI() {
 
   const plutoStatus = document.getElementById("quest-pluto-status");
   if (plutoStatus) {
-    if (completedCount === 7) {
+    const exploredCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact", "cv"].filter(id => visitedNodes.includes(id)).length;
+    if (exploredCount === 8) {
+      plutoStatus.innerHTML = currentLang === 'vi' ? 
+        `<span class="text-amber-400 font-bold animate-pulse">☀️ MẶT TRỜI ĐÃ ĐẦY NĂNG LƯỢNG - HÃY ĐẾN MẶT TRỜI</span>` : 
+        `<span class="text-amber-400 font-bold animate-pulse">☀️ SOLAR CORE CHARGED - PROCEED TO THE SUN</span>`;
+    } else if (completedCount === 7) {
       plutoStatus.innerHTML = currentLang === 'vi' ? 
         `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: ĐÃ MỞ KHÓA (CV)</span>` : 
         `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: UNLOCKED (CV)</span>`;
@@ -3675,8 +3831,8 @@ function showSafetyNotice(msg, color) {
   if (msg) {
     notice.textContent = msg;
   } else {
-    const viMsg = "⚠️ HỆ THỐNG AN TOÀN KÍCH HOẠT // KHÔI PHỤC QUỸ ĐẠO LÕI TRẠM";
-    const enMsg = "⚠️ QUANTUM DEFLECTOR ENGAGED // RE-ESTABLISHED STATION ORBIT";
+    const viMsg = "⚠️ BẠN ĐÃ RƠI RA NGOÀI VŨ TRỤ";
+    const enMsg = "⚠️ YOU HAVE FALLEN INTO OUTER SPACE";
     notice.textContent = currentLang === 'vi' ? viMsg : enMsg;
   }
 
@@ -4140,7 +4296,9 @@ function gameAnimate() {
         gamePlayer.position.set(0, 1.78, 0);
         gamePlayerVeloY = 0;
         gamePlayerTargetPos = null;
-        showSafetyNotice();
+        showSafetyNotice(
+          currentLang === 'vi' ? '⚠️ BẠN ĐÃ RƠI RA NGOÀI VŨ TRỤ' : '⚠️ YOU HAVE FALLEN INTO OUTER SPACE'
+        );
       }
     }
     // Humanoid walking/idle animations will be processed below after calculating dx and dz
@@ -4679,6 +4837,8 @@ function gameAnimate() {
       shootEarthTimeStart = performance.now();
       gamePlayerTargetPos = null;
       gameCamShakeOffset.set(0, 0, 0);
+      laserSoundPlayed = false;
+      explosionSoundPlayed = false;
     }
 
     // Planet Proximity and Shooting Trigger
@@ -4696,6 +4856,8 @@ function gameAnimate() {
       shootPlanetTimeStart = performance.now();
       gamePlayerTargetPos = null;
       gameCamShakeOffset.set(0, 0, 0);
+      laserSoundPlayed = false;
+      explosionSoundPlayed = false;
     }
 
     if (isShootingEarth) {
@@ -4725,6 +4887,10 @@ function gameAnimate() {
         }
       } else if (elapsed < 2000) {
         // Phase 2: Shooting Laser Beam
+        if (!laserSoundPlayed) {
+          playLaserShootSound();
+          laserSoundPlayed = true;
+        }
         
         // Target is Earth
         const targetPos = gamePortalGroup.position.clone();
@@ -4798,6 +4964,10 @@ function gameAnimate() {
         if (rightHalf && rightHalf.material) rightHalf.material.color.setHex(flashColor);
       } else if (elapsed < 3600) {
         // Phase 3: Earth Explodes into pieces
+        if (!explosionSoundPlayed) {
+          playExplosionSound();
+          explosionSoundPlayed = true;
+        }
         if (laserBeamMesh) {
           gameScene.remove(laserBeamMesh);
           laserBeamMesh = null;
@@ -5010,6 +5180,10 @@ function gameAnimate() {
         }
       } else if (elapsed < 2000) {
         // Phase 2: Shooting Laser Beam
+        if (!laserSoundPlayed) {
+          playLaserShootSound();
+          laserSoundPlayed = true;
+        }
         const targetPos = shootingPlanetNode.group.position.clone();
         targetPos.y = 0.3; // Center of planet mesh
 
@@ -5080,6 +5254,10 @@ function gameAnimate() {
         }
       } else if (elapsed < 3600) {
         // Phase 3: Planet Explodes into pieces
+        if (!explosionSoundPlayed) {
+          playExplosionSound();
+          explosionSoundPlayed = true;
+        }
         if (laserBeamMesh) {
           gameScene.remove(laserBeamMesh);
           laserBeamMesh = null;
@@ -5795,6 +5973,16 @@ function openSunThanksModal() {
 function closeGameModal() {
   const modal = document.getElementById("game-modal");
   if (!modal) return;
+
+  // Show solar fully charged alert when closing Pluto CV modal
+  if (activeModalNode === "cv") {
+    setTimeout(() => {
+      showSafetyNotice(
+        currentLang === 'vi' ? '☀️ MẶT TRỜI ĐÃ NẠP ĐẦY NĂNG LƯỢNG! HÃY ĐẾN ĐỂ ĐỌC THƯ CẢM ƠN' : '☀️ SOLAR CORE FULLY CHARGED! HEAD TO THE SUN FOR THANK YOU LETTER',
+        '#fbbf24'
+      );
+    }, 600);
+  }
 
   // If closing the tutorial planet, show the first planet unlock chime & banner
   if (activeModalNode === "home" && !homeUnlockEffectShown) {
