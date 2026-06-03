@@ -10,7 +10,7 @@
   <script>
     // Self-Healing Version Sync to force-bypass browser cache
     (function() {
-      var localVersion = "1780421362091";
+      var localVersion = "1780469406574";
       if (window.location.protocol !== 'file:') {
         fetch('./version.json?t=' + Date.now())
           .then(function(res) { return res.json(); })
@@ -67,7 +67,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780421362091">
+  <link rel="stylesheet" href="./css/style.css?v=1780469406574">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -204,6 +204,11 @@
           <div id="quest-content" class="flex flex-col gap-2.5 mt-2 transition-all duration-300">
             <div class="flex flex-col gap-2 font-mono text-[9px] text-zinc-400" id="quest-list">
               <div class="flex items-center justify-between gap-3">
+                <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-home">
+                  <i class="fa-regular fa-square"></i> <span data-vi="Trái Đất (Hướng Dẫn)" data-en="Earth (Manual)">Trái Đất (Hướng Dẫn)</span>
+                </span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
                 <span class="flex items-center gap-1.5 text-zinc-500" id="quest-item-about">
                   <i class="fa-regular fa-square"></i> <span data-vi="Sao Kim (Giới Thiệu)" data-en="Venus (About)">Sao Kim (Giới Thiệu)</span>
                 </span>
@@ -238,7 +243,7 @@
             <div class="border-t border-purple-500/10 pt-2 flex flex-col gap-1">
               <div class="flex justify-between items-center text-[9px] font-mono">
                 <span class="text-zinc-500 uppercase tracking-widest" data-vi="TIẾN TRÌNH" data-en="PROGRESS">TIẾN TRÌNH</span>
-                <span class="text-purple-400 font-bold" id="quest-progress-text">0/6</span>
+                <span class="text-purple-400 font-bold" id="quest-progress-text">0/7</span>
               </div>
               <div class="w-full h-1 bg-purple-950/40 rounded-full overflow-hidden border border-purple-500/10">
                 <div id="quest-progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300" style="width: 0%"></div>
@@ -246,7 +251,7 @@
             </div>
 
             <div id="quest-pluto-status" class="text-[8px] font-mono text-center text-rose-500/80 tracking-wide uppercase border-t border-purple-500/5 pt-1.5">
-              <span data-vi="🔒 PLUTO: ĐANG KHÓA" data-en="🔒 PLUTO: LOCKED">🔒 PLUTO: ĐANG KHÓA</span>
+              <span data-vi="🔒 PLUTO: ĐANG KHÓA (KHÁM PHÁ ĐỦ 7 HÀNH TINH)" data-en="🔒 PLUTO: LOCKED (EXPLORE ALL 7 PLANETS)">🔒 PLUTO: ĐANG KHÓA (KHÁM PHÁ ĐỦ 7 HÀNH TINH)</span>
             </div>
           </div>
         </div>
@@ -345,8 +350,8 @@
           Kéo để xoay camera</div>
         <div data-vi="• Cuộn chuột để phóng to / thu nhỏ" data-en="• Scroll wheel to Zoom in / out">• Cuộn chuột để
           phóng to / thu nhỏ</div>
-        <div data-vi="• Đến gần các địa danh để xem thông tin" data-en="• Approach nodes to view info">• Đến gần các địa
-          danh để xem thông tin</div>
+        <div data-vi="• Đến gần các địa danh để xem thông tin" data-en="• Approach nodes to view info">• Đến gần các địa danh để xem thông tin</div>
+        <div data-vi="• Khám phá đủ 7 hành tinh để mở khóa Pluto (CV)" data-en="• Explore all 7 planets to unlock Pluto (CV)">• Khám phá đủ 7 hành tinh để mở khóa Pluto (CV)</div>
       </div>
     </div>
 
@@ -545,15 +550,18 @@
       </div>
 
       <div class="grid md:grid-cols-12 gap-8 items-start mt-8">
-        <!-- Left side: Description -->
-        <div class="md:col-span-7">
-          <p class="text-secondary text-base md:text-lg leading-relaxed text-zinc-400"
-            data-vi="Tôi là Thực tập sinh Web Developer & Laravel. Tôi đam mê xây dựng những giao diện người dùng đẹp mắt, mượt mà kết hợp với kiến trúc hệ thống vững chắc. Với tư duy tối ưu hóa hiệu năng và chất lượng sản phẩm, tôi hướng tới việc mang lại những sản phẩm web hoàn hảo nhất cho người sử dụng."
-            data-en="I am a Web Developer & Laravel Intern. I love building beautiful, smooth user interfaces combined with solid system architectures. With a focus on performance optimization and product quality, I strive to deliver perfect web applications.">
-            Tôi là Thực tập sinh Web Developer & Laravel. Tôi đam mê xây dựng những giao diện người dùng đẹp mắt, mượt
-            mà kết hợp với kiến trúc hệ thống vững chắc. Với tư duy tối ưu hóa hiệu năng và chất lượng sản phẩm, tôi
-            hướng tới việc mang lại những sản phẩm web hoàn hảo nhất cho người sử dụng.
+        <!-- Left side: Description & CV Button -->
+        <div class="md:col-span-7 flex flex-col items-start gap-6">
+          <p class="text-zinc-200 text-base md:text-lg leading-relaxed"
+            data-vi="Tôi là sinh viên chuyên ngành Công nghệ thông tin tại trường Cao đẳng Công nghệ Thủ Đức (TDC). Với tôi, lập trình không chỉ là những dòng lệnh khô khan, mà là nghệ thuật dệt nên những vũ trụ số. Mỗi dòng code Laravel viết ra là viên gạch xây nền vững chãi, mỗi thuật toán tối ưu là một quỹ đạo chuyển động nhịp nhàng, và mỗi giao diện tương tác là một ánh sao lấp lánh mang lại cảm xúc cho người dùng. Tôi luôn khát khao chinh phục những giới hạn mới của công nghệ để biến những dòng mã vô tri thành những hành trình trải nghiệm đầy sống động."
+            data-en="I am an Information Technology student at Thu Duc College of Technology (TDC). To me, programming is not just dry syntax, but the art of weaving digital universes. Every line of Laravel code is a foundation stone, every optimized algorithm is a rhythmic orbit, and every interactive interface is a twinkling starlight that evokes human emotion. I constantly strive to push the boundaries of technology, transforming lifeless code into vivid, memorable journeys.">
+            Tôi là sinh viên chuyên ngành Công nghệ thông tin tại trường Cao đẳng Công nghệ Thủ Đức (TDC). Với tôi, lập trình không chỉ là những dòng lệnh khô khan, mà là nghệ thuật dệt nên những vũ trụ số. Mỗi dòng code Laravel viết ra là viên gạch xây nền vững chãi, mỗi thuật toán tối ưu là một quỹ đạo chuyển động nhịp nhàng, và mỗi giao diện tương tác là một ánh sao lấp lánh mang lại cảm xúc cho người dùng. Tôi luôn khát khao chinh phục những giới hạn mới của công nghệ để biến những dòng mã vô tri thành những hành trình trải nghiệm đầy sống động.
           </p>
+          <a href="./CV/24211TT3646_NGUYENTHANHHIEN_CV.pdf" target="_blank" id="download-cv-btn"
+            class="group relative inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#915eff]/10 hover:bg-[#915eff]/20 border border-[#915eff] text-white hover:text-[#06b6d4] rounded-xl font-bold font-mono text-xs tracking-wider transition-all duration-300 shadow-[0_0_15px_rgba(145,94,255,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]">
+            <i class="fa-solid fa-file-pdf text-sm text-[#915eff] group-hover:text-[#06b6d4] transition-colors"></i>
+            <span data-vi="TẢI CV THAM KHẢO" data-en="DOWNLOAD RESUME">TẢI CV THAM KHẢO</span>
+          </a>
         </div>
 
         <!-- Right side: Basic Info Card -->
@@ -572,10 +580,10 @@
               <span class="text-white mt-1 font-semibold text-sm">Thủ Đức, TP.HCM</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-zinc-500 uppercase tracking-wider text-[10px]" data-vi="DẠNG LÀM VIỆC"
-                data-en="JOB TYPE">DẠNG LÀM VIỆC</span>
-              <span class="text-white mt-1 font-semibold text-sm" data-vi="Thực tập / Fulltime"
-                data-en="Internship / Fulltime">Thực tập / Fulltime</span>
+              <span class="text-zinc-500 uppercase tracking-wider text-[10px]" data-vi="TRẠNG THÁI"
+                data-en="STATUS">TRẠNG THÁI</span>
+              <span class="text-white mt-1 font-semibold text-sm" data-vi="Đang đi học"
+                data-en="Studying">Đang đi học</span>
             </div>
           </div>
         </div>
@@ -648,12 +656,11 @@
           <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Thông tin khu vực"
             data-en="Area Information">Thông tin khu vực</p>
           <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Khoang Công Nghệ."
-            data-en="Technology Module.">Kỹ năng.</h2>
+            data-en="Technology Module.">Khoang Công Nghệ.</h2>
           <p class="text-zinc-400 text-base mt-4 max-w-3xl leading-relaxed"
-            data-vi="Tập trung mạnh mẽ vào nghiên cứu các khối công nghệ hiện đại và cấu trúc bảo mật vững chắc cho sản phẩm phần mềm."
-            data-en="Strongly focused on researching modern technology stacks and robust security architectures for software products.">
-            Tập trung mạnh mẽ vào nghiên cứu các khối công nghệ hiện đại và cấu trúc bảo mật vững chắc cho sản phẩm phần
-            mềm.
+            data-vi="Nơi lưu trữ và vận hành các lõi công nghệ cốt lõi của Trạm Không Gian. Từ việc tối ưu kiến trúc hệ thống backend vững chãi, kiến tạo giao diện người dùng mượt mà, cho tới lập trình ứng dụng di động và thiết lập các lá chắn bảo mật dữ liệu tối tân."
+            data-en="The central engineering deck housing the core technologies of the Space Station. From backend architecture optimization and smooth frontend interfaces to mobile engineering and cutting-edge security shields.">
+            Nơi lưu trữ và vận hành các lõi công nghệ cốt lõi của Trạm Không Gian. Từ việc tối ưu kiến trúc hệ thống backend vững chãi, kiến tạo giao diện người dùng mượt mà, cho tới lập trình ứng dụng di động và thiết lập các lá chắn bảo mật dữ liệu tối tân.
           </p>
         </div>
 
@@ -671,10 +678,9 @@
                   data-en="Frontend & UI/UX">Frontend & UI/UX</h3>
               </div>
               <p class="text-zinc-400 text-sm leading-relaxed"
-                data-vi="HTML/CSS, TailwindCSS, JavaScript, Responsive Design. Thiết kế giao diện mang phong cách Premium thanh lịch, khoa học."
-                data-en="HTML/CSS, TailwindCSS, JavaScript, Responsive Design. Designing clean, premium, and structured user interfaces.">
-                HTML/CSS, TailwindCSS, JavaScript, Responsive Design. Thiết kế giao diện mang phong cách Premium thanh
-                lịch, khoa học.
+                data-vi="HTML/CSS, TailwindCSS, Bootstrap, JavaScript (ES6+). Thiết kế giao diện mang phong cách Premium thanh lịch, tối ưu Responsive, kết hợp các thư viện hiệu ứng mượt mà."
+                data-en="HTML/CSS, TailwindCSS, Bootstrap, JavaScript (ES6+). Designing clean, premium, responsive user interfaces integrated with smooth animation libraries.">
+                HTML/CSS, TailwindCSS, Bootstrap, JavaScript (ES6+). Thiết kế giao diện mang phong cách Premium thanh lịch, tối ưu Responsive, kết hợp các thư viện hiệu ứng mượt mà.
               </p>
             </div>
             <div class="mt-6 flex flex-wrap gap-2 pt-4 border-t border-white/5">
@@ -683,10 +689,11 @@
               <span
                 class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#915eff] text-[10px] font-mono font-semibold border border-purple-500/10">TailwindCSS</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#915eff] text-[10px] font-mono font-semibold border border-purple-500/10">JavaScript</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#915eff] text-[10px] font-mono font-semibold border border-purple-500/10">Bootstrap</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#915eff] text-[10px] font-mono font-semibold border border-purple-500/10">Responsive
-                Design</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#915eff] text-[10px] font-mono font-semibold border border-purple-500/10">JavaScript (ES6+)</span>
+              <span
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#915eff] text-[10px] font-mono font-semibold border border-purple-500/10">Responsive Design</span>
             </div>
           </div>
 
@@ -703,22 +710,22 @@
                   data-en="Backend & Architecture">Backend & Kiến trúc</h3>
               </div>
               <p class="text-zinc-400 text-sm leading-relaxed"
-                data-vi="PHP (OOP), MySQL (PDO), trực tiếp thiết kế cấu trúc luồng mã nguồn tinh gọn an toàn với **Service-Repository Pattern**."
-                data-en="PHP (OOP), MySQL (PDO), designing secure, clean-code architectures utilizing the **Service-Repository Pattern**.">
-                PHP (OOP), MySQL (PDO), trực tiếp thiết kế cấu trúc luồng mã nguồn tinh gọn an toàn với
-                **Service-Repository Pattern**.
+                data-vi="PHP (OOP), Laravel Framework, MySQL (PDO). Trực tiếp thiết kế cấu trúc luồng mã nguồn tinh gọn, an toàn dựa trên mô hình MVC và Service-Repository Pattern vững chắc."
+                data-en="PHP (OOP), Laravel Framework, MySQL (PDO). Designing secure, clean-code architectures utilizing MVC and Service-Repository Pattern.">
+                PHP (OOP), Laravel Framework, MySQL (PDO). Trực tiếp thiết kế cấu trúc luồng mã nguồn tinh gọn, an toàn dựa trên mô hình MVC và Service-Repository Pattern vững chắc.
               </p>
             </div>
             <div class="mt-6 flex flex-wrap gap-2 pt-4 border-t border-white/5">
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">PHP
-                (OOP)</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">PHP (OOP)</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">MySQL
-                (PDO)</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">Laravel Framework</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">Service-Repository
-                Pattern</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">MySQL</span>
+              <span
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">Eloquent ORM</span>
+              <span
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#06b6d4] text-[10px] font-mono font-semibold border border-cyan-500/10">Service-Repository</span>
             </div>
           </div>
 
@@ -735,34 +742,26 @@
                   data-en="Mobile & API Integration">Mobile & Tích hợp API</h3>
               </div>
               <p class="text-zinc-400 text-sm leading-relaxed"
-                data-vi="Dart (Flutter, Riverpod, Clean Architecture), Thiết kế API nghỉ (RESTful), tích hợp Gemini AI và các hệ thống thanh toán như **PayOS/VietQR**."
-                data-en="Dart (Flutter, Riverpod, Clean Architecture), RESTful API Design, integrating Gemini AI and automatic payment gateways like **PayOS/VietQR**.">
-                Dart (Flutter, Riverpod, Clean Architecture), Thiết kế API nghỉ (RESTful), tích hợp Gemini AI và các hệ
-                thống thanh toán như **PayOS/VietQR**.
+                data-vi="Dart (Flutter, Riverpod, Clean Architecture), Thiết kế API RESTful, tích hợp Gemini AI và các hệ thống thanh toán tự động qua cổng Webhook PayOS/VietQR."
+                data-en="Dart (Flutter, Riverpod, Clean Architecture), RESTful API Design, integrating Gemini AI and automatic payment gateways like PayOS/VietQR via Webhooks.">
+                Dart (Flutter, Riverpod, Clean Architecture), Thiết kế API RESTful, tích hợp Gemini AI và các hệ thống thanh toán tự động qua cổng Webhook PayOS/VietQR.
               </p>
             </div>
             <div class="mt-6 flex flex-wrap gap-2 pt-4 border-t border-white/5">
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">Dart
-                (Flutter)</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">Dart (Flutter)</span>
               <span
                 class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">Riverpod</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">Clean
-                Architecture</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">RESTful API</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">RESTful
-                API</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">Gemini AI</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">Gemini
-                AI</span>
-              <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">PayOS
-                / VietQR</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#10b981] text-[10px] font-mono font-semibold border border-emerald-500/10">PayOS / VietQR</span>
             </div>
           </div>
 
-          <!-- Card 4: Bảo mật hệ thống -->
+          <!-- Card 4: Bảo mật & Công cụ -->
           <div
             class="bg-[#151030] p-8 rounded-2xl border border-white/5 hover:border-rose-500/30 hover:shadow-[0_0_30px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col justify-between group">
             <div>
@@ -771,28 +770,24 @@
                   class="w-12 h-12 rounded-xl bg-rose-500/10 flex justify-center items-center text-[#f43f5e] text-2xl group-hover:scale-110 transition-transform">
                   <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <h3 class="text-white text-xl font-bold font-display" data-vi="Bảo mật hệ thống"
-                  data-en="System Security">Bảo mật hệ thống</h3>
+                <h3 class="text-white text-xl font-bold font-display" data-vi="Bảo mật & Công cụ"
+                  data-en="Security & Tools">Bảo mật & Công cụ</h3>
               </div>
               <p class="text-zinc-400 text-sm leading-relaxed"
-                data-vi="Xác thực 2 lớp mã OTP (2FA TOTP), mã hóa mật khẩu đầu vào với Bcrypt, chống SQL Injection bằng Prepared Statements và vô hiệu hóa CSRF."
-                data-en="Two-Factor Authentication (2FA TOTP), Bcrypt password hashing, SQL injection protection using Prepared Statements, and CSRF mitigation.">
-                Xác thực 2 lớp mã OTP (2FA TOTP), mã hóa mật khẩu đầu vào với Bcrypt, chống SQL Injection bằng Prepared
-                Statements và vô hiệu hóa CSRF.
+                data-vi="Xác thực 2 lớp mã OTP (2FA TOTP), Bcrypt, chống SQL Injection/XSS. Sử dụng Git/GitHub để quản lý mã nguồn chuyên nghiệp và Docker/Apache để cấu hình triển khai."
+                data-en="2FA (TOTP) authentication, Bcrypt hashing, SQL Injection/XSS protection. Utilizing Git/GitHub for version control and Docker/Apache for server deployments.">
+                Xác thực 2 lớp mã OTP (2FA TOTP), Bcrypt, chống SQL Injection/XSS. Sử dụng Git/GitHub để quản lý mã nguồn chuyên nghiệp và Docker/Apache để cấu hình triển khai.
               </p>
             </div>
             <div class="mt-6 flex flex-wrap gap-2 pt-4 border-t border-white/5">
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">2FA
-                TOTP</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">2FA TOTP</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">Bcrypt</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">Prepared Statements</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">Prepared
-                Statements</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">Git / GitHub</span>
               <span
-                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">CSRF
-                Protection</span>
+                class="px-2.5 py-1 rounded-md bg-[#0c102b] text-[#f43f5e] text-[10px] font-mono font-semibold border border-rose-500/10">Docker / Apache</span>
             </div>
           </div>
         </div>
@@ -817,8 +812,8 @@
           <!-- Timeline Item 1 -->
           <div class="timeline-item left-item">
             <div class="timeline-content">
-              <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 1 (2024 - 2025)"
-                data-en="Year 1 (2024 - 2025)">Năm 1 (2024 - 2025)</span>
+              <span class="text-[#915eff] text-xs font-mono uppercase tracking-widest" data-vi="Năm 1 (2023 - 2024)"
+                data-en="Year 1 (2023 - 2024)">Năm 1 (2023 - 2024)</span>
               <h3 class="text-white text-xl font-bold mt-1" data-vi="Sinh viên CNTT - Nhập môn & Tư duy Thuật toán"
                 data-en="IT Student - Introduction & Algorithmic Thinking">Sinh viên CNTT - Nhập môn & Tư duy Thuật toán
               </h3>
@@ -869,15 +864,18 @@
               <p class="text-zinc-400 text-sm font-semibold mt-1" data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)"
                 data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
               <ul class="mt-4 space-y-2 text-zinc-300 text-sm list-disc pl-4">
-                <li data-vi="Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi."
-                  data-en="Wrote Test Plan documentation, designed detailed Test Cases covering edge cases.">Viết tài
-                  liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi.</li>
-                <li data-vi="Kiểm thử tự động và thủ công các endpoint API backend thông qua Postman."
-                  data-en="Automated and manual testing of backend API endpoints via Postman.">Kiểm thử tự động và thủ
-                  công các endpoint API backend thông qua Postman.</li>
+                <li data-vi="Nghiên cứu sâu về CSS & JavaScript nâng cao để kiến tạo các giao diện tương tác chất lượng cao."
+                  data-en="In-depth research on advanced CSS & JavaScript to create high-quality interactive interfaces.">
+                  Nghiên cứu sâu về CSS & JavaScript nâng cao để kiến tạo các giao diện tương tác chất lượng cao.
+                </li>
+                <li data-vi="Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi; kiểm thử tự động API qua Postman."
+                  data-en="Wrote Test Plan documentation, designed detailed Test Cases covering edge cases, automated API testing via Postman.">
+                  Viết tài liệu Test Plan, thiết kế Test Cases chi tiết bao phủ các nhánh lỗi; kiểm thử tự động API qua Postman.
+                </li>
                 <li data-vi="Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit."
-                  data-en="Managed source code and resolved branch conflicts (Git conflicts) using SmartGit.">Quản lý mã
-                  nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit.</li>
+                  data-en="Managed source code and resolved branch conflicts (Git conflicts) using SmartGit.">
+                  Quản lý mã nguồn, giải quyết xung đột phân nhánh (Git conflict) bằng SmartGit.
+                </li>
               </ul>
             </div>
           </div>
@@ -893,14 +891,12 @@
       <div>
         <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Dự án tiêu biểu"
           data-en="Featured Projects">Dự án tiêu biểu</p>
-        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Sản phẩm thực tế."
-          data-en="Real Products.">Sản phẩm thực tế.</h2>
+        <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1" data-vi="Sản Phẩm Tiêu Biểu."
+          data-en="Featured Products.">Sản Phẩm Tiêu Biểu.</h2>
         <p class="mt-4 text-zinc-400 text-base md:text-lg max-w-3xl leading-relaxed"
-          data-vi="Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả."
-          data-en="The projects below showcase my skills and experience through practical examples. Each product is briefly described along with a GitHub source link. This demonstrates my ability to solve complex problems, work with diverse technologies, and manage product quality effectively.">
-          Các dự án dưới đây thể hiện kỹ năng và kinh nghiệm của tôi qua các ví dụ thực tiễn. Mỗi sản phẩm được mô tả
-          ngắn gọn đi kèm link mã nguồn GitHub. Điều này thể hiện khả năng giải quyết các vấn đề phức tạp, làm việc với
-          nhiều công nghệ khác nhau và quản lý chất lượng sản phẩm hiệu quả.
+          data-vi="Tuyển tập các sản phẩm thực tiễn minh chứng cho năng lực lập trình và tư duy giải pháp của tôi. Mỗi dự án đều đi kèm liên kết mã nguồn và bản demo chạy thử, thể hiện kỹ năng xây dựng ứng dụng toàn diện, tối ưu hóa cơ sở dữ liệu và triển khai hệ thống."
+          data-en="A curated selection of practical applications showcasing my development capabilities and problem-solving mindset. Each project includes repository links and live demos, demonstrating my skills in full-stack engineering, database design, and deployment.">
+          Tuyển tập các sản phẩm thực tiễn minh chứng cho năng lực lập trình và tư duy giải pháp của tôi. Mỗi dự án đều đi kèm liên kết mã nguồn và bản demo chạy thử, thể hiện kỹ năng xây dựng ứng dụng toàn diện, tối ưu hóa cơ sở dữ liệu và triển khai hệ thống.
         </p>
       </div>
 
@@ -955,9 +951,9 @@
                 Tích hợp AI Gemini RAG Chatbot; xây dựng App di động Flutter quản lý bằng Riverpod.
               </li>
               <li class="text-emerald-400 font-semibold list-none -ml-4 mt-1 flex items-center gap-1"
-                data-vi="🏆 Đạt điểm 8.0/10 đồ án xuất sắc, triển khai Docker/Apache."
-                data-en="🏆 Achieved 8.0/10 score, deployed via Docker/Apache.">
-                🏆 Đạt điểm 8.0/10 đồ án xuất sắc, triển khai Docker/Apache.
+                data-vi="🏆 Đạt điểm 8.0/10 đồ án xuất sắc, triển khai Hosting/Apache."
+                data-en="🏆 Achieved 8.0/10 score, deployed via Hosting/Apache.">
+                🏆 Đạt điểm 8.0/10 đồ án xuất sắc, triển khai Hosting/Apache.
               </li>
             </ul>
           </div>
@@ -966,7 +962,7 @@
             <span class="text-xs font-semibold text-blue-400">#oop</span>
             <span class="text-xs font-semibold text-cyan-400">#flutter</span>
             <span class="text-xs font-semibold text-purple-400">#gemini-ai</span>
-            <span class="text-xs font-semibold text-green-400">#docker</span>
+            <span class="text-xs font-semibold text-green-400">#hosting</span>
           </div>
         </div>
 
@@ -1042,18 +1038,16 @@
             <h3 class="text-white text-xl font-bold mt-5" data-vi="Hồ Sơ Năng Lực 3D Tương Tác"
               data-en="Interactive 3D Portfolio">Hồ Sơ Năng Lực 3D Tương Tác</h3>
             <p class="text-zinc-400 text-sm mt-2 leading-relaxed"
-              data-vi="Website giới thiệu cá nhân 3D tương tác thế hệ mới (Đồ án Front-End Web 2). Ứng dụng thư viện Three.js dựng môi trường không gian vũ trụ ảo 3D trực quan sinh động, tối ưu hiệu năng mượt mà 60 FPS, kết hợp các hiệu ứng giao diện (UI/UX) tương tác đỉnh cao bằng HTML, CSS và JavaScript thuần."
-              data-en="Next-generation interactive 3D personal portfolio (Front-End Web 2 Project). Harnesses Three.js to render a fully interactive 3D space environment. Engineered for smooth 60 FPS performance, featuring advanced interactive UI/UX layouts in vanilla HTML, CSS, and JavaScript.">
-              Website giới thiệu cá nhân 3D tương tác thế hệ mới (Đồ án Front-End Web 2). Ứng dụng thư viện Three.js
-              dựng môi trường không gian vũ trụ ảo 3D trực quan sinh động, tối ưu hiệu năng mượt mà 60 FPS, kết hợp các
-              hiệu ứng giao diện (UI/UX) tương tác đỉnh cao bằng HTML, CSS và JavaScript thuần.
+              data-vi="Website giới thiệu cá nhân 3D tương tác thế hệ mới. Ứng dụng CSS và JavaScript nâng cao dựng môi trường không gian vũ trụ ảo 3D trực quan sinh động, tối ưu hiệu năng mượt mà 60 FPS, kết hợp các hiệu ứng giao diện (UI/UX) tương tác đỉnh cao bằng HTML, CSS và JavaScript thuần."
+              data-en="Next-generation interactive 3D personal portfolio. Harnesses advanced CSS and JavaScript to render a fully interactive 3D space environment. Engineered for smooth 60 FPS performance, featuring advanced interactive UI/UX layouts in vanilla HTML, CSS, and JavaScript.">
+              Website giới thiệu cá nhân 3D tương tác thế hệ mới. Ứng dụng CSS và JavaScript nâng cao dựng môi trường không gian vũ trụ ảo 3D trực quan sinh động, tối ưu hiệu năng mượt mà 60 FPS, kết hợp các hiệu ứng giao diện (UI/UX) tương tác đỉnh cao bằng HTML, CSS và JavaScript thuần.
             </p>
           </div>
 
           <div class="mt-6 flex flex-wrap gap-2">
-            <span class="text-xs font-semibold text-blue-400">#threejs</span>
+            <span class="text-xs font-semibold text-blue-400">#css</span>
             <span class="text-xs font-semibold text-cyan-400">#javascript</span>
-            <span class="text-xs font-semibold text-purple-400">#webgl</span>
+            <span class="text-xs font-semibold text-purple-400">#html</span>
           </div>
         </div>
 
@@ -1078,10 +1072,9 @@
           <!-- Feedback Card 1 -->
           <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
             <p class="text-white text-lg italic leading-relaxed"
-              data-vi="&quot;Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi logic.&quot;"
-              data-en="&quot;Hien always completes Test Cases meticulously, carefully checking input boundaries and logical error paths.&quot;">
-              "Hiền luôn hoàn thành Test Cases rất tỉ mỉ, kiểm tra kỹ lưỡng các biên dữ liệu đầu vào và các nhánh lỗi
-              logic."
+              data-vi="&quot;Hiền có tư duy thiết kế giao diện rất nhạy bén. Cậu ấy tối ưu hóa CSS và JavaScript nâng cao cực kỳ mượt mà, giúp trang web đạt hiệu năng cao và mang lại trải nghiệm UI/UX đầy cảm xúc cho người dùng.&quot;"
+              data-en="&quot;Hien has a very sharp UI design mindset. He optimizes advanced CSS and JavaScript smoothly, delivering high-performance websites and an emotional UI/UX experience for users.&quot;">
+              "Hiền có tư duy thiết kế giao diện rất nhạy bén. Cậu ấy tối ưu hóa CSS và JavaScript nâng cao cực kỳ mượt mà, giúp trang web đạt hiệu năng cao và mang lại trải nghiệm UI/UX đầy cảm xúc cho người dùng."
             </p>
             <div class="mt-6 flex items-center gap-4">
               <div
@@ -1099,10 +1092,9 @@
           <!-- Feedback Card 2 -->
           <div class="bg-[#151030] p-8 rounded-2xl border border-white/5 flex flex-col justify-between">
             <p class="text-white text-lg italic leading-relaxed"
-              data-vi="&quot;Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất lượng rất cao.&quot;"
-              data-en="&quot;The ability to combine PHP/Laravel web development with QA mindset helps Hien's projects achieve high stability and quality.&quot;">
-              "Khả năng kết hợp lập trình web PHP/Laravel và tư duy QA giúp các dự án của Hiền đạt độ ổn định và chất
-              lượng rất cao."
+              data-vi="&quot;Khả năng kết hợp giữa lập trình Laravel vững chắc và tư duy QA giúp sản phẩm của Hiền luôn đạt độ ổn định cao, mã nguồn sạch sẽ và có quy trình kiểm thử API chặt chẽ.&quot;"
+              data-en="&quot;The combination of robust Laravel development and a QA mindset ensures Hien's products achieve high stability, clean codebases, and rigorous API testing procedures.&quot;">
+              "Khả năng kết hợp giữa lập trình Laravel vững chắc và tư duy QA giúp sản phẩm của Hiền luôn đạt độ ổn định cao, mã nguồn sạch sẽ và có quy trình kiểm thử API chặt chẽ."
             </p>
             <div class="mt-6 flex items-center gap-4">
               <div
@@ -1276,6 +1268,10 @@
         <div class="flex gap-6 text-zinc-400">
           <a href="https://github.com/eHin-cloud" target="_blank" class="hover:text-white transition-colors"><i
               class="fa-brands fa-github mr-1"></i> GitHub</a>
+          <a href="https://www.facebook.com/hien.nguyenthanh29" target="_blank" class="hover:text-white transition-colors"><i
+              class="fa-brands fa-facebook mr-1"></i> Facebook</a>
+          <a href="https://www.douyin.com/user/self?from_tab_name=main" target="_blank" class="hover:text-white transition-colors"><i
+              class="fa-brands fa-tiktok mr-1"></i> Douyin</a>
           <a href="mailto:thenghien2006@gmail.com" class="hover:text-white transition-colors"><i
               class="fa-solid fa-envelope mr-1"></i> Email</a>
         </div>
@@ -1371,7 +1367,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780421362091"></script>
+    <script src="./js/app.js?v=1780469406574"></script>
 
 </body>
 

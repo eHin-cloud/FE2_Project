@@ -50,6 +50,19 @@ if (fs.existsSync(imgSrcDir)) {
   console.log("📦 Đang sao chép thư mục tài nguyên 'img'...");
 }
 
+// 2.3 Sao chép thư mục CV sang thư mục dist
+const cvSrcDir = path.join(__dirname, 'CV');
+const cvDistDir = path.join(distDir, 'CV');
+if (!fs.existsSync(cvDistDir)) {
+  fs.mkdirSync(cvDistDir);
+}
+if (fs.existsSync(cvSrcDir)) {
+  fs.readdirSync(cvSrcDir).forEach(file => {
+    fs.copyFileSync(path.join(cvSrcDir, file), path.join(cvDistDir, file));
+  });
+  console.log("📦 Đang sao chép thư mục tài nguyên 'CV'...");
+}
+
 const cssSrcDir = path.join(__dirname, 'css');
 const cssDistDir = path.join(distDir, 'css');
 if (!fs.existsSync(cssDistDir)) {

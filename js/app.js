@@ -6,6 +6,10 @@ let chargingOsc, chargingLFO, chargingGain;
 let starfieldSpeedMultiplier = 1.0;
 let transitionLoadingActive = false;
 
+// Clean up legacy space state caches to ensure a fresh session on load
+localStorage.removeItem("gameNodePositions");
+localStorage.removeItem("visitedNodes");
+
 // ==========================================================================
 // BACKGROUND MUSIC PLAYER (freefai1.mp3)
 // ==========================================================================
@@ -568,8 +572,8 @@ function triggerTypingEffect() {
   }
 
   const texts = {
-    vi: "Thực tập sinh Web Developer & Laravel định hướng tối ưu giao diện (UI/UX). Chào mừng bạn đến với Cyber-Oasis Space Station. Hãy điều khiển drone du hành qua các trạm năng lực để khám phá hồ sơ cá nhân của tôi!",
-    en: "Web Developer & Laravel Intern focused on UI/UX optimization. Welcome to Cyber-Oasis Space Station. Navigate the drone through the nodes to explore my professional portfolio!"
+    vi: "Là sinh viên trường Cao đẳng Công nghệ Thủ Đức (TDC), tôi thiết kế trang web này như một sự kết hợp độc đáo giữa giao diện website truyền thống và vũ trụ 3D tương tác. Hãy nhấn vào vết nứt Cổng Không Gian ở phía dưới để cất cánh bay lượn khám phá các hành tinh, hoặc cuộn chuột xuống để tiếp tục xem dạng website thông thường.",
+    en: "As a student at Thu Duc College of Technology (TDC), I designed this website as a unique combination of a traditional web interface and an interactive 3D space cosmos. Click the Space Portal crack below to take off and explore the planets, or scroll down to view it as a standard website."
   };
 
   const text = texts[currentLang] || texts.vi;
@@ -1207,11 +1211,20 @@ let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let portalAngle = 0, portalDist = 30.0;
 let is3DMode = false;
+let isShootingEarth = false;
+let shootEarthTimeStart = 0;
+let isShootingPlanet = false;
+let shootPlanetTimeStart = 0;
+let shootingPlanetNode = null;
+let laserBeamMesh = null;
+let earthExplosionParticles = [];
+let planetExplosionParticles = [];
+let gameCamShakeOffset = new THREE.Vector3(0, 0, 0);
 let gameAnimationId = null;
 let activeModalNode = null;
 let lastOpenedNode = null;
-localStorage.removeItem("visitedNodes");
-let visitedNodes = [];
+let visitedNodes = ["home"];
+let isPortalHovered = false;
 
 let joystickActive = false;
 let joystickStartPos = { x: 0, y: 0 };
@@ -1227,16 +1240,19 @@ let gameCameraPitchAngle = 0.5; // default view pitch
 let gameCameraRadius = 16;
 let gameCameraTargetRadius = 16;
 let gamePlayerTargetPos = null;
+let homeUnlockEffectShown = false;
+let shouldShowAllUnlockedEffectAfterClose = false;
+let allUnlockedEffectShown = false;
 
 const nodeDefs = [
   {
     id: "home",
-    name: "SAO THỦY (TRANG CHỦ)",
-    nameEn: "MERCURY (HOME)",
-    color: 0x94a3b8, // grey
+    name: "TRÁI ĐẤT (HƯỚNG DẪN)",
+    nameEn: "EARTH (MANUAL)",
+    color: 0x3b82f6, // blue
     x: 0,
     z: -28,
-    iconType: "mercury",
+    iconType: "earth",
     targetId: "hero"
   },
   {
@@ -1313,11 +1329,11 @@ const nodeDefs = [
 
 function createTextTexture(text, color = '#ffffff') {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
+  canvas.width = 512;
   canvas.height = 64;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'rgba(0,0,0,0)';
-  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillRect(0, 0, 512, 64);
 
   ctx.font = 'Bold 26px monospace';
   ctx.textAlign = 'center';
@@ -1325,7 +1341,7 @@ function createTextTexture(text, color = '#ffffff') {
   ctx.shadowColor = color;
   ctx.shadowBlur = 8;
   ctx.fillStyle = color;
-  ctx.fillText(text, 128, 32);
+  ctx.fillText(text, 256, 32);
 
   return new THREE.CanvasTexture(canvas);
 }
@@ -1334,7 +1350,7 @@ function createTextSprite(text, color = '#ffffff') {
   const texture = createTextTexture(text, color);
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
   const sprite = new THREE.Sprite(material);
-  sprite.scale.set(6, 1.5, 1);
+  sprite.scale.set(8, 1, 1);
   return sprite;
 }
 
@@ -1831,15 +1847,35 @@ function createPlutoTexture() {
 
 function getNodeName(nodeDef, lang) {
   if (nodeDef.id === "cv") {
-    const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    const isUnlocked = coreVisitedCount === 6;
+    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    const isUnlocked = coreVisitedCount === 7;
     if (lang === 'vi') {
-      return isUnlocked ? "SAO DIÊM VƯƠNG (CV)" : `SAO DIÊM VƯƠNG (KHOÁ ${coreVisitedCount}/6)`;
+      return isUnlocked ? "SAO DIÊM VƯƠNG (CV)" : `SAO DIÊM VƯƠNG (KHOÁ ${coreVisitedCount}/7)`;
     } else {
-      return isUnlocked ? "PLUTO (CV)" : `PLUTO (LOCKED ${coreVisitedCount}/6)`;
+      return isUnlocked ? "PLUTO (CV)" : `PLUTO (LOCKED ${coreVisitedCount}/7)`;
     }
   }
   return lang === 'vi' ? nodeDef.name : nodeDef.nameEn;
+}
+
+function updateInstructionsHUD() {
+  const hudContent = document.getElementById("hud-content");
+  if (!hudContent) return;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (isTouchDevice) {
+    hudContent.innerHTML = `
+      <div data-vi="• Kéo Joystick để di chuyển nhân vật" data-en="• Drag Joystick to move ship">• Kéo Joystick để di chuyển nhân vật</div>
+      <div data-vi="• Chạm & Vuốt màn hình để xoay camera" data-en="• Swipe screen to rotate camera">• Chạm & Vuốt màn hình để xoay camera</div>
+      <div data-vi="• Đến gần các địa danh để xem thông tin" data-en="• Get close to nodes to connect">• Đến gần các địa danh để xem thông tin</div>
+    `;
+  } else {
+    hudContent.innerHTML = `
+      <div data-vi="• WASD / Phím mũi tên để di chuyển" data-en="• WASD / Arrow Keys to move">• WASD / Phím mũi tên để di chuyển</div>
+      <div data-vi="• Click chuột phải để di chuyển" data-en="• Right-Click to move">• Click chuột phải để di chuyển</div>
+      <div data-vi="• Chuột trái & Kéo để xoay camera" data-en="• Left-Click & Drag to rotate camera">• Chuột trái & Kéo để xoay camera</div>
+      <div data-vi="• Cuộn chuột để phóng to / thu nhỏ" data-en="• Scroll to Zoom">• Cuộn chuột để phóng to / thu nhỏ</div>
+    `;
+  }
 }
 
 function updatePlutoLabel() {
@@ -1854,7 +1890,7 @@ function updatePlutoLabel() {
 }
 
 function updateQuestUI() {
-  const corePlanets = ["about", "skills", "experience", "projects", "testimonials", "contact"];
+  const corePlanets = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"];
   let completedCount = 0;
 
   corePlanets.forEach(id => {
@@ -1865,7 +1901,8 @@ function updateQuestUI() {
         itemEl.classList.remove("text-zinc-500");
         itemEl.classList.add("text-emerald-400", "font-bold");
         itemEl.innerHTML = `<i class="fa-regular fa-square-check text-emerald-400"></i> ` + 
-          (id === "about" ? (currentLang === 'vi' ? 'Sao Kim (Giới Thiệu)' : 'Venus (About)') :
+          (id === "home" ? (currentLang === 'vi' ? 'Trái Đất (Hướng Dẫn)' : 'Earth (Manual)') :
+           id === "about" ? (currentLang === 'vi' ? 'Sao Kim (Giới Thiệu)' : 'Venus (About)') :
            id === "skills" ? (currentLang === 'vi' ? 'Sao Hỏa (Kỹ Năng)' : 'Mars (Skills)') :
            id === "experience" ? (currentLang === 'vi' ? 'Sao Mộc (Kinh Nghiệm)' : 'Jupiter (Experience)') :
            id === "projects" ? (currentLang === 'vi' ? 'Sao Thổ (Sản Phẩm)' : 'Saturn (Projects)') :
@@ -1875,7 +1912,8 @@ function updateQuestUI() {
         itemEl.classList.add("text-zinc-500");
         itemEl.classList.remove("text-emerald-400", "font-bold");
         itemEl.innerHTML = `<i class="fa-regular fa-square"></i> ` + 
-          (id === "about" ? (currentLang === 'vi' ? 'Sao Kim (Giới Thiệu)' : 'Venus (About)') :
+          (id === "home" ? (currentLang === 'vi' ? 'Trái Đất (Hướng Dẫn)' : 'Earth (Manual)') :
+           id === "about" ? (currentLang === 'vi' ? 'Sao Kim (Giới Thiệu)' : 'Venus (About)') :
            id === "skills" ? (currentLang === 'vi' ? 'Sao Hỏa (Kỹ Năng)' : 'Mars (Skills)') :
            id === "experience" ? (currentLang === 'vi' ? 'Sao Mộc (Kinh Nghiệm)' : 'Jupiter (Experience)') :
            id === "projects" ? (currentLang === 'vi' ? 'Sao Thổ (Sản Phẩm)' : 'Saturn (Projects)') :
@@ -1887,24 +1925,24 @@ function updateQuestUI() {
 
   const progressText = document.getElementById("quest-progress-text");
   if (progressText) {
-    progressText.textContent = `${completedCount}/6`;
+    progressText.textContent = `${completedCount}/7`;
   }
 
   const progressBar = document.getElementById("quest-progress-bar");
   if (progressBar) {
-    progressBar.style.width = `${(completedCount / 6) * 100}%`;
+    progressBar.style.width = `${(completedCount / 7) * 100}%`;
   }
 
   const plutoStatus = document.getElementById("quest-pluto-status");
   if (plutoStatus) {
-    if (completedCount === 6) {
+    if (completedCount === 7) {
       plutoStatus.innerHTML = currentLang === 'vi' ? 
-        `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: ĐÃ MỞ KHÓA</span>` : 
-        `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: UNLOCKED</span>`;
+        `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: ĐÃ MỞ KHÓA (CV)</span>` : 
+        `<span class="text-emerald-400 font-bold animate-pulse">🔓 PLUTO: UNLOCKED (CV)</span>`;
     } else {
       plutoStatus.innerHTML = currentLang === 'vi' ? 
-        `<span class="text-rose-500/80">🔒 PLUTO: ĐANG KHÓA</span>` : 
-        `<span class="text-rose-500/80">🔒 PLUTO: LOCKED</span>`;
+        `<span class="text-rose-500/80">🔒 PLUTO: ĐANG KHÓA (KHÁM PHÁ ĐỦ 7 HÀNH TINH)</span>` : 
+        `<span class="text-rose-500/80">🔒 PLUTO: LOCKED (EXPLORE ALL 7 PLANETS)</span>`;
     }
   }
 }
@@ -1914,8 +1952,8 @@ function updatePlutoLockState() {
   const plutoNode = gameNodes.find(n => n.def.id === "cv");
   if (!plutoNode) return;
 
-  const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-  const isUnlocked = coreVisitedCount === 6;
+  const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+  const isUnlocked = coreVisitedCount === 7;
 
   const lockShield = plutoNode.group.getObjectByName("lock_shield");
   if (isUnlocked) {
@@ -1955,53 +1993,24 @@ function initGame3D() {
     return;
   }
 
-  // Check if positions are already saved in localStorage to keep them persistent (on F5/reload)
-  let savedPositions = null;
-  try {
-    savedPositions = JSON.parse(localStorage.getItem("gameNodePositions"));
-  } catch (e) {}
+  // Always randomize node coordinates (sectors prevent overlaps)
+  const baseAngleOffset = Math.random() * Math.PI * 2;
+  const numSectors = nodeDefs.length + 1; // 8 planets + 1 portal = 9 sectors
 
-  if (savedPositions && savedPositions.nodes && typeof savedPositions.portalAngle === 'number') {
-    portalAngle = savedPositions.portalAngle;
-    portalDist = savedPositions.portalDist;
-    nodeDefs.forEach(def => {
-      const saved = savedPositions.nodes[def.id];
-      if (saved) {
-        def.x = saved.x;
-        def.z = saved.z;
-      }
-    });
-  } else {
-    // Randomize node coordinates (sectors prevent overlaps)
-    const baseAngleOffset = Math.random() * Math.PI * 2;
-    const numSectors = nodeDefs.length + 1; // 8 planets + 1 portal = 9 sectors
+  // Sector index for the portal
+  const portalSectorIndex = 8;
+  const portalSectorAngle = (portalSectorIndex * Math.PI * 2) / numSectors + baseAngleOffset;
+  portalAngle = portalSectorAngle + (Math.random() - 0.5) * 0.15;
+  portalDist = 28.0 + Math.random() * 6.0;
 
-    // Sector index for the portal
-    const portalSectorIndex = 8;
-    const portalSectorAngle = (portalSectorIndex * Math.PI * 2) / numSectors + baseAngleOffset;
-    portalAngle = portalSectorAngle + (Math.random() - 0.5) * 0.15;
-    portalDist = 28.0 + Math.random() * 6.0;
+  nodeDefs.forEach((def, index) => {
+    const sectorAngle = (index * Math.PI * 2) / numSectors + baseAngleOffset;
+    const angle = sectorAngle + (Math.random() - 0.5) * 0.15;
+    const distance = 32.0 + Math.random() * 12.0; // Spans from 32.0 to 44.0 units
 
-    nodeDefs.forEach((def, index) => {
-      const sectorAngle = (index * Math.PI * 2) / numSectors + baseAngleOffset;
-      const angle = sectorAngle + (Math.random() - 0.5) * 0.15;
-      const distance = 32.0 + Math.random() * 12.0; // Spans from 32.0 to 44.0 units
-
-      def.x = Math.sin(angle) * distance;
-      def.z = Math.cos(angle) * distance;
-    });
-
-    // Save positions to keep them persistent
-    const toSave = {
-      portalAngle,
-      portalDist,
-      nodes: {}
-    };
-    nodeDefs.forEach(def => {
-      toSave.nodes[def.id] = { x: def.x, z: def.z };
-    });
-    localStorage.setItem("gameNodePositions", JSON.stringify(toSave));
-  }
+    def.x = Math.sin(angle) * distance;
+    def.z = Math.cos(angle) * distance;
+  });
 
   gameWalkwayTextures = [];
   gameSweepRing = null;
@@ -2612,62 +2621,255 @@ function initGame3D() {
   moveIndicator.visible = false;
   gameScene.add(moveIndicator);
 
-  // Create player Group (cyber drone - Sleek Recon Starship shape)
+  // Create player - Dark Cosmic Jhin (In-game model style)
   gamePlayer = new THREE.Group();
+  const darkMat = new THREE.MeshPhongMaterial({ color: 0x0a0420, shininess: 60, specular: 0x4c1d95 });
+  const goldMat = new THREE.MeshPhongMaterial({ color: 0xd97706, shininess: 150, specular: 0xffffff });
 
-  // Central chassis: Octahedron for a cool geometric stealth/tech look
-  const bodyGeom = new THREE.OctahedronGeometry(0.6);
-  const bodyMat = new THREE.MeshPhongMaterial({ color: 0x0f172a, shininess: 120, specular: 0x00ffff });
-  const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
-  gamePlayer.add(bodyMesh);
+  // 1. LEGS (visible, armored, with golden boots)
+  const legGeom = new THREE.CylinderGeometry(0.06, 0.045, 0.65, 8);
+  const legMat = new THREE.MeshPhongMaterial({ color: 0x1e1b4b, shininess: 100, specular: 0x6d28d9 });
+  const bootGeom = new THREE.BoxGeometry(0.11, 0.09, 0.2);
 
-  // Glowing center visor/cockpit
-  const visorGeom = new THREE.BoxGeometry(0.7, 0.2, 0.4);
-  const visorMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
-  const visorMesh = new THREE.Mesh(visorGeom, visorMat);
-  visorMesh.position.set(0, 0.1, 0.35); // Facing forward (positive Z)
-  gamePlayer.add(visorMesh);
+  const leftLegGroup = new THREE.Group();
+  leftLegGroup.position.set(-0.14, -1.3, 0);
+  leftLegGroup.name = "leftLegGroup";
+  const leftLegMesh = new THREE.Mesh(legGeom, legMat);
+  leftLegMesh.position.y = -0.32;
+  leftLegGroup.add(leftLegMesh);
+  const leftBoot = new THREE.Mesh(bootGeom, goldMat);
+  leftBoot.position.set(0, -0.65, 0.04);
+  leftLegGroup.add(leftBoot);
+  gamePlayer.add(leftLegGroup);
 
-  // Cool swept-back Tech Wings
-  const wingGeom = new THREE.BoxGeometry(1.6, 0.05, 0.4);
-  const wingMat = new THREE.MeshPhongMaterial({ color: 0x915eff, shininess: 80 });
-  const leftWing = new THREE.Mesh(wingGeom, wingMat);
-  leftWing.position.set(-0.8, -0.1, -0.1);
-  leftWing.rotation.z = -Math.PI / 16; // tilted down slightly
-  leftWing.rotation.y = Math.PI / 6;  // swept back
-  gamePlayer.add(leftWing);
+  const rightLegGroup = new THREE.Group();
+  rightLegGroup.position.set(0.14, -1.3, 0);
+  rightLegGroup.name = "rightLegGroup";
+  const rightLegMesh = new THREE.Mesh(legGeom, legMat);
+  rightLegMesh.position.y = -0.32;
+  rightLegGroup.add(rightLegMesh);
+  const rightBoot = new THREE.Mesh(bootGeom, goldMat);
+  rightBoot.position.set(0, -0.65, 0.04);
+  rightLegGroup.add(rightBoot);
+  gamePlayer.add(rightLegGroup);
 
-  const rightWing = leftWing.clone();
-  rightWing.position.x = 0.8;
-  rightWing.rotation.z = Math.PI / 16;
-  rightWing.rotation.y = -Math.PI / 6;
-  gamePlayer.add(rightWing);
-
-  // Thruster fire plume (Cone pointing down/back)
-  const thrusterGeom = new THREE.ConeGeometry(0.25, 0.9, 4);
-  const thrusterMat = new THREE.MeshBasicMaterial({ 
-    color: 0xec4899, // Pink thruster trail to stand out
-    transparent: true, 
-    opacity: 0.8 
+  // 2. CAPE (wide flowing cloak behind the character)
+  const capeMat = new THREE.MeshPhongMaterial({ 
+    color: 0x0f0828, shininess: 40, specular: 0x4c1d95,
+    side: THREE.DoubleSide 
   });
-  const thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
-  thrusterMesh.position.set(0, -0.1, -0.75); // positioned at the rear
-  thrusterMesh.rotation.x = Math.PI / 2; // pointing backwards
-  gamePlayer.add(thrusterMesh);
 
-  // Glow light inside
-  const playerLight = new THREE.PointLight(0x00f3ff, 2, 8);
-  playerLight.position.set(0, 0, 0);
+  // Main cape panel (wide, attached at shoulders, flows down)
+  const capeMainGeom = new THREE.BoxGeometry(0.5, 1.1, 0.03);
+  const capeMain = new THREE.Mesh(capeMainGeom, capeMat);
+  capeMain.position.set(0, -1.1, -0.2);
+  capeMain.name = "capeMain";
+  gamePlayer.add(capeMain);
+
+  // Left cape flap
+  const capeFlap = new THREE.BoxGeometry(0.2, 0.85, 0.025);
+  const coatL = new THREE.Mesh(capeFlap, capeMat);
+  coatL.position.set(-0.28, -1.2, -0.22);
+  coatL.rotation.y = 0.15;
+  coatL.name = "coatLeft";
+  gamePlayer.add(coatL);
+
+  // Right cape flap
+  const coatR = new THREE.Mesh(capeFlap, capeMat);
+  coatR.position.set(0.28, -1.2, -0.22);
+  coatR.rotation.y = -0.15;
+  coatR.name = "coatRight";
+  gamePlayer.add(coatR);
+
+  // 3. TORSO
+  const torsoGeom = new THREE.BoxGeometry(0.46, 0.5, 0.26);
+  const torsoMesh = new THREE.Mesh(torsoGeom, darkMat);
+  torsoMesh.position.y = -0.8;
+  torsoMesh.name = "torso";
+  gamePlayer.add(torsoMesh);
+
+  // Chest core (glowing crimson)
+  const chestCore = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), new THREE.MeshBasicMaterial({ color: 0xdc2626 }));
+  chestCore.position.set(0, -0.72, 0.14);
+  chestCore.name = "chestCore";
+  gamePlayer.add(chestCore);
+
+  // V-trim on chest
+  const trimMat = new THREE.MeshPhongMaterial({ color: 0x94a3b8, shininess: 200 });
+  const trimL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.02, 0.02), trimMat);
+  trimL.position.set(-0.07, -0.67, 0.14); trimL.rotation.z = -0.4;
+  gamePlayer.add(trimL);
+  const trimR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.02, 0.02), trimMat);
+  trimR.position.set(0.07, -0.67, 0.14); trimR.rotation.z = 0.4;
+  gamePlayer.add(trimR);
+
+  // 4. HEAD GROUP
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, -0.28, 0);
+  headGroup.name = "headGroup";
+
+  // Head sphere
+  const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), new THREE.MeshPhongMaterial({ color: 0x080316 }));
+  headGroup.add(headMesh);
+
+  // Hood
+  const hoodMesh = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.7, 8), new THREE.MeshPhongMaterial({ color: 0x0a0420, shininess: 60, specular: 0x312e81 }));
+  hoodMesh.position.set(0, 0.18, -0.04);
+  hoodMesh.rotation.x = -0.15;
+  headGroup.add(hoodMesh);
+
+  // Hood inner glow
+  const hoodInner = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.25, 8), new THREE.MeshBasicMaterial({ color: 0x991b1b, transparent: true, opacity: 0.4 }));
+  hoodInner.position.set(0, -0.06, 0.06);
+  headGroup.add(hoodInner);
+
+  // Forehead gem
+  const gemMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.06), new THREE.MeshBasicMaterial({ color: 0xff2244 }));
+  gemMesh.position.set(0, 0.15, 0.22);
+  gemMesh.name = "starCrown";
+  headGroup.add(gemMesh);
+
+  // Mask
+  const maskMat = new THREE.MeshPhongMaterial({ color: 0xd1d5db, shininess: 200, specular: 0xffffff });
+  const maskMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.14, 0.04), maskMat);
+  maskMesh.position.set(0, -0.03, 0.22);
+  maskMesh.name = "mask";
+  headGroup.add(maskMesh);
+  // Chin
+  const chinMesh = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.1, 3), maskMat);
+  chinMesh.position.set(0, -0.13, 0.22); chinMesh.rotation.x = Math.PI;
+  headGroup.add(chinMesh);
+
+  // Sniper eye
+  const eyeMesh = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff0040 }));
+  eyeMesh.position.set(0.05, -0.01, 0.26);
+  headGroup.add(eyeMesh);
+
+  gamePlayer.add(headGroup);
+
+  // 5. SHOULDER PAD (asymmetric, right side massive)
+  const shoulderPadGroup = new THREE.Group();
+  shoulderPadGroup.name = "shoulderPad";
+  shoulderPadGroup.position.set(0.36, -0.48, 0);
+
+  const padShell = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 12, 12, 0, Math.PI * 2, 0, Math.PI / 1.5),
+    new THREE.MeshPhongMaterial({ color: 0x1e1b4b, shininess: 120, specular: 0x8b5cf6, side: THREE.DoubleSide })
+  );
+  shoulderPadGroup.add(padShell);
+  const padOrb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), new THREE.MeshBasicMaterial({ color: 0xf97316 }));
+  padOrb.position.y = 0.02;
+  shoulderPadGroup.add(padOrb);
+  const padRing = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.018, 8, 16), goldMat);
+  padRing.rotation.x = Math.PI / 3;
+  shoulderPadGroup.add(padRing);
+  gamePlayer.add(shoulderPadGroup);
+
+  // Small left shoulder
+  const lShoulder = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), new THREE.MeshPhongMaterial({ color: 0x1e1b4b, shininess: 80, specular: 0x6d28d9 }));
+  lShoulder.position.set(-0.32, -0.54, 0);
+  gamePlayer.add(lShoulder);
+
+  // 6. ARMS
+  const armGeom = new THREE.CylinderGeometry(0.04, 0.035, 0.42, 8);
+
+  const leftArmGroup = new THREE.Group();
+  leftArmGroup.position.set(-0.28, -0.6, 0);
+  leftArmGroup.name = "leftArmGroup";
+  const leftArmMesh = new THREE.Mesh(armGeom, darkMat);
+  leftArmMesh.position.y = -0.21;
+  leftArmGroup.add(leftArmMesh);
+  gamePlayer.add(leftArmGroup);
+
+  const rightArmGroup = new THREE.Group();
+  rightArmGroup.position.set(0.28, -0.6, 0);
+  rightArmGroup.name = "rightArmGroup";
+  const rightArmMesh = new THREE.Mesh(armGeom, goldMat);
+  rightArmMesh.position.y = -0.21;
+  rightArmGroup.add(rightArmMesh);
+  // Gun barrel in right hand
+  const gunBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.025, 0.35, 6), new THREE.MeshPhongMaterial({ color: 0x312e81, shininess: 120 }));
+  gunBarrel.position.set(0, -0.38, 0.12);
+  gunBarrel.rotation.x = Math.PI / 4;
+  rightArmGroup.add(gunBarrel);
+  gamePlayer.add(rightArmGroup);
+
+  // 7. ORBITAL RINGS (golden rings spinning around the character base - signature look!)
+  const orbitGroup = new THREE.Group();
+  orbitGroup.name = "orbitRings";
+  orbitGroup.position.y = -1.2;
+
+  const orbitMat = new THREE.MeshBasicMaterial({ color: 0xd97706, transparent: true, opacity: 0.7 });
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.012, 8, 32), orbitMat);
+  ring1.rotation.x = Math.PI / 2.2;
+  ring1.name = "ring1";
+  orbitGroup.add(ring1);
+
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.01, 8, 32), orbitMat);
+  ring2.rotation.x = Math.PI / 2.5;
+  ring2.rotation.y = Math.PI / 3;
+  ring2.name = "ring2";
+  orbitGroup.add(ring2);
+
+  gamePlayer.add(orbitGroup);
+
+  // 8. FLOATING ORBS (purple spheres orbiting around)
+  const orbGroup = new THREE.Group();
+  orbGroup.name = "floatingOrbs";
+  const orbMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
+  [0, Math.PI * 0.66, Math.PI * 1.33].forEach((angle, i) => {
+    const orb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), orbMat);
+    orb.position.set(Math.cos(angle) * 0.6, -0.8 + i * 0.15, Math.sin(angle) * 0.6);
+    orb.name = `orb_${i}`;
+    orbGroup.add(orb);
+  });
+  gamePlayer.add(orbGroup);
+
+  // 9. COSMIC CAPE SHARDS
+  const shardsGroup = new THREE.Group();
+  shardsGroup.name = "shards";
+  const shardMat = new THREE.MeshPhongMaterial({ color: 0xd946ef, emissive: 0x6b21a8, transparent: true, opacity: 0.85 });
+  [
+    { x: -0.3, y: -0.7, z: -0.3 },
+    { x: 0, y: -0.85, z: -0.4 },
+    { x: 0.3, y: -0.7, z: -0.3 }
+  ].forEach((pos, idx) => {
+    const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.07), shardMat);
+    shard.position.set(pos.x, pos.y, pos.z);
+    shard.name = `shard_${idx}`;
+    shardsGroup.add(shard);
+  });
+  gamePlayer.add(shardsGroup);
+
+  // 10. Lighting
+  const playerLight = new THREE.PointLight(0xd946ef, 2.5, 8);
+  playerLight.position.set(0, -0.5, 0.2);
   gamePlayer.add(playerLight);
+  gamePlayer.add(new THREE.PointLight(0xf97316, 1.5, 3)).position.set(0.36, -0.48, 0);
 
-  // Add text label sprite "YOU" above the player
-  const playerLabel = createTextSprite(currentLang === 'vi' ? 'BẠN (YOU)' : 'YOU', '#00f3ff');
-  playerLabel.position.y = 1.3;
+  // 11. Label - just "YOU"
+  const playerLabel = createTextSprite('YOU', '#d946ef');
+  playerLabel.position.y = 1.0;
   playerLabel.name = "player_label";
   gamePlayer.add(playerLabel);
 
+  // Scale player group up by 68% (initial 40% + 20% additional)
+  gamePlayer.scale.set(1.68, 1.68, 1.68);
+
   gameScene.add(gamePlayer);
-  gamePlayer.position.set(0, 0.5, 0);
+  const earthDef = nodeDefs.find(def => def.id === "home");
+  if (earthDef) {
+    const distToEarth = Math.hypot(earthDef.x, earthDef.z);
+    if (distToEarth > 0) {
+      // Spawn 3.0 units away from Earth, directly within the active connection range (3.2 units)
+      const ratio = (distToEarth - 3.0) / distToEarth;
+      gamePlayer.position.set(earthDef.x * ratio, 1.78, earthDef.z * ratio);
+    } else {
+      gamePlayer.position.set(0, 1.78, 0);
+    }
+  } else {
+    gamePlayer.position.set(0, 1.78, 0);
+  }
 
   // ==========================================================================
   // CENTRAL SPACE STATION COMMAND CORE & CONNECTING BRIDGES
@@ -2747,8 +2949,7 @@ function initGame3D() {
     walkway.add(rightRail);
 
     walkway.name = "walkway_" + def.id;
-    const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    walkway.visible = visitedNodes.includes(def.id) || def.id === "home" || (def.id === "cv" && coreVisitedCount === 6);
+    walkway.visible = visitedNodes.includes(def.id) || def.id === "home";
 
     gameScene.add(walkway);
     gameWalkwayMeshes.push(walkway);
@@ -2819,8 +3020,8 @@ function initGame3D() {
     let planetTex = null;
 
     if (def.id === "home") {
-      planetRadius = 0.8; // Mercury
-      planetTex = createMercuryTexture();
+      planetRadius = 1.4; // Earth
+      planetTex = createEarthTexture();
     } else if (def.id === "about") {
       planetRadius = 1.2; // Venus
       planetTex = createVenusTexture();
@@ -2852,7 +3053,27 @@ function initGame3D() {
     iconMesh.add(coreMesh);
 
     // Unique orbiting features matching actual planet properties
-    if (def.id === "about") {
+    if (def.id === "home") {
+      // Earth: Atmosphere glow + Orbiting Moon!
+      const hazeGeom = new THREE.SphereGeometry(planetRadius * 1.08, 32, 32);
+      const hazeMat = new THREE.MeshBasicMaterial({
+        color: 0x3b82f6,
+        transparent: true,
+        opacity: 0.25,
+        blending: THREE.AdditiveBlending
+      });
+      const hazeMesh = new THREE.Mesh(hazeGeom, hazeMat);
+      iconMesh.add(hazeMesh);
+
+      const moonGroup = new THREE.Group();
+      moonGroup.name = "sub_moons";
+      const moonGeom = new THREE.SphereGeometry(0.25, 12, 12);
+      const moonMat = new THREE.MeshPhongMaterial({ color: 0xcbd5e1 });
+      const moon = new THREE.Mesh(moonGeom, moonMat);
+      moon.position.set(2.4, 0.2, 0);
+      moonGroup.add(moon);
+      iconMesh.add(moonGroup);
+    } else if (def.id === "about") {
       // Venus yellowish atmospheric haze
       const hazeGeom = new THREE.SphereGeometry(planetRadius * 1.08, 32, 32);
       const hazeMat = new THREE.MeshBasicMaterial({
@@ -2942,7 +3163,7 @@ function initGame3D() {
 
     // Floating text label sprite above planet (lifted higher to y = 2.8)
     const nameSprite = createTextSprite(currentLang === 'vi' ? def.name : def.nameEn, '#' + def.color.toString(16).padStart(6, '0'));
-    nameSprite.position.y = 2.8;
+    nameSprite.position.y = 3.5;
     nameSprite.name = "name_label";
     nodeGroup.add(nameSprite);
 
@@ -2981,13 +3202,17 @@ function initGame3D() {
   let isDragging = false;
   let prevX = 0;
   let prevY = 0;
+  let dragStartPos = { x: 0, y: 0 };
+  let hasDragged = false;
 
   window.addEventListener("pointerdown", (e) => {
     if (e.target.id === "canvas-game-3d") {
       if (e.button === 0 || e.pointerType === "touch") {
         isDragging = true;
+        hasDragged = false;
         prevX = e.clientX;
         prevY = e.clientY;
+        dragStartPos = { x: e.clientX, y: e.clientY };
         canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><path d=\'M16,4 L11,9 L15,9 L15,15 L9,15 L9,11 L4,16 L9,21 L9,17 L15,17 L15,23 L11,23 L16,28 L21,23 L17,23 L17,17 L23,17 L23,21 L28,16 L23,11 L23,15 L17,15 L17,9 L21,9 Z\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 16 16, auto';
       }
     }
@@ -3050,9 +3275,33 @@ function initGame3D() {
         if (child.isMesh || child.isSprite) {
           targets.push(child);
           child.userData.nodeRef = node;
+          child.userData.isPortal = false;
         }
       });
     });
+
+    if (gamePortalGroup) {
+      gamePortalGroup.traverse(child => {
+        if (child.isMesh || child.isSprite) {
+          targets.push(child);
+          child.userData.nodeRef = null;
+          child.userData.isPortal = true;
+        }
+      });
+    }
+
+    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    const isSunClickable = (coreVisitedCount === 7);
+
+    if (isSunClickable && centralCoreGroup) {
+      const sun = centralCoreGroup.getObjectByName("sun_mesh");
+      if (sun) {
+        targets.push(sun);
+        sun.userData.nodeRef = null;
+        sun.userData.isPortal = false;
+        sun.userData.isSun = true;
+      }
+    }
 
     const intersects = raycaster.intersectObjects(targets);
 
@@ -3061,20 +3310,40 @@ function initGame3D() {
       node.isHovered = false;
     });
 
-    let hovered = false;
+    let hoveredNode = null;
+    let hoveredPortal = false;
+    let hoveredSun = false;
     if (intersects.length > 0) {
       const hitObject = intersects[0].object;
-      const node = hitObject.userData.nodeRef;
-      if (node) {
-        node.isHovered = true;
-        hovered = true;
+      if (hitObject.userData.isPortal) {
+        hoveredPortal = true;
+      } else if (hitObject.userData.isSun) {
+        hoveredSun = true;
+      } else {
+        const node = hitObject.userData.nodeRef;
+        if (node) {
+          node.isHovered = true;
+          hoveredNode = node;
+        }
       }
     }
 
+    isPortalHovered = hoveredPortal;
+
     if (!isDragging) {
-      canvas.style.cursor = hovered
-        ? 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><circle cx=\'16\' cy=\'16\' r=\'6\' fill=\'none\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'16\' y1=\'4\' x2=\'16\' y2=\'10\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'16\' y1=\'22\' x2=\'16\' y2=\'28\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'4\' y1=\'16\' x2=\'10\' y2=\'16\' stroke=\'%23d946ef\' stroke-width=\'2\'/><line x1=\'22\' y1=\'16\' x2=\'28\' y2=\'16\' stroke=\'%23d946ef\' stroke-width=\'2\'/></svg>") 16 16, auto'
-        : 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
+      if (hoveredPortal || (hoveredNode && !visitedNodes.includes(hoveredNode.def.id))) {
+        // Bullet / Target crosshair cursor (when hovering exit portal or unvisited/undestroyed planet)
+        canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><circle cx=\'16\' cy=\'16\' r=\'10\' fill=\'none\' stroke=\'%23111827\' stroke-width=\'4.5\'/><line x1=\'16\' y1=\'2\' x2=\'16\' y2=\'30\' stroke=\'%23111827\' stroke-width=\'4.5\'/><line x1=\'2\' y1=\'16\' x2=\'30\' y2=\'16\' stroke=\'%23111827\' stroke-width=\'4.5\'/><circle cx=\'16\' cy=\'16\' r=\'2\' fill=\'%23111827\'/><circle cx=\'16\' cy=\'16\' r=\'10\' fill=\'none\' stroke=\'%23ef4444\' stroke-width=\'2.5\'/><line x1=\'16\' y1=\'4\' x2=\'16\' y2=\'28\' stroke=\'%23ef4444\' stroke-width=\'2.5\'/><line x1=\'4\' y1=\'16\' x2=\'28\' y2=\'16\' stroke=\'%23ef4444\' stroke-width=\'2.5\'/><circle cx=\'16\' cy=\'16\' r=\'2\' fill=\'%23ffffff\'/></svg>") 16 16, auto';
+      } else if (hoveredSun) {
+        // Golden magnifying glass cursor for the Sun thanks letter
+        canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><circle cx=\'12\' cy=\'12\' r=\'7\' fill=\'none\' stroke=\'%23111827\' stroke-width=\'4.5\'/><line x1=\'17\' y1=\'17\' x2=\'27\' y2=\'27\' stroke=\'%23111827\' stroke-width=\'6.5\' stroke-linecap=\'round\'/><circle cx=\'12\' cy=\'12\' r=\'7\' fill=\'none\' stroke=\'%23f59e0b\' stroke-width=\'2.5\'/><line x1=\'17\' y1=\'17\' x2=\'27\' y2=\'27\' stroke=\'%23f59e0b\' stroke-width=\'3.5\' stroke-linecap=\'round\'/><path d=\'M8,10 A4,4 0 0,1 14,8\' fill=\'none\' stroke=\'%23ffffff\' stroke-width=\'1\' stroke-linecap=\'round\'/></svg>") 12 12, auto';
+      } else if (hoveredNode && visitedNodes.includes(hoveredNode.def.id)) {
+        // Magnifying glass cursor (when hovering already destroyed/visited planet)
+        canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><circle cx=\'12\' cy=\'12\' r=\'7\' fill=\'none\' stroke=\'%23111827\' stroke-width=\'4.5\'/><line x1=\'17\' y1=\'17\' x2=\'27\' y2=\'27\' stroke=\'%23111827\' stroke-width=\'6.5\' stroke-linecap=\'round\'/><circle cx=\'12\' cy=\'12\' r=\'7\' fill=\'none\' stroke=\'%23d946ef\' stroke-width=\'2.5\'/><line x1=\'17\' y1=\'17\' x2=\'27\' y2=\'27\' stroke=\'%23d946ef\' stroke-width=\'3.5\' stroke-linecap=\'round\'/><path d=\'M8,10 A4,4 0 0,1 14,8\' fill=\'none\' stroke=\'%23ffffff\' stroke-width=\'1\' stroke-linecap=\'round\'/></svg>") 12 12, auto';
+      } else {
+        // Default pointer
+        canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
+      }
     }
   });
 
@@ -3083,6 +3352,11 @@ function initGame3D() {
     const dx = e.clientX - prevX;
     const dy = e.clientY - prevY;
 
+    const totalDist = Math.hypot(e.clientX - dragStartPos.x, e.clientY - dragStartPos.y);
+    if (totalDist > 5) {
+      hasDragged = true;
+    }
+
     gameCameraYawAngle -= dx * 0.005;
     gameCameraPitchAngle = Math.max(0.1, Math.min(Math.PI / 2.2, gameCameraPitchAngle + dy * 0.005));
 
@@ -3090,10 +3364,40 @@ function initGame3D() {
     prevY = e.clientY;
   });
 
-  window.addEventListener("pointerup", () => {
-    isDragging = false;
-    canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
+  window.addEventListener("pointerup", (e) => {
+    if (isDragging) {
+      isDragging = false;
+      canvas.style.cursor = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'><polygon points=\'0,0 20,10 12,12 22,22 18,24 8,14 4,18\' fill=\'%2300f3ff\' stroke=\'%23111827\' stroke-width=\'1.5\'/></svg>") 0 0, auto';
+
+      if (!hasDragged && e.target.id === "canvas-game-3d") {
+        handleCanvasClick(dragStartPos);
+      }
+    }
   });
+
+  function handleCanvasClick(e) {
+    if (!gameCamera) return;
+    const rect = canvas.getBoundingClientRect();
+    const mouse = new THREE.Vector2();
+    const clientX = (e.clientX !== undefined) ? e.clientX : e.x;
+    const clientY = (e.clientY !== undefined) ? e.clientY : e.y;
+    mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, gameCamera);
+
+    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    if (coreVisitedCount === 7 && centralCoreGroup) {
+      const sun = centralCoreGroup.getObjectByName("sun_mesh");
+      if (sun) {
+        const intersects = raycaster.intersectObject(sun);
+        if (intersects.length > 0) {
+          openSunThanksModal();
+        }
+      }
+    }
+  }
 
   // Touch joystick listener
   const zone = document.getElementById("joystick-zone");
@@ -3108,7 +3412,7 @@ function initGame3D() {
       };
       joystickActive = true;
       e.preventDefault();
-    });
+    }, { passive: false });
 
     zone.addEventListener("touchmove", (e) => {
       if (!joystickActive) return;
@@ -3129,7 +3433,7 @@ function initGame3D() {
       joystickDir.x = Math.cos(angle) * (finalDist / maxDist);
       joystickDir.y = Math.sin(angle) * (finalDist / maxDist);
       e.preventDefault();
-    });
+    }, { passive: false });
 
     const resetJoy = () => {
       joystickActive = false;
@@ -3137,8 +3441,8 @@ function initGame3D() {
       joystickDir = { x: 0, y: 0 };
     };
 
-    zone.addEventListener("touchend", resetJoy);
-    zone.addEventListener("touchcancel", resetJoy);
+    zone.addEventListener("touchend", resetJoy, { passive: true });
+    zone.addEventListener("touchcancel", resetJoy, { passive: true });
   }
 
   // Portal Gate to Return to list view
@@ -3147,10 +3451,10 @@ function initGame3D() {
   const portalZ = Math.cos(portalAngle) * portalDist;
   gamePortalGroup.position.set(portalX, 1.0, portalZ);
 
-  // Portal Ring: Earth's Orbit / Ring (Cyan-Blue color instead of Pink)
-  const portalRingGeom = new THREE.TorusGeometry(3.6, 0.04, 8, 64);
+  // Portal Ring: Mercury's Orbit / Ring (Grey color instead of Blue)
+  const portalRingGeom = new THREE.TorusGeometry(3.0, 0.04, 8, 64);
   const portalRingMat = new THREE.MeshBasicMaterial({
-    color: 0x60a5fa,
+    color: 0x94a3b8,
     transparent: true,
     opacity: 0.3
   });
@@ -3158,10 +3462,10 @@ function initGame3D() {
   gamePortalRing.rotation.x = Math.PI / 2; // Flat horizontal orbit ring
   gamePortalGroup.add(gamePortalRing);
 
-  // Exit Portal is Earth (Mesh Sphere with procedural Earth texture)
-  const portalVortexGeom = new THREE.SphereGeometry(1.6, 32, 32);
+  // Exit Portal is Mercury (Mesh Sphere with procedural Mercury texture)
+  const portalVortexGeom = new THREE.SphereGeometry(1.2, 32, 32);
   const portalVortexMat = new THREE.MeshPhongMaterial({
-    map: createEarthTexture(),
+    map: createMercuryTexture(),
     shininess: 30,
     specular: 0x222222
   });
@@ -3169,32 +3473,52 @@ function initGame3D() {
   gamePortalGroup.add(gamePortalVortex);
 
   // Add a nice atmosphere glow
-  const atmosphereGeom = new THREE.SphereGeometry(1.72, 32, 32);
+  const atmosphereGeom = new THREE.SphereGeometry(1.28, 32, 32);
   const atmosphereMat = new THREE.MeshBasicMaterial({
-    color: 0x3b82f6,
+    color: 0x94a3b8,
     transparent: true,
-    opacity: 0.25,
+    opacity: 0.2,
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide
   });
   const atmosphere = new THREE.Mesh(atmosphereGeom, atmosphereMat);
   gamePortalGroup.add(atmosphere);
 
-  // Add a Moon orbiting the Earth
-  const moonGeom = new THREE.SphereGeometry(0.3, 16, 16);
-  const moonMat = new THREE.MeshPhongMaterial({
-    color: 0x94a3b8,
-    emissive: 0x1e293b,
-    shininess: 10
-  });
-  const portalMoon = new THREE.Mesh(moonGeom, moonMat);
-  portalMoon.name = "portal_moon";
-  portalMoon.position.set(3.4, 0.3, 0);
-  gamePortalGroup.add(portalMoon);
+  if (visitedNodes.includes("exit_portal")) {
+    gamePortalVortex.visible = false;
+    atmosphere.visible = false;
+
+    // Spawn split halves for Mercury Exit Portal immediately in a shattered state!
+    const radius = 1.2;
+    const tex = portalVortexMat.map;
+
+    const leftGeom = new THREE.SphereGeometry(radius, 24, 24, 0, Math.PI, 0, Math.PI);
+    const rightGeom = new THREE.SphereGeometry(radius, 24, 24, Math.PI, Math.PI, 0, Math.PI);
+    
+    const halfMat = new THREE.MeshPhongMaterial({
+      map: tex,
+      color: 0x94a3b8,
+      shininess: 30,
+      side: THREE.DoubleSide
+    });
+
+    const leftHalf = new THREE.Mesh(leftGeom, halfMat);
+    leftHalf.name = "left_half";
+    leftHalf.position.set(-radius * 1.5, 0, 0);
+    leftHalf.rotation.y = 0.5;
+
+    const rightHalf = new THREE.Mesh(rightGeom, halfMat);
+    rightHalf.name = "right_half";
+    rightHalf.position.set(radius * 1.5, 0, 0);
+    rightHalf.rotation.y = -0.5;
+
+    gamePortalGroup.add(leftHalf);
+    gamePortalGroup.add(rightHalf);
+  }
 
   // Add text label sprite above portal: "EXIT PORTAL"
-  gamePortalSprite = createTextSprite(currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL', '#f43f5e');
-  gamePortalSprite.position.y = 3.5;
+  gamePortalSprite = createTextSprite(currentLang === 'vi' ? 'SAO THỦY (CỔNG THOÁT)' : 'MERCURY (EXIT PORTAL)', '#f43f5e');
+  gamePortalSprite.position.y = 4.2;
   gamePortalGroup.add(gamePortalSprite);
 
   // Underneath base
@@ -3207,6 +3531,13 @@ function initGame3D() {
   gameScene.add(gamePortalGroup);
 
   updateGameCameraPosition();
+  updateInstructionsHUD();
+  
+  if (homeUnlockEffectShown) {
+    lastOpenedNode = "home";
+  } else {
+    lastOpenedNode = null;
+  }
 
   gameInitialized = true;
   gameAnimate();
@@ -3219,8 +3550,16 @@ function updateGameCameraPosition() {
   const oy = Math.sin(gameCameraPitchAngle) * gameCameraRadius;
   const oz = Math.cos(gameCameraYawAngle) * Math.cos(gameCameraPitchAngle) * gameCameraRadius;
 
-  gameCamera.position.set(gamePlayer.position.x + ox, gamePlayer.position.y + oy, gamePlayer.position.z + oz);
-  gameCamera.lookAt(gamePlayer.position.x, gamePlayer.position.y + 0.5, gamePlayer.position.z);
+  gameCamera.position.set(
+    gamePlayer.position.x + ox + gameCamShakeOffset.x,
+    gamePlayer.position.y + oy + gameCamShakeOffset.y,
+    gamePlayer.position.z + oz + gameCamShakeOffset.z
+  );
+  gameCamera.lookAt(
+    gamePlayer.position.x + gameCamShakeOffset.x * 0.5,
+    gamePlayer.position.y + 0.84 + gameCamShakeOffset.y * 0.5,
+    gamePlayer.position.z + gameCamShakeOffset.z * 0.5
+  );
 }
 
 function handleGameKeyDown(e) {
@@ -3450,8 +3789,8 @@ function showPlanetUnlockEffect(nodeDef) {
     const planetName = currentLang === 'vi' ? nodeDef.name : nodeDef.nameEn;
     const unlockMsg = currentLang === 'vi' ? 'ĐÃ MỞ KHÓA' : 'UNLOCKED';
     
-    const completedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    const counterMsg = `${completedCount}/6`;
+    const completedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    const counterMsg = `${completedCount}/7`;
 
     banner.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;">
@@ -3503,11 +3842,6 @@ function showPlanetUnlockEffect(nodeDef) {
 }
 
 function showAllUnlockedEffect() {
-  // Make Pluto's walkway visible
-  if (typeof gameScene !== 'undefined' && gameScene) {
-    const plutoWalkway = gameScene.getObjectByName("walkway_cv");
-    if (plutoWalkway) plutoWalkway.visible = true;
-  }
 
   // Grand full-screen golden flash
   const flash = document.createElement("div");
@@ -3677,15 +4011,15 @@ function drawMinimap() {
       const py = cy + nZ * scale;
 
       const nodeColor = '#' + node.def.color.toString(16).padStart(6, '0');
-      const isVisited = node.def.id === "home" || node.def.id === "cv" ? true : visitedNodes.includes(node.def.id);
+      const isVisited = node.def.id === "cv" ? (visitedNodes.includes("cv")) : visitedNodes.includes(node.def.id);
 
       ctx.fillStyle = nodeColor;
       ctx.strokeStyle = nodeColor;
 
       ctx.beginPath();
       if (node.def.id === "cv") {
-        const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-        if (coreVisitedCount < 6) {
+        const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+        if (coreVisitedCount < 7) {
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(px - 3, py - 3); ctx.lineTo(px + 3, py + 3);
@@ -3751,7 +4085,7 @@ function gameAnimate() {
     const isOnDeck = checkIfPlayerOnDeck(gamePlayer.position.x, gamePlayer.position.z);
     if (isOnDeck) {
       // Bobbing on the ground
-      gamePlayer.position.y = 0.5 + Math.sin(time * 2) * 0.12;
+      gamePlayer.position.y = 1.78 + Math.sin(time * 2) * 0.201;
       gamePlayerVeloY = 0;
     } else {
       // Apply gravity falling
@@ -3760,19 +4094,13 @@ function gameAnimate() {
 
       // Respawn if fallen too deep
       if (gamePlayer.position.y < -15.0) {
-        gamePlayer.position.set(0, 0.5, 0);
+        gamePlayer.position.set(0, 1.78, 0);
         gamePlayerVeloY = 0;
         gamePlayerTargetPos = null;
         showSafetyNotice();
       }
     }
-    gamePlayer.children[1].rotation.z += 0.015;
-    gamePlayer.children[2].scale.setScalar(0.95 + Math.sin(time * 6) * 0.05);
-
-    // Pulsate bottom engine energy orb sphere
-    if (gamePlayer.children[4]) {
-      gamePlayer.children[4].scale.setScalar(0.9 + Math.sin(time * 8) * 0.1);
-    }
+    // Humanoid walking/idle animations will be processed below after calculating dx and dz
 
     const speed = 0.22;
     let dx = 0;
@@ -3786,7 +4114,11 @@ function gameAnimate() {
     camRight.y = 0;
     camRight.normalize();
 
-    if (joystickActive) {
+    if (isShootingEarth || isShootingPlanet) {
+      dx = 0;
+      dz = 0;
+      gamePlayerTargetPos = null;
+    } else if (joystickActive) {
       gamePlayerTargetPos = null;
       dx = (camForward.x * -joystickDir.y + camRight.x * joystickDir.x) * speed;
       dz = (camForward.z * -joystickDir.y + camRight.z * joystickDir.x) * speed;
@@ -3825,6 +4157,108 @@ function gameAnimate() {
     if (dx !== 0 || dz !== 0) {
       const targetAngle = Math.atan2(dx, dz);
       gamePlayer.rotation.y = targetAngle;
+    }
+
+    const isMoving = (dx !== 0 || dz !== 0);
+    const walkSpeed = 14;
+
+    const torso = gamePlayer.getObjectByName("torso");
+    const head = gamePlayer.getObjectByName("headGroup");
+    const leftArm = gamePlayer.getObjectByName("leftArmGroup");
+    const rightArm = gamePlayer.getObjectByName("rightArmGroup");
+    const leftLeg = gamePlayer.getObjectByName("leftLegGroup");
+    const rightLeg = gamePlayer.getObjectByName("rightLegGroup");
+    const capeMain = gamePlayer.getObjectByName("capeMain");
+    const coatL = gamePlayer.getObjectByName("coatLeft");
+    const coatR = gamePlayer.getObjectByName("coatRight");
+
+    if (isShootingEarth || isShootingPlanet) {
+      if (leftLeg) leftLeg.rotation.x = 0;
+      if (rightLeg) rightLeg.rotation.x = 0;
+      if (torso) torso.position.y = -0.8;
+      if (leftArm) {
+        leftArm.rotation.x = 0.5;
+        leftArm.rotation.z = -0.4;
+      }
+      if (rightArm) {
+        rightArm.rotation.x = -Math.PI / 2.3;
+        rightArm.rotation.z = 0;
+        rightArm.rotation.y = 0;
+      }
+      if (head) head.position.y = -0.28 + Math.sin(time * 2) * 0.01;
+      if (capeMain) capeMain.rotation.x = Math.sin(time * 1.5) * 0.02;
+      if (coatL) coatL.rotation.x = 0.08;
+      if (coatR) coatR.rotation.x = 0.08;
+    } else if (isMoving) {
+      const swing = Math.sin(time * walkSpeed) * 0.5;
+      // Legs walk
+      if (leftLeg) leftLeg.rotation.x = swing;
+      if (rightLeg) rightLeg.rotation.x = -swing;
+      // Arms swing opposite
+      if (leftArm) leftArm.rotation.x = -swing * 0.7;
+      if (rightArm) rightArm.rotation.x = swing * 0.5;
+      // Torso bobs
+      if (torso) torso.position.y = -0.8 + Math.abs(Math.sin(time * walkSpeed)) * 0.05;
+      // Head bobs
+      if (head) head.position.y = -0.28 + Math.sin(time * walkSpeed) * 0.015;
+      // Cape flows when walking
+      if (capeMain) capeMain.rotation.x = Math.sin(time * walkSpeed) * 0.1;
+      if (coatL) coatL.rotation.x = Math.sin(time * walkSpeed + 0.3) * 0.18;
+      if (coatR) coatR.rotation.x = -Math.sin(time * walkSpeed + 0.3) * 0.18;
+    } else {
+      // Idle
+      if (leftLeg) leftLeg.rotation.x = 0;
+      if (rightLeg) rightLeg.rotation.x = 0;
+      if (torso) torso.position.y = -0.8;
+      if (leftArm) {
+        leftArm.rotation.x = Math.sin(time * 1.5) * 0.04;
+        leftArm.rotation.z = -0.12 + Math.sin(time * 2) * 0.03;
+      }
+      if (rightArm) {
+        rightArm.rotation.x = 0;
+        rightArm.rotation.z = 0.05 - Math.sin(time * 2) * 0.02;
+      }
+      if (head) head.position.y = -0.28 + Math.sin(time * 2) * 0.01;
+      if (capeMain) capeMain.rotation.x = Math.sin(time * 1.5) * 0.02;
+      if (coatL) coatL.rotation.x = Math.sin(time * 1.5) * 0.03;
+      if (coatR) coatR.rotation.x = Math.sin(time * 1.5 + 0.5) * 0.03;
+    }
+
+    // Shoulder pad orb pulsing
+    const shoulder = gamePlayer.getObjectByName("shoulderPad");
+    if (shoulder && shoulder.children[1]) {
+      shoulder.children[1].scale.setScalar(0.95 + Math.sin(time * 5) * 0.05);
+    }
+
+    // Forehead gem pulse
+    const gem = gamePlayer.getObjectByName("starCrown");
+    if (gem) gem.scale.setScalar(0.9 + Math.sin(time * 4) * 0.1);
+
+    // Orbital rings spinning!
+    const orbitRings = gamePlayer.getObjectByName("orbitRings");
+    if (orbitRings) {
+      orbitRings.rotation.y += 0.02;
+      const r2 = orbitRings.getObjectByName("ring2");
+      if (r2) r2.rotation.y += 0.01;
+    }
+
+    // Floating orbs orbit around character
+    const orbGroup = gamePlayer.getObjectByName("floatingOrbs");
+    if (orbGroup) {
+      orbGroup.rotation.y += 0.015;
+      orbGroup.children.forEach((orb, i) => {
+        orb.position.y = -0.8 + i * 0.15 + Math.sin(time * 3 + i * 2) * 0.06;
+      });
+    }
+
+    // Cape shards float
+    const shardsGroup = gamePlayer.getObjectByName("shards");
+    if (shardsGroup) {
+      shardsGroup.rotation.y += 0.008;
+      shardsGroup.children.forEach((shard, idx) => {
+        shard.position.y += Math.sin(time * 3 + idx * 1.2) * 0.001;
+        shard.rotation.x += 0.01;
+      });
     }
   }
 
@@ -3963,6 +4397,115 @@ function gameAnimate() {
   }
 
   gameNodes.forEach(node => {
+    // If planet has been destroyed, ensure split halves & debris exist, and hide normal mesh
+    const isDestroyed = visitedNodes.includes(node.def.id);
+    if (isDestroyed && node.def.id !== "home") {
+      if (node.mesh.visible) {
+        node.mesh.visible = false;
+        // Hide other sub-elements in the group
+        node.group.children.forEach(child => {
+          if (child !== node.sprite && child !== node.mesh && child.name !== "left_half" && child.name !== "right_half" && !child.name.startsWith("rock_")) {
+            child.visible = false;
+          }
+        });
+      }
+
+      let leftHalf = node.group.getObjectByName("left_half");
+      let rightHalf = node.group.getObjectByName("right_half");
+      if (!leftHalf && !rightHalf) {
+        const coreMesh = node.mesh.children.find(c => c.name === "planet_core");
+        if (coreMesh) {
+          const radius = coreMesh.geometry.parameters.radius;
+          const tex = coreMesh.material.map;
+          const pColor = node.def.color;
+
+          const leftGeom = new THREE.SphereGeometry(radius, 24, 24, 0, Math.PI, 0, Math.PI);
+          const rightGeom = new THREE.SphereGeometry(radius, 24, 24, Math.PI, Math.PI, 0, Math.PI);
+          
+          const halfMat = new THREE.MeshPhongMaterial({
+            map: tex,
+            color: pColor,
+            shininess: 30,
+            side: THREE.DoubleSide
+          });
+
+          leftHalf = new THREE.Mesh(leftGeom, halfMat);
+          leftHalf.name = "left_half";
+          leftHalf.position.set(0, 0.3, 0);
+
+          rightHalf = new THREE.Mesh(rightGeom, halfMat);
+          rightHalf.name = "right_half";
+          rightHalf.position.set(0, 0.3, 0);
+
+          node.group.add(leftHalf);
+          node.group.add(rightHalf);
+
+          // Add debris rocks
+          for (let i = 0; i < 4; i++) {
+            const rockGeom = new THREE.DodecahedronGeometry(0.15 + Math.random() * 0.15, 0);
+            const rockMat = new THREE.MeshPhongMaterial({
+              color: pColor,
+              shininess: 10,
+              flatShading: true
+            });
+            const rock = new THREE.Mesh(rockGeom, rockMat);
+            rock.name = `rock_${i}`;
+            rock.position.set(
+              (Math.random() - 0.5) * 0.5,
+              0.3 + (Math.random() - 0.5) * 0.5,
+              (Math.random() - 0.5) * 0.5
+            );
+            rock.userData = {
+              velo: new THREE.Vector3(
+                (Math.random() - 0.5) * 0.015,
+                (Math.random() - 0.5) * 0.015,
+                (Math.random() - 0.5) * 0.015
+              ),
+              rotVelo: new THREE.Vector3(
+                (Math.random() - 0.5) * 0.04,
+                (Math.random() - 0.5) * 0.04,
+                (Math.random() - 0.5) * 0.04
+              )
+            };
+            node.group.add(rock);
+          }
+        }
+      }
+
+      // Animate split halves and debris rocks
+      if (leftHalf && rightHalf) {
+        leftHalf.rotation.y += 0.005;
+        leftHalf.rotation.x += 0.002;
+        rightHalf.rotation.y += 0.005;
+        rightHalf.rotation.z -= 0.002;
+
+        const coreMesh = node.mesh.children.find(c => c.name === "planet_core");
+        const radius = coreMesh ? coreMesh.geometry.parameters.radius : 1.2;
+        const maxDrift = radius * 0.7;
+
+        if (leftHalf.position.x > -maxDrift) {
+          leftHalf.position.x -= 0.012;
+        }
+        if (rightHalf.position.x < maxDrift) {
+          rightHalf.position.x += 0.012;
+        }
+      }
+
+      for (let i = 0; i < 4; i++) {
+        const rock = node.group.getObjectByName(`rock_${i}`);
+        if (rock) {
+          rock.rotation.x += rock.userData.rotVelo.x;
+          rock.rotation.y += rock.userData.rotVelo.y;
+          rock.rotation.z += rock.userData.rotVelo.z;
+
+          const dist = rock.position.distanceTo(new THREE.Vector3(0, 0.3, 0));
+          if (dist < 2.5) {
+            rock.position.add(rock.userData.velo);
+          }
+        }
+      }
+    }
+
     // Smoothly scale node on hover
     const targetScale = node.isHovered ? 1.3 : 1.0;
     const currentScale = node.group.scale.x;
@@ -3992,10 +4535,10 @@ function gameAnimate() {
     if (node.sprite) {
       node.sprite.lookAt(gameCamera.position);
       const time = performance.now() * 0.0015;
-      node.sprite.position.y = 2.8 + Math.sin(time * 2.0 + node.group.position.x) * 0.08;
+      node.sprite.position.y = 3.5 + Math.sin(time * 2.0 + node.group.position.x) * 0.08;
     }
 
-    const dist = gamePlayer.position.distanceTo(node.group.position);
+    const dist = Math.hypot(gamePlayer.position.x - node.group.position.x, gamePlayer.position.z - node.group.position.z);
     if (dist < minDistance) {
       minDistance = dist;
       closestNode = node;
@@ -4014,6 +4557,22 @@ function gameAnimate() {
   if (gamePortalGroup && gamePortalVortex && gamePortalRing && gamePlayer) {
     gamePortalVortex.rotation.y += 0.006; // Spin Earth
 
+    // Gently rotate split halves if exit portal is destroyed
+    const leftHalf = gamePortalGroup.getObjectByName("left_half");
+    const rightHalf = gamePortalGroup.getObjectByName("right_half");
+    if (leftHalf && rightHalf) {
+      leftHalf.rotation.y += 0.003;
+      leftHalf.rotation.x += 0.001;
+      rightHalf.rotation.y += 0.003;
+      rightHalf.rotation.z -= 0.001;
+    }
+
+    // Smoothly scale exit portal on hover
+    const targetPortalScale = isPortalHovered ? 1.25 : 1.0;
+    const currentPScale = gamePortalGroup.scale.x;
+    const nextPScale = currentPScale + (targetPortalScale - currentPScale) * 0.15;
+    gamePortalGroup.scale.set(nextPScale, nextPScale, nextPScale);
+
     // Orbit the Moon
     const portalMoon = gamePortalGroup.getObjectByName("portal_moon");
     if (portalMoon) {
@@ -4029,15 +4588,505 @@ function gameAnimate() {
       gamePortalSprite.lookAt(gameCamera.position);
     }
 
-    const portalDist = gamePlayer.position.distanceTo(gamePortalGroup.position);
-    if (portalDist < 3.2 && is3DMode) {
-      // Set position back to origin to prevent double triggering
-      gamePlayer.position.set(0, 0.5, 0);
+    const portalDist = Math.hypot(gamePlayer.position.x - gamePortalGroup.position.x, gamePlayer.position.z - gamePortalGroup.position.z);
+    if (portalDist < 6.5 && is3DMode && !isShootingEarth) {
+      isShootingEarth = true;
+      shootEarthTimeStart = performance.now();
       gamePlayerTargetPos = null;
+      gameCamShakeOffset.set(0, 0, 0);
+    }
 
-      const exitBtn = document.getElementById("exit-3d-btn") || document.getElementById("view-mode-btn");
-      if (exitBtn) {
-        exitBtn.click();
+    // Planet Proximity and Shooting Trigger
+    let isPlutoLocked = false;
+    if (closestNode && closestNode.def.id === "cv") {
+      const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+      if (coreVisitedCount < 7) {
+        isPlutoLocked = true;
+      }
+    }
+
+    if (minDistance < 6.5 && closestNode && closestNode.def.id !== "home" && !isPlutoLocked && !visitedNodes.includes(closestNode.def.id) && !isShootingPlanet && !isShootingEarth && !transitionLoadingActive) {
+      isShootingPlanet = true;
+      shootingPlanetNode = closestNode;
+      shootPlanetTimeStart = performance.now();
+      gamePlayerTargetPos = null;
+      gameCamShakeOffset.set(0, 0, 0);
+    }
+
+    if (isShootingEarth) {
+      const elapsed = performance.now() - shootEarthTimeStart;
+
+      // Rotate Jhin to face Earth portal smoothly
+      const targetAngle = Math.atan2(
+        gamePortalGroup.position.x - gamePlayer.position.x,
+        gamePortalGroup.position.z - gamePlayer.position.z
+      );
+      let diffAngle = targetAngle - gamePlayer.rotation.y;
+      while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;
+      while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
+      gamePlayer.rotation.y += diffAngle * 0.15;
+
+      if (elapsed < 800) {
+        // Phase 1: Aiming
+        gameCamShakeOffset.set(
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.02
+        );
+        // Pulse shoulder pad light intensity or orb size rapidly
+        const shoulder = gamePlayer.getObjectByName("shoulderPad");
+        if (shoulder && shoulder.children[1]) {
+          shoulder.children[1].scale.setScalar(1.2 + Math.sin(time * 25) * 0.2);
+        }
+      } else if (elapsed < 2000) {
+        // Phase 2: Shooting Laser Beam
+        
+        // Target is Earth
+        const targetPos = gamePortalGroup.position.clone();
+        
+        // Start from gun tip
+        const rightArm = gamePlayer.getObjectByName("rightArmGroup");
+        const gunTip = new THREE.Vector3(0, -0.38, 0.12);
+        if (rightArm) {
+          gunTip.applyMatrix4(rightArm.matrixWorld);
+        } else {
+          gunTip.copy(gamePlayer.position).add(new THREE.Vector3(0.28, -0.98, 0.12));
+        }
+
+        const dist = gunTip.distanceTo(targetPos);
+
+        if (!laserBeamMesh) {
+          // Double layered massive laser beam
+          const giantLaser = new THREE.Group();
+
+          // Outer giant red glow beam
+          const outerGeom = new THREE.CylinderGeometry(0.35, 0.35, dist, 12);
+          outerGeom.translate(0, dist / 2, 0);
+          outerGeom.rotateX(Math.PI / 2);
+          const outerMat = new THREE.MeshBasicMaterial({
+            color: 0xff0055,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+          });
+          const outerMesh = new THREE.Mesh(outerGeom, outerMat);
+          giantLaser.add(outerMesh);
+
+          // Inner bright core (white-cyan hot plasma)
+          const innerGeom = new THREE.CylinderGeometry(0.12, 0.12, dist, 12);
+          innerGeom.translate(0, dist / 2, 0);
+          innerGeom.rotateX(Math.PI / 2);
+          const innerMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.95
+          });
+          const innerMesh = new THREE.Mesh(innerGeom, innerMat);
+          giantLaser.add(innerMesh);
+
+          laserBeamMesh = giantLaser;
+          gameScene.add(laserBeamMesh);
+        }
+
+        if (laserBeamMesh) {
+          laserBeamMesh.position.copy(gunTip);
+          laserBeamMesh.lookAt(targetPos);
+          const scalePulse = 1.0 + Math.sin(time * 40) * 0.4;
+          laserBeamMesh.scale.set(scalePulse, scalePulse, 1.0);
+        }
+
+        // Screen Shake during firing
+        gameCamShakeOffset.set(
+          (Math.random() - 0.5) * 0.18,
+          (Math.random() - 0.5) * 0.18,
+          (Math.random() - 0.5) * 0.18
+        );
+
+        // Flash Earth/Mercury white and red
+        const flashColor = (Math.floor(elapsed / 70) % 2 === 0) ? 0xff0000 : 0xffffff;
+        if (gamePortalVortex && gamePortalVortex.material) {
+          gamePortalVortex.material.color.setHex(flashColor);
+        }
+        const leftHalf = gamePortalGroup.getObjectByName("left_half");
+        const rightHalf = gamePortalGroup.getObjectByName("right_half");
+        if (leftHalf && leftHalf.material) leftHalf.material.color.setHex(flashColor);
+        if (rightHalf && rightHalf.material) rightHalf.material.color.setHex(flashColor);
+      } else if (elapsed < 3600) {
+        // Phase 3: Earth Explodes into pieces
+        if (laserBeamMesh) {
+          gameScene.remove(laserBeamMesh);
+          laserBeamMesh = null;
+        }
+
+        // Hide Earth, atmosphere, moon
+        if (gamePortalVortex && gamePortalVortex.visible) {
+          gamePortalVortex.visible = false;
+          if (!visitedNodes.includes("exit_portal")) {
+            visitedNodes.push("exit_portal");
+          }
+
+          // Spawn split halves for Mercury Exit Portal!
+          const radius = gamePortalVortex.geometry.parameters.radius;
+          const tex = gamePortalVortex.material.map;
+
+          const leftGeom = new THREE.SphereGeometry(radius, 24, 24, 0, Math.PI, 0, Math.PI);
+          const rightGeom = new THREE.SphereGeometry(radius, 24, 24, Math.PI, Math.PI, 0, Math.PI);
+          
+          const halfMat = new THREE.MeshPhongMaterial({
+            map: tex,
+            color: 0x94a3b8,
+            shininess: 30,
+            side: THREE.DoubleSide
+          });
+
+          const leftHalf = new THREE.Mesh(leftGeom, halfMat);
+          leftHalf.name = "left_half";
+          leftHalf.position.set(0, 0, 0);
+
+          const rightHalf = new THREE.Mesh(rightGeom, halfMat);
+          rightHalf.name = "right_half";
+          rightHalf.position.set(0, 0, 0);
+
+          gamePortalGroup.add(leftHalf);
+          gamePortalGroup.add(rightHalf);
+          
+          const atmosphere = gamePortalGroup.children.find(c => c !== gamePortalVortex && c !== gamePortalSprite && c.geometry && c.geometry.type === "SphereGeometry");
+          if (atmosphere) atmosphere.visible = false;
+
+          const portalMoon = gamePortalGroup.getObjectByName("portal_moon");
+          if (portalMoon) portalMoon.visible = false;
+
+          // Spawn explosion particles
+          const pGeom = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 8);
+          const colors = [0x94a3b8, 0xcbd5e1, 0xe2e8f0, 0x64748b, 0x475569];
+          for (let i = 0; i < 70; i++) {
+            const pMat = new THREE.MeshBasicMaterial({
+              color: colors[Math.floor(Math.random() * colors.length)],
+              transparent: true,
+              opacity: 0.95
+            });
+            const p = new THREE.Mesh(pGeom, pMat);
+            p.position.copy(gamePortalGroup.position);
+
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2.0 * Math.random() - 1.0);
+            const speed = 0.05 + Math.random() * 0.18;
+
+            p.userData = {
+              velo: new THREE.Vector3(
+                Math.sin(phi) * Math.cos(theta) * speed,
+                Math.sin(phi) * Math.sin(theta) * speed + 0.02,
+                Math.cos(phi) * speed
+              ),
+              rotSpeed: new THREE.Vector3(
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3
+              ),
+              decay: 0.975
+            };
+            gameScene.add(p);
+            earthExplosionParticles.push(p);
+          }
+        } else if (earthExplosionParticles.length === 0) {
+          // If already destroyed, make the existing halves snap back to center and blast apart again!
+          const leftHalf = gamePortalGroup.getObjectByName("left_half");
+          const rightHalf = gamePortalGroup.getObjectByName("right_half");
+          if (leftHalf) leftHalf.position.set(0, 0, 0);
+          if (rightHalf) rightHalf.position.set(0, 0, 0);
+
+          // Spawn explosion particles
+          const pGeom = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 8);
+          const colors = [0x94a3b8, 0xcbd5e1, 0xe2e8f0, 0x64748b, 0x475569];
+          for (let i = 0; i < 70; i++) {
+            const pMat = new THREE.MeshBasicMaterial({
+              color: colors[Math.floor(Math.random() * colors.length)],
+              transparent: true,
+              opacity: 0.95
+            });
+            const p = new THREE.Mesh(pGeom, pMat);
+            p.position.copy(gamePortalGroup.position);
+
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2.0 * Math.random() - 1.0);
+            const speed = 0.05 + Math.random() * 0.18;
+
+            p.userData = {
+              velo: new THREE.Vector3(
+                Math.sin(phi) * Math.cos(theta) * speed,
+                Math.sin(phi) * Math.sin(theta) * speed + 0.02,
+                Math.cos(phi) * speed
+              ),
+              rotSpeed: new THREE.Vector3(
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3
+              ),
+              decay: 0.975
+            };
+            gameScene.add(p);
+            earthExplosionParticles.push(p);
+          }
+        }
+
+        // Update explosion particles
+        earthExplosionParticles.forEach(p => {
+          p.position.add(p.userData.velo);
+          p.rotation.x += p.userData.rotSpeed.x;
+          p.rotation.y += p.userData.rotSpeed.y;
+          p.rotation.z += p.userData.rotSpeed.z;
+          p.userData.velo.multiplyScalar(p.userData.decay);
+          p.scale.multiplyScalar(0.95);
+          p.material.opacity *= 0.95;
+        });
+
+        const leftHalf = gamePortalGroup.getObjectByName("left_half");
+        const rightHalf = gamePortalGroup.getObjectByName("right_half");
+        if (leftHalf && rightHalf) {
+          leftHalf.rotation.y += 0.005;
+          leftHalf.rotation.x += 0.002;
+          rightHalf.rotation.y += 0.005;
+          rightHalf.rotation.z -= 0.002;
+
+          const radius = gamePortalVortex.geometry.parameters.radius;
+          const maxDrift = radius * 2.0;
+
+          if (leftHalf.position.x > -maxDrift) {
+            leftHalf.position.x -= 0.035;
+          }
+          if (rightHalf.position.x < maxDrift) {
+            rightHalf.position.x += 0.035;
+          }
+        }
+
+        // Strong shake
+        const intensity = 0.35 * (1.0 - (elapsed - 2000) / 1600);
+        gameCamShakeOffset.set(
+          (Math.random() - 0.5) * intensity,
+          (Math.random() - 0.5) * intensity,
+          (Math.random() - 0.5) * intensity
+        );
+      } else {
+        // Phase 4: Finalize Exit
+        earthExplosionParticles.forEach(p => gameScene.remove(p));
+        earthExplosionParticles = [];
+        if (laserBeamMesh) {
+          gameScene.remove(laserBeamMesh);
+          laserBeamMesh = null;
+        }
+
+        // Clean up split halves
+        const leftHalf = gamePortalGroup.getObjectByName("left_half");
+        if (leftHalf) gamePortalGroup.remove(leftHalf);
+        const rightHalf = gamePortalGroup.getObjectByName("right_half");
+        if (rightHalf) gamePortalGroup.remove(rightHalf);
+
+        isShootingEarth = false;
+        gameCamShakeOffset.set(0, 0, 0);
+
+        // Reset Earth visibility for next play
+        if (gamePortalVortex) gamePortalVortex.visible = true;
+        const atmosphere = gamePortalGroup.children.find(c => c !== gamePortalVortex && c !== gamePortalSprite && c.geometry && c.geometry.type === "SphereGeometry");
+        if (atmosphere) atmosphere.visible = true;
+        const portalMoon = gamePortalGroup.getObjectByName("portal_moon");
+        if (portalMoon) portalMoon.visible = true;
+
+        gamePlayer.position.set(0, 1.78, 0);
+        gamePlayerTargetPos = null;
+
+        const exitBtn = document.getElementById("exit-3d-btn") || document.getElementById("view-mode-btn");
+        if (exitBtn) {
+          exitBtn.click();
+        }
+      }
+    } else if (isShootingPlanet && shootingPlanetNode) {
+      const elapsed = performance.now() - shootPlanetTimeStart;
+
+      // Rotate Jhin to face planet smoothly
+      const targetAngle = Math.atan2(
+        shootingPlanetNode.group.position.x - gamePlayer.position.x,
+        shootingPlanetNode.group.position.z - gamePlayer.position.z
+      );
+      let diffAngle = targetAngle - gamePlayer.rotation.y;
+      while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;
+      while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
+      gamePlayer.rotation.y += diffAngle * 0.15;
+
+      if (elapsed < 800) {
+        // Phase 1: Aiming
+        gameCamShakeOffset.set(
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.02
+        );
+        const shoulder = gamePlayer.getObjectByName("shoulderPad");
+        if (shoulder && shoulder.children[1]) {
+          shoulder.children[1].scale.setScalar(1.2 + Math.sin(time * 25) * 0.2);
+        }
+      } else if (elapsed < 2000) {
+        // Phase 2: Shooting Laser Beam
+        const targetPos = shootingPlanetNode.group.position.clone();
+        targetPos.y = 0.3; // Center of planet mesh
+
+        // Start from gun tip
+        const rightArm = gamePlayer.getObjectByName("rightArmGroup");
+        const gunTip = new THREE.Vector3(0, -0.38, 0.12);
+        if (rightArm) {
+          gunTip.applyMatrix4(rightArm.matrixWorld);
+        } else {
+          gunTip.copy(gamePlayer.position).add(new THREE.Vector3(0.28, -0.98, 0.12));
+        }
+
+        const dist = gunTip.distanceTo(targetPos);
+
+        if (!laserBeamMesh) {
+          const giantLaser = new THREE.Group();
+
+          // Outer giant red glow beam
+          const outerGeom = new THREE.CylinderGeometry(0.35, 0.35, dist, 12);
+          outerGeom.translate(0, dist / 2, 0);
+          outerGeom.rotateX(Math.PI / 2);
+          const outerMat = new THREE.MeshBasicMaterial({
+            color: 0xff0055,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+          });
+          const outerMesh = new THREE.Mesh(outerGeom, outerMat);
+          giantLaser.add(outerMesh);
+
+          // Inner bright core (white-cyan hot plasma)
+          const innerGeom = new THREE.CylinderGeometry(0.12, 0.12, dist, 12);
+          innerGeom.translate(0, dist / 2, 0);
+          innerGeom.rotateX(Math.PI / 2);
+          const innerMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.95
+          });
+          const innerMesh = new THREE.Mesh(innerGeom, innerMat);
+          giantLaser.add(innerMesh);
+
+          laserBeamMesh = giantLaser;
+          gameScene.add(laserBeamMesh);
+        }
+
+        if (laserBeamMesh) {
+          laserBeamMesh.position.copy(gunTip);
+          laserBeamMesh.lookAt(targetPos);
+          const scalePulse = 1.0 + Math.sin(time * 40) * 0.4;
+          laserBeamMesh.scale.set(scalePulse, scalePulse, 1.0);
+        }
+
+        // Screen Shake
+        gameCamShakeOffset.set(
+          (Math.random() - 0.5) * 0.18,
+          (Math.random() - 0.5) * 0.18,
+          (Math.random() - 0.5) * 0.18
+        );
+
+        // Flash Planet red and white
+        if (shootingPlanetNode.mesh && shootingPlanetNode.mesh.material) {
+          if (Math.floor(elapsed / 70) % 2 === 0) {
+            shootingPlanetNode.mesh.material.color.setHex(0xff0000);
+          } else {
+            shootingPlanetNode.mesh.material.color.setHex(0xffffff);
+          }
+        }
+      } else if (elapsed < 3600) {
+        // Phase 3: Planet Explodes into pieces
+        if (laserBeamMesh) {
+          gameScene.remove(laserBeamMesh);
+          laserBeamMesh = null;
+        }
+
+        if (shootingPlanetNode.mesh && shootingPlanetNode.mesh.visible) {
+          shootingPlanetNode.mesh.visible = false;
+
+          // Hide other sub-elements in the group (like rings, moons, cylinder light beam)
+          shootingPlanetNode.group.children.forEach(child => {
+            if (child !== shootingPlanetNode.sprite && child !== shootingPlanetNode.mesh) {
+              child.visible = false;
+            }
+          });
+
+          // Spawn explosion particles matching planet color
+          const pGeom = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 8);
+          const pColor = shootingPlanetNode.def.color;
+          const colors = [pColor, 0xffffff, 0xff0000, 0x555555];
+
+          for (let i = 0; i < 70; i++) {
+            const pMat = new THREE.MeshBasicMaterial({
+              color: colors[Math.floor(Math.random() * colors.length)],
+              transparent: true,
+              opacity: 0.95
+            });
+            const p = new THREE.Mesh(pGeom, pMat);
+            p.position.copy(shootingPlanetNode.group.position);
+            p.position.y = 0.3;
+
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2.0 * Math.random() - 1.0);
+            const speed = 0.05 + Math.random() * 0.18;
+
+            p.userData = {
+              velo: new THREE.Vector3(
+                Math.sin(phi) * Math.cos(theta) * speed,
+                Math.sin(phi) * Math.sin(theta) * speed + 0.02,
+                Math.cos(phi) * speed
+              ),
+              rotSpeed: new THREE.Vector3(
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3,
+                (Math.random() - 0.5) * 0.3
+              ),
+              decay: 0.975
+            };
+            gameScene.add(p);
+            planetExplosionParticles.push(p);
+          }
+        }
+
+        // Update explosion particles
+        planetExplosionParticles.forEach(p => {
+          p.position.add(p.userData.velo);
+          p.rotation.x += p.userData.rotSpeed.x;
+          p.rotation.y += p.userData.rotSpeed.y;
+          p.rotation.z += p.userData.rotSpeed.z;
+          p.userData.velo.multiplyScalar(p.userData.decay);
+          p.scale.multiplyScalar(0.95);
+          p.material.opacity *= 0.95;
+        });
+
+        // Strong shake
+        const intensity = 0.35 * (1.0 - (elapsed - 2000) / 1600);
+        gameCamShakeOffset.set(
+          (Math.random() - 0.5) * intensity,
+          (Math.random() - 0.5) * intensity,
+          (Math.random() - 0.5) * intensity
+        );
+      } else {
+        // Phase 4: Finalize Planet
+        planetExplosionParticles.forEach(p => gameScene.remove(p));
+        planetExplosionParticles = [];
+        if (laserBeamMesh) {
+          gameScene.remove(laserBeamMesh);
+          laserBeamMesh = null;
+        }
+
+        isShootingPlanet = false;
+        gameCamShakeOffset.set(0, 0, 0);
+
+        const currentPlanet = shootingPlanetNode;
+        shootingPlanetNode = null;
+
+        openGameModal(currentPlanet.def);
+      }
+    } else {
+      gameCamShakeOffset.set(0, 0, 0);
+      if (planetExplosionParticles.length > 0) {
+        planetExplosionParticles.forEach(p => gameScene.remove(p));
+        planetExplosionParticles = [];
       }
     }
   }
@@ -4045,13 +5094,33 @@ function gameAnimate() {
   const interactionHud = document.getElementById("interaction-hud");
   const interactionText = document.getElementById("interaction-text");
 
-  if (minDistance < 3.8 && closestNode && !activeModalNode) {
+  if (minDistance < 3.8 && closestNode && !activeModalNode && !transitionLoadingActive && !isShootingPlanet && !isShootingEarth) {
     if (interactionHud && interactionText) {
       interactionHud.classList.remove("hidden");
       const nodeNameVi = getNodeName(closestNode.def, 'vi');
       const nodeNameEn = getNodeName(closestNode.def, 'en');
-      const viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - ĐỨNG YÊN ĐỂ KẾT NỐI`;
-      const enMsg = `NEAR ${nodeNameEn} NODE - STAY STILL TO CONNECT`;
+
+      let isPlutoLocked = false;
+      if (closestNode.def.id === "cv") {
+        const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+        if (coreVisitedCount < 6) {
+          isPlutoLocked = true;
+        }
+      }
+
+      let viMsg, enMsg;
+      if (isPlutoLocked) {
+        const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - VUI LÒNG MỞ KHÓA CÁC TRẠM KHÁC (${coreVisitedCount}/6)`;
+        enMsg = `NEAR ${nodeNameEn} - PLEASE UNLOCK ALL OTHER PLANETS FIRST (${coreVisitedCount}/6)`;
+      } else if (visitedNodes.includes(closestNode.def.id)) {
+        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - ĐỨNG YÊN ĐỂ KẾT NỐI`;
+        enMsg = `NEAR ${nodeNameEn} NODE - STAY STILL TO CONNECT`;
+      } else {
+        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - ĐỨNG YÊN ĐỂ KHỞI ĐỘNG PHÁO HỦY DIỆT`;
+        enMsg = `NEAR ${nodeNameEn} NODE - STAY STILL TO ENGAGE CANNON`;
+      }
+
       interactionText.textContent = currentLang === 'vi' ? viMsg : enMsg;
       interactionText.setAttribute("data-vi", viMsg);
       interactionText.setAttribute("data-en", enMsg);
@@ -4066,7 +5135,7 @@ function gameAnimate() {
       }
     }
 
-    if (minDistance < 3.2 && !activeModalNode && lastOpenedNode !== closestNode.def.id) {
+    if (minDistance < 3.2 && !activeModalNode && !transitionLoadingActive && lastOpenedNode !== closestNode.def.id) {
       lastOpenedNode = closestNode.def.id;
       openGameModal(closestNode.def);
     }
@@ -4082,6 +5151,37 @@ function gameAnimate() {
         const defaultVal = currentLang === 'vi' ? "Không Gian Tự Do" : "Free Orbiting Space";
         if (locText.textContent !== defaultVal) {
           locText.textContent = defaultVal;
+        }
+      }
+    }
+  }
+
+  // Central Sun proximity check for thank you letter (unlocked after exploring all 7 planets)
+  if (gamePlayer) {
+    const sunDist = Math.hypot(gamePlayer.position.x, gamePlayer.position.z);
+    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+
+    if (coreVisitedCount === 7) {
+      if (sunDist < 6.0 && !activeModalNode && !transitionLoadingActive && !isShootingPlanet && !isShootingEarth) {
+        if (interactionHud && interactionText) {
+          interactionHud.classList.remove("hidden");
+          const viMsg = "ĐANG Ở GẦN MẶT TRỜI - NHẤN VÀO MẶT TRỜI ĐỂ ĐỌC THƯ CẢM ƠN";
+          const enMsg = "NEAR THE SUN - CLICK ON THE SUN TO READ THANK YOU LETTER";
+          interactionText.textContent = currentLang === 'vi' ? viMsg : enMsg;
+          interactionText.setAttribute("data-vi", viMsg);
+          interactionText.setAttribute("data-en", enMsg);
+        }
+
+        const locText = document.getElementById("current-location-text");
+        if (locText) {
+          const displayVal = currentLang === 'vi' ? "Mặt Trời" : "The Sun";
+          if (locText.textContent !== displayVal) {
+            locText.textContent = displayVal;
+          }
+        }
+      } else {
+        if (lastOpenedNode === "sun_thanks" && sunDist >= 8.0) {
+          lastOpenedNode = null;
         }
       }
     }
@@ -4171,6 +5271,59 @@ function stopGame3D() {
     gameAnimationId = null;
   }
   closeGameModal();
+  
+  if (gameRenderer) {
+    try {
+      gameRenderer.dispose();
+    } catch (e) {
+      console.warn("Error disposing gameRenderer:", e);
+    }
+    gameRenderer = null;
+  }
+  if (gameScene) {
+    try {
+      gameScene.traverse(object => {
+        try {
+          if (object.geometry) object.geometry.dispose();
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(mat => {
+                if (mat && typeof mat.dispose === 'function') mat.dispose();
+              });
+            } else {
+              if (object.material && typeof object.material.dispose === 'function') object.material.dispose();
+            }
+          }
+        } catch (err) {
+          // Ignore individual node disposal errors
+        }
+      });
+    } catch (e) {
+      console.warn("Error traversing gameScene:", e);
+    }
+    gameScene = null;
+  }
+  gamePlayer = null;
+  gameUnderGlobe = null;
+  gamePortalGroup = null;
+  gameNodes = [];
+  gameWalkwayMeshes = [];
+  gameInitialized = false;
+  lastOpenedNode = null;
+  isShootingEarth = false;
+  shootEarthTimeStart = 0;
+  isShootingPlanet = false;
+  shootPlanetTimeStart = 0;
+  shootingPlanetNode = null;
+  laserBeamMesh = null;
+  earthExplosionParticles = [];
+  planetExplosionParticles = [];
+
+  try {
+    updateQuestUI();
+  } catch (e) {
+    console.warn("Error resetting quest HUD:", e);
+  }
 }
 
 function openGameModal(nodeDef) {
@@ -4180,13 +5333,13 @@ function openGameModal(nodeDef) {
 
   // Block access to Pluto if locked
   if (nodeDef.id === "cv") {
-    const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    if (coreVisitedCount < 6) {
+    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+    if (coreVisitedCount < 7) {
       if (typeof playBeep === 'function') {
         playBeep(400, 0.15, 'sine', 0.05);
       }
       showSafetyNotice(
-        currentLang === 'vi' ? `🔒 VUI LÒNG MỞ KHÓA ${6 - coreVisitedCount} HÀNH TINH NỮA ĐỂ TRUY CẬP (${coreVisitedCount}/6)` : `🔒 PLEASE UNLOCK ${6 - coreVisitedCount} MORE PLANETS TO ACCESS (${coreVisitedCount}/6)`,
+        currentLang === 'vi' ? `🔒 VUI LÒNG MỞ KHÓA ${7 - coreVisitedCount} HÀNH TINH NỮA ĐỂ TRUY CẬP (${coreVisitedCount}/7)` : `🔒 PLEASE UNLOCK ${7 - coreVisitedCount} MORE PLANETS TO ACCESS (${coreVisitedCount}/7)`,
         "#a855f7"
       );
       return;
@@ -4195,20 +5348,20 @@ function openGameModal(nodeDef) {
 
   let isNewUnlock = false;
   // Track visit to other planets
-  if (nodeDef.id !== "home" && nodeDef.id !== "cv" && !visitedNodes.includes(nodeDef.id)) {
+  if (!visitedNodes.includes(nodeDef.id)) {
     visitedNodes.push(nodeDef.id);
-    localStorage.setItem("visitedNodes", JSON.stringify(visitedNodes));
     updatePlutoLockState();
     isNewUnlock = true;
 
     // Show planet unlock cinematic effect
     showPlanetUnlockEffect(nodeDef);
 
-    // Check if all 6 core planets are now unlocked
-    const coreIds = ["about", "skills", "experience", "projects", "testimonials", "contact"];
+    // Check if all 7 planets are now unlocked
+    const coreIds = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"];
     const totalVisited = coreIds.filter(id => visitedNodes.includes(id)).length;
-    if (totalVisited === 6) {
-      setTimeout(() => showAllUnlockedEffect(), 5500);
+    if (totalVisited === 7 && !allUnlockedEffectShown) {
+      shouldShowAllUnlockedEffectAfterClose = true;
+      allUnlockedEffectShown = true;
     }
   }
 
@@ -4246,19 +5399,47 @@ function openGameModal(nodeDef) {
           </div>
 
           <!-- Message -->
-          <div class="md:col-span-8 space-y-6">
+          <div class="md:col-span-8 space-y-4">
             <div class="border-b border-white/5 pb-4">
-              <h3 class="text-pink-500 font-mono text-xs uppercase tracking-widest mb-2">// DOCKING MAIN DECK</h3>
-              <p class="text-zinc-300 text-sm md:text-base leading-relaxed">
-                ${currentLang === 'vi' ? 
-                  'Chào mừng bạn đến với Tổng hành dinh Trạm Không Gian Portfolio. Nhấn nút bên dưới để đóng bảng mô phỏng và hạ cánh xuống giao diện giới thiệu chính.' : 
-                  'Welcome to the Space Station Command Deck. Press the button below to close the simulation and land on the main landing page.'}
-              </p>
+              <h3 class="text-pink-500 font-mono text-xs uppercase tracking-widest mb-2">
+                ${currentLang === 'vi' ? '// HƯỚNG DẪN VẬN HÀNH TRẠM KHÔNG GIAN' : '// SPACE STATION OPERATIONAL MANUAL'}
+              </h3>
+              <div class="text-zinc-300 text-[11px] md:text-xs leading-relaxed space-y-2.5 font-sans">
+                ${currentLang === 'vi' ? `
+                  <p class="font-semibold text-pink-400">
+                    Chào mừng các Nhà Du Hành Vũ Trụ đã cập cảng trạm chỉ huy của Nguyễn Thanh Hiền!
+                  </p>
+                  <p>
+                    Bạn hiện đang vận hành chiến cơ trinh sát stealth-tech bay lơ lửng trong Hệ Mặt Trời ảo. Để sử dụng trạm và tìm kiếm các thông tin cần thiết, vui lòng đọc kỹ hướng dẫn vận hành dưới đây:
+                  </p>
+                  <ul class="list-disc pl-4 space-y-1 text-zinc-400">
+                    <li><strong>Cách di chuyển:</strong> Kéo cần gạt <span class="text-cyan-400">Joystick ảo</span> ở phía dưới bên trái (nếu bạn sử dụng điện thoại/máy tính bảng) hoặc sử dụng các phím <span class="text-cyan-400">W, A, S, D / Phím mũi tên</span> hoặc <span class="text-cyan-400">nhấp chuột phải</span> lên mặt sàn 3D (nếu sử dụng máy tính) để bay tàu đi.</li>
+                    <li><strong>Xoay camera:</strong> Hãy chạm và vuốt màn hình (trên điện thoại) hoặc nhấn giữ chuột trái và kéo (trên máy tính) để xoay đổi góc nhìn quanh chiến cơ.</li>
+                    <li><strong>Khám phá các trạm:</strong> Hãy điều khiển tàu bay lại gần 6 trạm hành tinh chính xung quanh lõi trung tâm: <span class="text-purple-400">Sao Kim, Sao Hỏa, Sao Mộc, Sao Thổ, Sao Thiên Vương, Sao Hải Vương</span>. Khi đứng yên sát hành tinh, cổng dữ liệu sẽ tự động kết nối và hiển thị.</li>
+                    <li><strong>Mở khóa trạm ẩn CV:</strong> Trạm <span class="text-amber-400">Sao Diêm Vương (Pluto)</span> ở ngoài cùng đang bị khóa bằng lá chắn bảo vệ. Bạn cần phải bay qua và mở khóa toàn bộ 6 trạm hành tinh chính ở trên, khi đó cầu dẫn đến Sao Diêm Vương mới xuất hiện để bạn tải bản CV đầy đủ.</li>
+                    <li><strong>Thoát chế độ 3D:</strong> <span class="font-bold text-rose-400">Chú ý:</span> Để quay về trang giới thiệu chính (giao diện 2D thông thường), bạn không thể bấm quay lại ngay tại bảng này mà phải điều khiển chiến cơ bay vào bên trong vùng hào quang của <span class="text-emerald-400">Cổng thoát Sao Thủy (Exit Mercury Portal)</span> nằm ngẫu nhiên ngoài rìa không gian, hoặc click trực tiếp vào nút <span class="text-rose-400">"THOÁT 3D"</span> ở góc trên cùng bên phải màn hình.</li>
+                  </ul>
+                ` : `
+                  <p class="font-semibold text-pink-400">
+                    Welcome, Starfarer, to Nguyễn Thanh Hiền's Space Command Deck!
+                  </p>
+                  <p>
+                    You are piloting a stealth-tech recon starship orbiting in virtual space. Please read this manual carefully to navigate the station and unlock all information:
+                  </p>
+                  <ul class="list-disc pl-4 space-y-1 text-zinc-400">
+                    <li><strong>Movement:</strong> Use the virtual <span class="text-cyan-400">joystick handle</span> in the bottom-left (on mobile) or use <span class="text-cyan-400">W, A, S, D / Arrow keys</span> or <span class="text-cyan-400">Right-click</span> on the space floor grid (on desktop) to fly.</li>
+                    <li><strong>Camera Control:</strong> Touch & drag on screen (mobile) or hold Left-click & drag (desktop) to rotate the viewport.</li>
+                    <li><strong>Connect to Planets:</strong> Fly close to the 6 core planet nodes: <span class="text-purple-400">Venus, Mars, Jupiter, Saturn, Uranus, and Neptune</span>. Hovering near a node automatically establishes a secure connection.</li>
+                    <li><strong>Unlock Pluto (CV):</strong> <span class="text-amber-400">Pluto</span> is protected by an energy shield. You must first unlock all 6 core planet nodes. Once done, the bridge to Pluto will be deployed, allowing you to access and download the CV!</li>
+                    <li><strong>Exit 3D Workspace:</strong> <span class="font-bold text-rose-400">Important Note:</span> To return to the standard 2D list view, you must navigate your ship directly into the glowing green <span class="text-emerald-400">Mercury Exit Portal</span> positioned on the outer rim, or click the <span class="text-rose-400">"EXIT 3D"</span> button in the top-right corner.</li>
+                  </ul>
+                `}
+              </div>
             </div>
             
-            <div class="pt-2">
-              <button onclick="document.getElementById('game-modal-close').click(); const exitBtn = document.getElementById('exit-3d-btn') || document.getElementById('view-mode-btn'); if (exitBtn) exitBtn.click();" class="px-8 py-3 rounded-full border border-pink-500/40 hover:border-pink-500 bg-pink-950/20 text-pink-400 hover:text-white font-bold transition-all duration-300 transform hover:scale-105 shadow-[0_0_15px_rgba(236,72,153,0.2)] hover:shadow-[0_0_25px_rgba(236,72,153,0.4)] w-full sm:w-auto text-center">
-                ${currentLang === 'vi' ? 'HẠ CÁNH XUỐNG TRANG CHỦ ✓' : 'LAND TO PORTFOLIO HOME ✓'}
+            <div class="pt-1">
+              <button onclick="document.getElementById('game-modal-close').click();" class="px-6 py-2.5 rounded-full border border-pink-500/40 hover:border-pink-500 bg-pink-950/20 text-pink-400 hover:text-white font-bold transition-all duration-300 transform hover:scale-105 shadow-[0_0_15px_rgba(236,72,153,0.2)] hover:shadow-[0_0_25px_rgba(236,72,153,0.4)] w-full sm:w-auto text-center font-mono text-[11px] tracking-wider">
+                ${currentLang === 'vi' ? 'BẮT ĐẦU VẬN HÀNH CHIẾN CƠ ✓' : 'LAUNCH RECON STARSHIP ✓'}
               </button>
             </div>
           </div>
@@ -4266,11 +5447,11 @@ function openGameModal(nodeDef) {
       `;
     } else if (nodeDef.id === "about") {
       const bioText = currentLang === 'vi' ? 
-        "Tôi là Thực tập sinh Web Developer & Laravel. Tôi đam mê xây dựng những giao diện người dùng đẹp mắt, mượt mà kết hợp với kiến trúc hệ thống vững chắc. Với tư duy tối ưu hóa hiệu năng và chất lượng sản phẩm, tôi hướng tới việc mang lại những sản phẩm web hoàn hảo nhất cho người sử dụng." :
-        "I am a Web Developer & Laravel Intern. I love building beautiful, smooth user interfaces combined with solid system architectures. With a focus on performance optimization and product quality, I strive to deliver perfect web applications.";
+        "Tôi là sinh viên chuyên ngành Công nghệ thông tin tại trường Cao đẳng Công nghệ Thủ Đức (TDC). Với tôi, lập trình không chỉ là những dòng lệnh khô khan, mà là nghệ thuật dệt nên những vũ trụ số. Mỗi dòng code Laravel viết ra là viên gạch xây nền vững chãi, mỗi thuật toán tối ưu là một quỹ đạo chuyển động nhịp nhàng, và mỗi giao diện tương tác là một ánh sao lấp lánh mang lại cảm xúc cho người dùng. Tôi luôn khát khao chinh phục những giới hạn mới của công nghệ để biến những dòng mã vô tri thành những hành trình trải nghiệm đầy sống động." :
+        "I am an Information Technology student at Thu Duc College of Technology (TDC). To me, programming is not just dry syntax, but the art of weaving digital universes. Every line of Laravel code is a foundation stone, every optimized algorithm is a rhythmic orbit, and every interactive interface is a twinkling starlight that evokes human emotion. I constantly strive to push the boundaries of technology, transforming lifeless code into vivid, memorable journeys.";
       
       const locationVal = "Thủ Đức, TP.HCM";
-      const jobVal = currentLang === 'vi' ? "Thực tập / Fulltime" : "Internship / Fulltime";
+      const jobVal = currentLang === 'vi' ? "Đang đi học" : "Studying";
 
       modalHTML = `
         <div class="grid md:grid-cols-12 gap-8 items-start">
@@ -4304,7 +5485,7 @@ function openGameModal(nodeDef) {
                 </div>
               </div>
               <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
-                <span class="text-zinc-500 uppercase tracking-wider text-[10px]">${currentLang === 'vi' ? 'DẠNG LÀM VIỆC' : 'JOB TYPE'}</span>
+                <span class="text-zinc-500 uppercase tracking-wider text-[10px]">${currentLang === 'vi' ? 'TRẠNG THÁI' : 'STATUS'}</span>
                 <div class="text-white mt-1.5 font-bold text-sm flex items-center gap-2">
                   <i class="fa-solid fa-briefcase text-[#915eff]"></i> ${jobVal}
                 </div>
@@ -4352,16 +5533,16 @@ function openGameModal(nodeDef) {
 
             <div class="w-full mt-6 space-y-3 text-xs border-t border-white/5 pt-4">
               <div class="flex items-center gap-2 text-zinc-300">
-                <i class="fa-solid fa-envelope text-zinc-400 w-4"></i> hien.nguyen@email.com
+                <i class="fa-solid fa-envelope text-zinc-400 w-4"></i> thenghien2006@gmail.com
               </div>
               <div class="flex items-center gap-2 text-zinc-300">
-                <i class="fa-solid fa-phone text-zinc-400 w-4"></i> +84 123 456 789
+                <i class="fa-solid fa-phone text-zinc-400 w-4"></i> 0396 519 196
               </div>
               <div class="flex items-center gap-2 text-zinc-300">
                 <i class="fa-solid fa-location-dot text-zinc-400 w-4"></i> Thủ Đức, TP. HCM
               </div>
               <div class="flex items-center gap-2 text-zinc-300">
-                <i class="fa-solid fa-globe text-zinc-400 w-4 flex-shrink-0"></i> github.com/ehin-cloud
+                <i class="fa-solid fa-globe text-zinc-400 w-4 flex-shrink-0"></i> github.com/eHin-cloud
               </div>
             </div>
           </div>
@@ -4401,8 +5582,8 @@ function openGameModal(nodeDef) {
               <button onclick="window.print();" class="px-6 py-2.5 rounded-full border border-zinc-400/40 hover:border-zinc-300 bg-zinc-800/20 text-zinc-300 hover:text-white font-bold transition-all duration-300 flex items-center gap-2">
                 <i class="fa-solid fa-print"></i> ${currentLang === 'vi' ? 'IN BẢN CV' : 'PRINT CV'}
               </button>
-              <a href="#" onclick="alert('${currentLang === 'vi' ? 'Đang chuẩn bị file tải xuống...' : 'Preparing file download...'}'); return false;" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-zinc-600 to-zinc-500 hover:from-zinc-500 hover:to-zinc-400 text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-lg">
-                <i class="fa-solid fa-download"></i> ${currentLang === 'vi' ? 'TẢI PDF MẪU' : 'DOWNLOAD SAMPLE PDF'}
+              <a href="./CV/24211TT3646_NGUYENTHANHHIEN_CV.pdf" target="_blank" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-lg">
+                <i class="fa-solid fa-download"></i> ${currentLang === 'vi' ? 'TẢI CV PDF THAM KHẢO' : 'DOWNLOAD RESUME PDF'}
               </a>
             </div>
           </div>
@@ -4461,14 +5642,95 @@ function openGameModal(nodeDef) {
   }, showModalDelay);
 }
 
+function openSunThanksModal() {
+  const modal = document.getElementById("game-modal");
+  const content = document.getElementById("game-modal-content");
+  if (!modal || !content) return;
+
+  activeModalNode = "sun_thanks";
+  
+  if (typeof playBeep === 'function') {
+    playBeep(880, 0.18, 'sine', 0.04);
+  }
+
+  const modalHTML = `
+    <div class="grid md:grid-cols-12 gap-8 items-center py-6">
+      <!-- Sun Core avatar -->
+      <div class="md:col-span-4 flex flex-col items-center justify-center p-6 border border-amber-500/20 bg-amber-950/5 rounded-2xl relative overflow-hidden">
+        <div class="absolute inset-0 scanlines pointer-events-none opacity-10"></div>
+        <div class="w-32 h-32 rounded-full border border-dashed border-amber-500/40 flex justify-center items-center relative animate-[spin_40s_linear_infinite] mb-4">
+          <div class="absolute inset-2 border border-dashed border-amber-400/30 rounded-full animate-[spin_20s_linear_infinite_reverse]"></div>
+          <div class="w-24 h-24 rounded-full bg-amber-500/10 flex justify-center items-center text-amber-400 text-4xl shadow-[inset_0_0_20px_rgba(245,158,11,0.3)]">
+            <i class="fa-solid fa-sun animate-pulse"></i>
+          </div>
+        </div>
+        <div class="text-center font-mono">
+          <div class="text-[9px] text-zinc-500 uppercase tracking-widest" data-vi="NHÂN HỆ MẶT TRỜI" data-en="SOLAR CORE">NHÂN HỆ MẶT TRỜI</div>
+          <div class="text-xs text-amber-400 font-bold tracking-widest mt-1">✓ QUANTUM HARMONY</div>
+        </div>
+      </div>
+
+      <!-- Thanks Message Content -->
+      <div class="md:col-span-8 flex flex-col gap-4 font-mono">
+        <div class="flex items-center gap-3">
+          <span class="text-amber-400 text-lg font-bold">▲</span>
+          <h2 class="text-white text-lg font-bold tracking-wider" data-vi="BỨC THƯ TỪ NHÀ LẬP TRÌNH" data-en="A LETTER FROM THE DEVELOPER">BỨC THƯ TỪ NHÀ LẬP TRÌNH</h2>
+        </div>
+        <div class="text-xs text-zinc-300 leading-relaxed space-y-3">
+          <p data-vi="Chào bạn, tôi là Nguyễn Thanh Hiền!" data-en="Hello, I'm Nguyen Thanh Hien!">Chào bạn, tôi là Nguyễn Thanh Hiền!</p>
+          <p data-vi="Cảm ơn bạn rất nhiều vì đã dành thời gian khám phá toàn bộ Trạm Không Gian 3D này. Đây là dự án Portfolio mà tôi đã đặt rất nhiều tâm huyết, kết hợp giữa việc tối ưu hóa lập trình Three.js và tình yêu của tôi dành cho khoa học vũ trụ, lập trình web."
+             data-en="Thank you so much for taking the time to explore this entire 3D Space Station. This is my Portfolio project in which I put a lot of heart, combining Three.js programming optimization with my love for space science and web development.">
+             Cảm ơn bạn rất nhiều vì đã dành thời gian khám phá toàn bộ Trạm Không Gian 3D này. Đây là dự án Portfolio mà tôi đã đặt rất nhiều tâm huyết, kết hợp giữa việc tối ưu hóa lập trình Three.js và tình yêu của tôi dành cho khoa học vũ trụ, lập trình web.
+          </p>
+          <p data-vi="Sự hiện diện của bạn tại lõi Mặt Trời ngày hôm nay là động lực cực kỳ lớn lao để tôi tiếp tục nỗ lực và phát triển bản thân trên con đường trở thành một Web Developer chuyên nghiệp."
+             data-en="Your presence at the Solar Core today is an immense motivation for me to keep striving and developing myself on the path of becoming a professional Web Developer.">
+             Sự hiện diện của bạn tại lõi Mặt Trời ngày hôm nay là động lực cực kỳ lớn lao để tôi tiếp tục nỗ lực và phát triển bản thân trên con đường trở thành một Web Developer chuyên nghiệp.
+          </p>
+          <p data-vi="Chúc bạn có một ngày tuyệt vời và tràn đầy năng lượng tích cực! Hy vọng chúng ta sẽ có cơ hội được hợp tác cùng nhau trong các hành trình sắp tới."
+             data-en="Wish you a wonderful day filled with positive energy! Hope we will have the opportunity to cooperate in our upcoming journeys.">
+             Chúc bạn có một ngày tuyệt vời và tràn đầy năng lượng tích cực! Hy vọng chúng ta sẽ có cơ hội được hợp tác cùng nhau trong các hành trình sắp tới.
+          </p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white/5 flex justify-between items-center text-[10px] text-zinc-500">
+          <span>COGNITIVE TRANSMISSION SECURE</span>
+          <span class="text-amber-400 font-bold">BY NGUYỄN THANH HIỀN</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  content.innerHTML = modalHTML;
+  modal.classList.remove("hidden");
+  setTimeout(() => {
+    modal.classList.remove("opacity-0");
+  }, 50);
+}
+
 function closeGameModal() {
   const modal = document.getElementById("game-modal");
   if (!modal) return;
+
+  // If closing the tutorial planet, show the first planet unlock chime & banner
+  if (activeModalNode === "home" && !homeUnlockEffectShown) {
+    homeUnlockEffectShown = true;
+    const homeDef = nodeDefs.find(n => n.id === "home");
+    if (homeDef) {
+      setTimeout(() => {
+        showPlanetUnlockEffect(homeDef);
+      }, 400);
+    }
+  }
 
   modal.classList.add("opacity-0");
   setTimeout(() => {
     modal.classList.add("hidden");
     activeModalNode = null;
+    if (shouldShowAllUnlockedEffectAfterClose) {
+      shouldShowAllUnlockedEffectAfterClose = false;
+      setTimeout(() => {
+        showAllUnlockedEffect();
+      }, 300);
+    }
   }, 300);
 
   if (typeof playBeep === 'function') {
@@ -4493,7 +5755,7 @@ function updateGameLanguageUI() {
   });
 
   if (gamePortalSprite) {
-    const portalText = currentLang === 'vi' ? 'CỔNG THOÁT' : 'EXIT PORTAL';
+    const portalText = currentLang === 'vi' ? 'SAO THỦY (CỔNG THOÁT)' : 'MERCURY (EXIT PORTAL)';
     const texture = createTextTexture(portalText, '#f43f5e');
     gamePortalSprite.material.map = texture;
     gamePortalSprite.material.needsUpdate = true;
@@ -4830,6 +6092,13 @@ function setupViewModeToggle() {
       playBeep(900, 0.1, 'triangle', 0.05);
     }
   });
+
+  const heroBtn = document.getElementById("hero-view-mode-btn");
+  if (heroBtn) {
+    heroBtn.addEventListener("click", () => {
+      btn.click();
+    });
+  }
 
   // Exit 3D Space Station button inside 3D container
   const exitBtn = document.getElementById("exit-3d-btn");
