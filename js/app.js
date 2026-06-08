@@ -7142,12 +7142,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     async function askGemini(userMessage, history) {
-      const apiKey = (window.GEMINI_API_KEY || localStorage.getItem("gemini-api-key") || "").trim();
-      if (!apiKey) {
-        return currentLang === 'vi'
-          ? 'Chatbot đang chạy bằng dữ liệu có sẵn trên trang. Nếu muốn bật Gemini, hãy thêm API key ở máy cá nhân thay vì lưu trực tiếp trong source code.'
-          : 'The chatbot is using built-in page data. To enable Gemini, add an API key locally instead of storing it directly in the source code.';
-      }
       const modelCandidates = [
         "gemini-2.5-flash",
         "gemini-2.0-flash"
@@ -7251,21 +7245,20 @@ LIÊN HỆ:
       let lastError = null;
       let data = null;
 
-      for (const model of modelCandidates) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const generationConfig = {
-          temperature: 0.7,
-          maxOutputTokens: 900
-        };
+      const generationConfig = {
+        temperature: 0.7,
+        maxOutputTokens: 900
+      };
 
-        if (model.includes("2.5")) {
-          generationConfig.thinkingConfig = {
-            thinkingBudget: 0
-          };
-        }
+      const proxyEndpoints = [
+        "./api/gemini.php",
+        "/api/gemini.php",
+        "/api/gemini"
+      ];
 
+      for (const endpoint of proxyEndpoints) {
         try {
-          const response = await fetch(url, {
+          const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -7273,13 +7266,14 @@ LIÊN HỆ:
             body: JSON.stringify({
               contents,
               systemInstruction,
-              generationConfig
+              generationConfig,
+              modelCandidates
             })
           });
 
           if (!response.ok) {
             const errorText = await response.text();
-            let errorMsg = `Gemini ${model} HTTP ${response.status}`;
+            let errorMsg = `Gemini proxy HTTP ${response.status}`;
             try {
               const errJson = JSON.parse(errorText);
               if (errJson.error && errJson.error.message) {
@@ -7290,7 +7284,7 @@ LIÊN HỆ:
             }
 
             lastError = new Error(errorMsg);
-            if (response.status === 404 || response.status === 429) continue;
+            if (response.status === 404 || response.status === 405) continue;
             throw lastError;
           }
 
@@ -7298,7 +7292,7 @@ LIÊN HỆ:
           break;
         } catch (err) {
           lastError = err;
-          if (err && /404|429|quota/i.test(err.message || "")) continue;
+          if (err && /404|405|Failed to fetch/i.test(err.message || "")) continue;
           throw err;
         }
       }

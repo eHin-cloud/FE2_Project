@@ -4,6 +4,27 @@ const path = require('path');
 
 console.log("🚀 Bắt đầu quá trình Build & Mã hóa (Obfuscate) bảo mật...");
 
+function copyDirectoryFiltered(srcDir, destDir, shouldCopyFile) {
+  if (!fs.existsSync(srcDir)) return;
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  fs.readdirSync(srcDir, { withFileTypes: true }).forEach(entry => {
+    const srcPath = path.join(srcDir, entry.name);
+    const destPath = path.join(destDir, entry.name);
+
+    if (entry.isDirectory()) {
+      copyDirectoryFiltered(srcPath, destPath, shouldCopyFile);
+      return;
+    }
+
+    if (entry.isFile() && shouldCopyFile(entry.name, srcPath)) {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  });
+}
+
 // 1. Tạo thư mục dist
 const distDir = path.join(__dirname, 'dist');
 if (!fs.existsSync(distDir)) {
@@ -61,6 +82,16 @@ if (fs.existsSync(cvSrcDir)) {
     fs.copyFileSync(path.join(cvSrcDir, file), path.join(cvDistDir, file));
   });
   console.log("📦 Đang sao chép thư mục tài nguyên 'CV'...");
+}
+
+// 2.4 Sao chép backend proxy API sang dist, không sao chép file chứa secret local
+const apiSrcDir = path.join(__dirname, 'api');
+const apiDistDir = path.join(distDir, 'api');
+copyDirectoryFiltered(apiSrcDir, apiDistDir, file => {
+  return file === 'gemini.php';
+});
+if (fs.existsSync(path.join(apiDistDir, 'gemini.php'))) {
+  console.log("📦 Đang sao chép backend proxy API...");
 }
 
 const cssSrcDir = path.join(__dirname, 'css');
