@@ -7252,8 +7252,7 @@ LIÊN HỆ:
 
       const proxyEndpoints = [
         "./api/gemini.php",
-        "/api/gemini.php",
-        "/api/gemini"
+        "/api/gemini.php"
       ];
 
       for (const endpoint of proxyEndpoints) {
