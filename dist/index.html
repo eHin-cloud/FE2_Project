@@ -10,7 +10,7 @@
   <script>
     // Self-Healing Version Sync to force-bypass browser cache
     (function() {
-      var localVersion = "1780472400465";
+      var localVersion = "1780908065097";
       if (window.location.protocol !== 'file:') {
         fetch('./version.json?t=' + Date.now())
           .then(function(res) { return res.json(); })
@@ -67,7 +67,7 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1780472400465">
+  <link rel="stylesheet" href="./css/style.css?v=1780908065097">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -128,7 +128,7 @@
           <i
             class="fa-solid fa-satellite-dish text-cyan-400 text-2xl group-hover:scale-110 group-hover:rotate-12 transition-all relative z-10 animate-pulse"></i>
           <span
-            class="text-[8px] font-mono font-bold tracking-widest text-cyan-300/80 group-hover:text-cyan-300 mt-1 uppercase relative z-10">BOARD</span>
+            class="text-[8px] font-mono font-bold tracking-widest text-cyan-300/80 group-hover:text-cyan-300 mt-1 uppercase relative z-10">START</span>
         </button>
       </div>
 
@@ -150,6 +150,16 @@
         <div class="w-full h-1 bg-cyan-950/40 rounded-full overflow-hidden border border-cyan-500/10">
           <div id="loader-progress-bar"
             class="h-full bg-gradient-to-r from-cyan-400 to-purple-400 transition-all duration-75" style="width: 0%">
+          </div>
+        </div>
+        <div id="loader-cache-notice"
+          class="mt-5 w-full border border-cyan-500/20 bg-cyan-950/10 rounded-lg px-3 py-2 text-[9px] font-mono text-cyan-300/75 leading-relaxed tracking-[0.08em] shadow-[0_0_18px_rgba(6,182,212,0.08)]">
+          <div class="flex items-start gap-2">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5"></i>
+            <span data-vi="LƯU Ý: Nếu trang bị thiếu dữ liệu hoặc hiển thị bản cũ, vui lòng nhấn Ctrl + F5 để tải lại toàn bộ trang."
+              data-en="NOTICE: If data is missing or an old version appears, press Ctrl + F5 to fully reload the page.">
+              LƯU Ý: Nếu trang bị thiếu dữ liệu hoặc hiển thị bản cũ, vui lòng nhấn Ctrl + F5 để tải lại toàn bộ trang.
+            </span>
           </div>
         </div>
       </div>
@@ -275,6 +285,12 @@
         title="Bật/Tắt nhạc nền" aria-label="Toggle background music">
         <i id="music-btn-icon" class="fa-solid fa-volume-high text-[10px]"></i>
         <span id="music-btn-text" class="hidden sm:inline" data-vi="ÂM THANH" data-en="AUDIO">ÂM THANH</span>
+      </button>
+      <button id="game-lang-toggle-btn"
+        class="cyber-hud-btn px-3 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all"
+        title="Đổi ngôn ngữ" aria-label="Toggle language">
+        <i class="fa-solid fa-globe text-[10px]"></i>
+        <span id="game-lang-text">VI</span>
       </button>
       <button id="exit-3d-btn"
         class="cyber-hud-btn px-5 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all">
@@ -423,7 +439,7 @@
       <button id="view-mode-btn"
         class="px-2.5 py-1.5 sm:px-3 rounded-xl border border-purple-500/20 hover:border-purple-500/50 text-xs font-mono font-bold tracking-widest text-purple-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
         <i class="fa-solid fa-gamepad text-[10px]"></i>
-        <span id="view-mode-text" class="hidden sm:inline" data-vi="📄 CHẾ ĐỘ THƯỜNG" data-en="📄 LIST VIEW">📄 CHẾ ĐỘ THƯỜNG</span>
+        <span id="view-mode-text" class="hidden sm:inline" data-vi="🎮 KHÔNG GIAN 3D" data-en="🎮 3D WORKSPACE">🎮 KHÔNG GIAN 3D</span>
       </button>
 
       <!-- Lang Toggle button -->
@@ -1347,6 +1363,11 @@
         <div id="chatbot-suggestions" class="flex flex-col gap-2 pl-8">
           <button
             class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+            data-vi="Giới thiệu bản thân của Thanh Hiền?" data-en="Can you introduce Thanh Hien?">
+            Giới thiệu bản thân của Thanh Hiền?
+          </button>
+          <button
+            class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
             data-vi="Kỹ năng nổi bật của Thanh Hiền là gì?" data-en="What are Thanh Hien's key skills?">
             Kỹ năng nổi bật của Thanh Hiền là gì?
           </button>
@@ -1365,6 +1386,11 @@
 
       <!-- Chat Input -->
       <div class="p-3 border-t border-white/5 bg-[#151030] flex gap-2 items-center">
+        <button id="chatbot-suggestions-toggle"
+          class="w-8 h-8 rounded-lg bg-[#0c102b] border border-purple-500/25 hover:border-[#06b6d4]/60 text-[#06b6d4] flex justify-center items-center transition-colors"
+          title="Mở câu gợi ý" aria-label="Toggle suggested questions">
+          <i id="chatbot-suggestions-icon" class="fa-solid fa-list-ul text-xs"></i>
+        </button>
         <input type="text" id="chatbot-input" placeholder="Hỏi điều gì đó về Thanh Hiền..."
           class="flex-1 bg-[#0c102b] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#06b6d4]/50 transition-colors"
           data-vi-placeholder="Hỏi điều gì đó về Thanh Hiền..." data-en-placeholder="Ask something about Thanh Hien...">
@@ -1377,7 +1403,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1780472400465"></script>
+    <script src="./js/app.js?v=1780908065097"></script>
 
 </body>
 

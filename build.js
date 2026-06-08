@@ -107,7 +107,7 @@ if (fs.existsSync(jsSrcDir)) {
 // 3. Tiến hành mã hóa tệp js/app.js sang dist/js/app.js
 console.log("🔒 Đang mã hóa tệp JS bằng javascript-obfuscator (vui lòng chờ)...");
 try {
-  execSync('npx -y javascript-obfuscator js/app.js --output dist/js/app.js --compact true --self-defending true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64 --debug-protection true --debug-protection-interval 2000', { stdio: 'inherit' });
+  execSync('npx -y javascript-obfuscator js/app.js --output dist/js/app.js --compact true --control-flow-flattening true --dead-code-injection true --string-array true --string-array-encoding base64', { stdio: 'inherit' });
   console.log("\n✨ QUÁ TRÌNH MÃ HÓA HOÀN TẤT THÀNH CÔNG!");
   console.log("📂 Thư mục 'dist' đã sẵn sàng! Bạn chỉ cần tải toàn bộ nội dung trong thư mục 'dist' này lên hosting của bạn.");
   console.log("📝 Khi người dùng nhấn F12 trên hosting, họ sẽ thấy tệp JS và CSS nhưng hoàn toàn ở dạng nén/mã hóa không thể đọc hay sao chép.");

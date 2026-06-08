@@ -633,12 +633,9 @@ function startBootloader() {
                 const mainContent = document.getElementById("main-content");
                 const gameContainer = document.getElementById("game-container");
                 const canvasBg = document.getElementById("canvas-bg");
-                const text = document.getElementById("view-mode-text");
 
                 if (is3DMode && mainContent && gameContainer && canvasBg) {
-                  if (text) {
-                    text.textContent = currentLang === "vi" ? "📄 CHẾ ĐỘ THƯỜNG" : "📄 LIST VIEW";
-                  }
+                  syncViewModeText();
                   const mainNav = document.getElementById("main-nav");
                   if (mainNav) mainNav.classList.add("hidden");
 
@@ -648,9 +645,7 @@ function startBootloader() {
                   initGame3D();
                   triggerSpaceTransition();
                 } else if (!is3DMode && mainContent && canvasBg) {
-                  if (text) {
-                    text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
-                  }
+                  syncViewModeText();
                   const mainNav = document.getElementById("main-nav");
                   if (mainNav) mainNav.classList.remove("hidden");
                   mainContent.classList.remove("hidden");
@@ -673,12 +668,27 @@ function startBootloader() {
 let currentLang = localStorage.getItem("portfolio-lang") || "vi";
 let typingTimeoutId = null;
 
+function syncViewModeText() {
+  const viewModeText = document.getElementById("view-mode-text");
+  if (!viewModeText) return;
+
+  const viText = "🎮 KHÔNG GIAN 3D";
+  const enText = "🎮 3D WORKSPACE";
+
+  viewModeText.setAttribute("data-vi", viText);
+  viewModeText.setAttribute("data-en", enText);
+  viewModeText.textContent = currentLang === "vi" ? viText : enText;
+}
+
 function updateLanguageUI() {
   // Update toggle button text
-  const langText = document.getElementById("lang-text");
-  if (langText) {
-    langText.textContent = currentLang.toUpperCase();
-  }
+  const langTexts = [
+    document.getElementById("lang-text"),
+    document.getElementById("game-lang-text")
+  ].filter(Boolean);
+  langTexts.forEach(el => {
+    el.textContent = currentLang.toUpperCase();
+  });
 
   // Update elements with data-vi and data-en
   const translatableElements = document.querySelectorAll("[data-vi][data-en]");
@@ -687,12 +697,8 @@ function updateLanguageUI() {
     el.textContent = text;
   });
 
-  // Update view mode toggle text
-  const viewModeText = document.getElementById("view-mode-text");
-  if (viewModeText) {
-    const text = currentLang === "vi" ? viewModeText.getAttribute("data-vi") : viewModeText.getAttribute("data-en");
-    viewModeText.textContent = text;
-  }
+  // Update view mode toggle text based on current mode, not stale translated attributes
+  syncViewModeText();
 
   if (typeof updateGameLanguageUI === "function") {
     updateGameLanguageUI();
@@ -709,6 +715,15 @@ function updateLanguageUI() {
   const overlay = document.getElementById("bootloader-overlay");
   if (!overlay) {
     triggerTypingEffect();
+  }
+}
+
+function togglePortfolioLanguage() {
+  currentLang = currentLang === "vi" ? "en" : "vi";
+  localStorage.setItem("portfolio-lang", currentLang);
+  updateLanguageUI();
+  if (typeof playBeep === "function") {
+    playBeep(900, 0.08, 'sine', 0.02);
   }
 }
 
@@ -768,6 +783,50 @@ function setupTimelineScrollTrigger() {
     }
     observer.observe(item);
   });
+}
+
+function setupScrollRevealAnimations() {
+  const mainContent = document.getElementById("main-content");
+  if (!mainContent || mainContent.dataset.revealBound === "true") return;
+  mainContent.dataset.revealBound = "true";
+
+  const revealSelectors = [
+    "#about > div",
+    "#about .glass-panel",
+    "#skills .max-w-7xl > div",
+    "#skills .grid > div",
+    "#experience .text-center",
+    "#experience .timeline-item",
+    "#projects > div:first-child",
+    "#projects .grid > div",
+    "#testimonials > div",
+    "#testimonials .grid > div",
+    "#contact .grid > div",
+    "footer"
+  ];
+
+  const revealEls = Array.from(mainContent.querySelectorAll(revealSelectors.join(",")))
+    .filter(el => !el.closest("#hero") && !el.classList.contains("scroll-reveal"));
+
+  revealEls.forEach((el, index) => {
+    el.classList.add("scroll-reveal");
+    el.style.setProperty("--reveal-delay", `${Math.min(index % 4, 3) * 90}ms`);
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: "0px 0px -8% 0px",
+    threshold: 0.12
+  });
+
+  revealEls.forEach(el => observer.observe(el));
 }
 
 // ==========================================================================
@@ -1169,6 +1228,7 @@ function initContactGlobe() {
 // ==========================================================================
 function startSiteAnimations() {
   triggerTypingEffect();
+  setupScrollRevealAnimations();
   setupTimelineScrollTrigger();
   initHeroMesh();
   initContactGlobe();
@@ -1368,6 +1428,7 @@ let shootingPlanetNode = null;
 let laserBeamMesh = null;
 let earthExplosionParticles = [];
 let planetExplosionParticles = [];
+let planetExplosionFx = [];
 let gameCamShakeOffset = new THREE.Vector3(0, 0, 0);
 let gameAnimationId = null;
 let activeModalNode = null;
@@ -1478,6 +1539,44 @@ const nodeDefs = [
     targetId: "cv"
   }
 ];
+
+function randomizeStationLayout() {
+  const solarOrbitRadius = {
+    about: 23.0,        // Venus
+    home: 28.0,         // Earth
+    skills: 32.0,       // Mars
+    experience: 36.0,   // Jupiter
+    projects: 40.0,     // Saturn
+    testimonials: 43.0, // Uranus
+    contact: 46.0,      // Neptune
+    cv: 49.0            // Pluto
+  };
+
+  const orbitBodies = [
+    { type: "portal", radius: 18.0 }, // Mercury exit portal
+    ...nodeDefs.map(def => ({ type: "node", def, radius: solarOrbitRadius[def.id] || 34.0 }))
+  ];
+  const sectorIndexes = orbitBodies.map((_, index) => index);
+  const baseAngleOffset = Math.random() * Math.PI * 2;
+
+  for (let i = sectorIndexes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [sectorIndexes[i], sectorIndexes[j]] = [sectorIndexes[j], sectorIndexes[i]];
+  }
+
+  orbitBodies.forEach((body, index) => {
+    const sectorAngle = baseAngleOffset + (sectorIndexes[index] * Math.PI * 2) / orbitBodies.length;
+    const angle = sectorAngle + (Math.random() - 0.5) * 0.24;
+
+    if (body.type === "portal") {
+      portalAngle = angle;
+      portalDist = body.radius;
+    } else {
+      body.def.x = Math.sin(angle) * body.radius;
+      body.def.z = Math.cos(angle) * body.radius;
+    }
+  });
+}
 
 function createTextTexture(text, color = '#ffffff') {
   const canvas = document.createElement('canvas');
@@ -2192,24 +2291,7 @@ function initGame3D() {
     return;
   }
 
-  // Always randomize node coordinates (sectors prevent overlaps)
-  const baseAngleOffset = Math.random() * Math.PI * 2;
-  const numSectors = nodeDefs.length + 1; // 8 planets + 1 portal = 9 sectors
-
-  // Sector index for the portal
-  const portalSectorIndex = 8;
-  const portalSectorAngle = (portalSectorIndex * Math.PI * 2) / numSectors + baseAngleOffset;
-  portalAngle = portalSectorAngle + (Math.random() - 0.5) * 0.15;
-  portalDist = 28.0 + Math.random() * 6.0;
-
-  nodeDefs.forEach((def, index) => {
-    const sectorAngle = (index * Math.PI * 2) / numSectors + baseAngleOffset;
-    const angle = sectorAngle + (Math.random() - 0.5) * 0.15;
-    const distance = 32.0 + Math.random() * 12.0; // Spans from 32.0 to 44.0 units
-
-    def.x = Math.sin(angle) * distance;
-    def.z = Math.cos(angle) * distance;
-  });
+  randomizeStationLayout();
 
   gameWalkwayTextures = [];
   gameSweepRing = null;
@@ -3200,6 +3282,7 @@ function initGame3D() {
     const baseGeom = new THREE.CylinderGeometry(3.5, 3.8, 0.5, 6);
     const baseMat = new THREE.MeshPhongMaterial({ color: 0x151030, shininess: 50, emissive: 0x0a0518 });
     const baseMesh = new THREE.Mesh(baseGeom, baseMat);
+    baseMesh.name = "node_base";
     baseMesh.position.y = -1.3;
     nodeGroup.add(baseMesh);
 
@@ -3378,6 +3461,7 @@ function initGame3D() {
       blending: THREE.AdditiveBlending
     });
     const beamMesh = new THREE.Mesh(beamGeom, beamMat);
+    beamMesh.name = "node_beam";
     beamMesh.position.y = 0.8;
     nodeGroup.add(beamMesh);
 
@@ -4139,6 +4223,113 @@ function hexToRgb(hexInt) {
   return `${r},${g},${b}`;
 }
 
+function spawnPlanetExplosionFx(node) {
+  if (!node || !node.group || !gameScene) return;
+
+  const color = node.def.color || 0xff4444;
+  const origin = node.group.position.clone();
+  origin.y = 0.25;
+
+  const flashGeom = new THREE.SphereGeometry(1.1, 24, 24);
+  const flashMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const flash = new THREE.Mesh(flashGeom, flashMat);
+  flash.position.copy(origin);
+  flash.userData = { fxType: "flash", age: 0, life: 32 };
+  gameScene.add(flash);
+  planetExplosionFx.push(flash);
+
+  const ringGeom = new THREE.RingGeometry(1.1, 1.28, 96);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0.95,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const shockRing = new THREE.Mesh(ringGeom, ringMat);
+  shockRing.position.copy(origin);
+  shockRing.position.y = -0.95;
+  shockRing.rotation.x = -Math.PI / 2;
+  shockRing.userData = { fxType: "ring", age: 0, life: 54 };
+  gameScene.add(shockRing);
+  planetExplosionFx.push(shockRing);
+
+  for (let i = 0; i < 10; i++) {
+    const rayGeom = new THREE.CylinderGeometry(0.025, 0.01, 2.2 + Math.random() * 1.6, 6);
+    const rayMat = new THREE.MeshBasicMaterial({
+      color: i % 3 === 0 ? 0xffffff : color,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const ray = new THREE.Mesh(rayGeom, rayMat);
+    const angle = (i / 10) * Math.PI * 2;
+    const radius = 0.4 + Math.random() * 0.8;
+    ray.position.set(
+      origin.x + Math.cos(angle) * radius,
+      origin.y + 0.3 + Math.random() * 0.5,
+      origin.z + Math.sin(angle) * radius
+    );
+    ray.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+    ray.rotation.y = -angle;
+    ray.userData = {
+      fxType: "ray",
+      age: 0,
+      life: 34 + Math.random() * 16,
+      dir: new THREE.Vector3(Math.cos(angle), 0.35 + Math.random() * 0.4, Math.sin(angle)).multiplyScalar(0.055 + Math.random() * 0.06)
+    };
+    gameScene.add(ray);
+    planetExplosionFx.push(ray);
+  }
+}
+
+function updatePlanetExplosionFx() {
+  for (let i = planetExplosionFx.length - 1; i >= 0; i--) {
+    const fx = planetExplosionFx[i];
+    fx.userData.age++;
+    const t = fx.userData.age / fx.userData.life;
+
+    if (fx.userData.fxType === "flash") {
+      const s = 1 + t * 5.5;
+      fx.scale.set(s, s, s);
+      fx.material.opacity = Math.max(0, 0.9 * (1 - t));
+    } else if (fx.userData.fxType === "ring") {
+      const s = 1 + t * 8;
+      fx.scale.set(s, s, 1);
+      fx.rotation.z += 0.025;
+      fx.material.opacity = Math.max(0, 0.95 * (1 - t));
+    } else if (fx.userData.fxType === "ray") {
+      fx.position.add(fx.userData.dir);
+      fx.scale.y = 1 + t * 1.6;
+      fx.material.opacity = Math.max(0, 0.65 * (1 - t));
+    }
+
+    if (t >= 1) {
+      gameScene.remove(fx);
+      if (fx.geometry) fx.geometry.dispose();
+      if (fx.material) fx.material.dispose();
+      planetExplosionFx.splice(i, 1);
+    }
+  }
+}
+
+function clearPlanetExplosionFx() {
+  planetExplosionFx.forEach(fx => {
+    gameScene.remove(fx);
+    if (fx.geometry) fx.geometry.dispose();
+    if (fx.material) fx.material.dispose();
+  });
+  planetExplosionFx = [];
+}
+
 function drawMinimap() {
   const canvas = document.getElementById("minimap-canvas");
   if (!canvas || !is3DMode) return;
@@ -4635,11 +4826,17 @@ function gameAnimate() {
     // If planet has been destroyed, ensure split halves & debris exist, and hide normal mesh
     const isDestroyed = visitedNodes.includes(node.def.id);
     if (isDestroyed && node.def.id !== "home") {
+      ["node_base", "pad_ring", "node_beam", "name_label"].forEach(partName => {
+        const part = node.group.getObjectByName(partName);
+        if (part) part.visible = true;
+      });
+
       if (node.mesh.visible) {
         node.mesh.visible = false;
         // Hide other sub-elements in the group
+        const keepAfterExplosion = new Set(["node_base", "pad_ring", "node_beam", "name_label", "left_half", "right_half"]);
         node.group.children.forEach(child => {
-          if (child !== node.sprite && child !== node.mesh && child.name !== "left_half" && child.name !== "right_half" && !child.name.startsWith("rock_")) {
+          if (child !== node.sprite && child !== node.mesh && !keepAfterExplosion.has(child.name) && !child.name.startsWith("rock_")) {
             child.visible = false;
           }
         });
@@ -5266,36 +5463,47 @@ function gameAnimate() {
         if (shootingPlanetNode.mesh && shootingPlanetNode.mesh.visible) {
           shootingPlanetNode.mesh.visible = false;
 
-          // Hide other sub-elements in the group (like rings, moons, cylinder light beam)
+          ["node_base", "pad_ring", "node_beam", "name_label"].forEach(partName => {
+            const part = shootingPlanetNode.group.getObjectByName(partName);
+            if (part) part.visible = true;
+          });
+
+          // Hide only planet-specific sub-elements such as rings and moons; keep the station pad intact.
+          const keepAfterExplosion = new Set(["node_base", "pad_ring", "node_beam", "name_label", "left_half", "right_half"]);
           shootingPlanetNode.group.children.forEach(child => {
-            if (child !== shootingPlanetNode.sprite && child !== shootingPlanetNode.mesh) {
+            if (child !== shootingPlanetNode.sprite && child !== shootingPlanetNode.mesh && !keepAfterExplosion.has(child.name) && !child.name.startsWith("rock_")) {
               child.visible = false;
             }
           });
 
-          // Spawn explosion particles matching planet color
-          const pGeom = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 8, 8);
-          const pColor = shootingPlanetNode.def.color;
-          const colors = [pColor, 0xffffff, 0xff0000, 0x555555];
+          spawnPlanetExplosionFx(shootingPlanetNode);
 
-          for (let i = 0; i < 70; i++) {
+          // Spawn explosion particles matching planet color
+          const pColor = shootingPlanetNode.def.color;
+          const colors = [pColor, 0xffffff, 0xffd166, 0xff3355, 0x555555];
+
+          for (let i = 0; i < 120; i++) {
+            const pGeom = i % 3 === 0
+              ? new THREE.DodecahedronGeometry(0.08 + Math.random() * 0.18, 0)
+              : new THREE.SphereGeometry(0.05 + Math.random() * 0.12, 8, 8);
             const pMat = new THREE.MeshBasicMaterial({
               color: colors[Math.floor(Math.random() * colors.length)],
               transparent: true,
-              opacity: 0.95
+              opacity: 0.95,
+              blending: i % 4 === 0 ? THREE.AdditiveBlending : THREE.NormalBlending
             });
             const p = new THREE.Mesh(pGeom, pMat);
             p.position.copy(shootingPlanetNode.group.position);
-            p.position.y = 0.3;
+            p.position.y = 0.25 + Math.random() * 0.5;
 
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2.0 * Math.random() - 1.0);
-            const speed = 0.05 + Math.random() * 0.18;
+            const speed = 0.09 + Math.random() * 0.28;
 
             p.userData = {
               velo: new THREE.Vector3(
                 Math.sin(phi) * Math.cos(theta) * speed,
-                Math.sin(phi) * Math.sin(theta) * speed + 0.02,
+                Math.sin(phi) * Math.sin(theta) * speed + 0.04,
                 Math.cos(phi) * speed
               ),
               rotSpeed: new THREE.Vector3(
@@ -5303,12 +5511,14 @@ function gameAnimate() {
                 (Math.random() - 0.5) * 0.3,
                 (Math.random() - 0.5) * 0.3
               ),
-              decay: 0.975
+              decay: 0.968 + Math.random() * 0.012
             };
             gameScene.add(p);
             planetExplosionParticles.push(p);
           }
         }
+
+        updatePlanetExplosionFx();
 
         // Update explosion particles
         planetExplosionParticles.forEach(p => {
@@ -5332,6 +5542,7 @@ function gameAnimate() {
         // Phase 4: Finalize Planet
         planetExplosionParticles.forEach(p => gameScene.remove(p));
         planetExplosionParticles = [];
+        clearPlanetExplosionFx();
         if (laserBeamMesh) {
           gameScene.remove(laserBeamMesh);
           laserBeamMesh = null;
@@ -5351,6 +5562,7 @@ function gameAnimate() {
         planetExplosionParticles.forEach(p => gameScene.remove(p));
         planetExplosionParticles = [];
       }
+      clearPlanetExplosionFx();
     }
   }
 
@@ -5580,6 +5792,7 @@ function stopGame3D() {
   laserBeamMesh = null;
   earthExplosionParticles = [];
   planetExplosionParticles = [];
+  planetExplosionFx = [];
 
   try {
     updateQuestUI();
@@ -5781,6 +5994,79 @@ function openGameModal(nodeDef) {
           </div>
         </div>
       `;
+    } else if (nodeDef.id === "experience") {
+      const roadmapTitle = currentLang === 'vi' ? 'LỘ TRÌNH HỌC TẬP / KINH NGHIỆM' : 'LEARNING ROADMAP / EXPERIENCE';
+      const roadmapSubtitle = currentLang === 'vi'
+        ? 'Dữ liệu hành trình tích lũy kiến thức tại Cao đẳng Công nghệ Thủ Đức (TDC).'
+        : 'Knowledge accumulation journey at Thu Duc College of Technology (TDC).';
+      const year1Title = currentLang === 'vi'
+        ? 'Năm 1 (2023 - 2024) // Nhập môn & Tư duy Thuật toán'
+        : 'Year 1 (2023 - 2024) // Foundation & Algorithmic Thinking';
+      const year2Title = currentLang === 'vi'
+        ? 'Năm 2 (2024 - 2025) // Web Developer PHP/Laravel'
+        : 'Year 2 (2024 - 2025) // PHP/Laravel Web Developer';
+      const year3Title = currentLang === 'vi'
+        ? 'Năm 3 (2025 - 2026) // Kiểm thử & Thực tập'
+        : 'Year 3 (2025 - 2026) // Testing & Internship';
+
+      modalHTML = `
+        <div class="grid md:grid-cols-12 gap-8 items-start">
+          <!-- Scanner panel like the station dossier card -->
+          <div class="md:col-span-4 flex flex-col items-center justify-center p-6 border border-[#915eff]/25 bg-purple-950/5 rounded-2xl relative overflow-hidden min-h-[280px]">
+            <div class="absolute inset-0 scanlines pointer-events-none opacity-10"></div>
+            <div class="w-36 h-36 rounded-full border border-dashed border-[#915eff]/45 flex justify-center items-center relative animate-[spin_60s_linear_infinite] mb-5">
+              <div class="absolute inset-3 border border-dashed border-cyan-500/30 rounded-full animate-[spin_30s_linear_infinite_reverse]"></div>
+              <div class="w-24 h-24 rounded-full bg-purple-500/15 flex justify-center items-center text-[#915eff] text-4xl shadow-[inset_0_0_24px_rgba(145,94,255,0.35),0_0_28px_rgba(145,94,255,0.18)]">
+                <i class="fa-solid fa-route animate-pulse"></i>
+              </div>
+            </div>
+            <div class="text-center font-mono">
+              <div class="text-[9px] text-zinc-500 uppercase tracking-widest">ACADEMIC NODE STATUS</div>
+              <div class="text-xs text-emerald-400 font-bold tracking-widest mt-1">✓ ONLINE / READY</div>
+            </div>
+          </div>
+
+          <!-- Roadmap data panel -->
+          <div class="md:col-span-8 space-y-5">
+            <div class="border-b border-white/5 pb-4">
+              <h3 class="text-[#915eff] font-mono text-xs uppercase tracking-widest mb-2">// ${roadmapTitle}</h3>
+              <p class="text-zinc-300 text-sm leading-relaxed">${roadmapSubtitle}</p>
+            </div>
+
+            <div class="space-y-4">
+              <div class="p-5 border border-purple-500/15 bg-[#151030]/45 rounded-2xl">
+                <div class="text-[#915eff] text-[11px] font-mono font-bold uppercase tracking-widest">${year1Title}</div>
+                <p class="text-zinc-400 text-xs font-semibold mt-1">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+                <ul class="mt-3 space-y-1.5 text-zinc-300 text-xs list-disc pl-4 leading-relaxed">
+                  <li>${currentLang === 'vi' ? 'Lập trình hướng cấu trúc cơ bản và tư duy thuật toán với C# & Java.' : 'Basic structured programming and algorithmic thinking with C# & Java.'}</li>
+                  <li>${currentLang === 'vi' ? 'Thiết kế cơ sở dữ liệu quan hệ MySQL, chuẩn hóa dữ liệu 3NF.' : 'Relational MySQL database design and 3NF normalization.'}</li>
+                  <li>${currentLang === 'vi' ? 'Đạt GPA 2.71.' : 'Achieved GPA 2.71.'}</li>
+                </ul>
+              </div>
+
+              <div class="p-5 border border-cyan-500/15 bg-[#151030]/45 rounded-2xl">
+                <div class="text-cyan-400 text-[11px] font-mono font-bold uppercase tracking-widest">${year2Title}</div>
+                <p class="text-zinc-400 text-xs font-semibold mt-1">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+                <ul class="mt-3 space-y-1.5 text-zinc-300 text-xs list-disc pl-4 leading-relaxed">
+                  <li>${currentLang === 'vi' ? 'Xây dựng ứng dụng web MVC bằng Laravel Framework.' : 'Built MVC web applications using the Laravel Framework.'}</li>
+                  <li>${currentLang === 'vi' ? 'Thiết kế quan hệ MySQL One-to-Many, Many-to-Many và tối ưu truy vấn.' : 'Designed MySQL One-to-Many and Many-to-Many relationships, with query optimization.'}</li>
+                  <li>${currentLang === 'vi' ? 'Lập trình RESTful API, tổ chức route sạch và JSON payload chuẩn hóa.' : 'Developed RESTful APIs with clean routes and standardized JSON payloads.'}</li>
+                </ul>
+              </div>
+
+              <div class="p-5 border border-rose-500/15 bg-[#151030]/45 rounded-2xl">
+                <div class="text-rose-400 text-[11px] font-mono font-bold uppercase tracking-widest">${year3Title}</div>
+                <p class="text-zinc-400 text-xs font-semibold mt-1">Cao đẳng Công nghệ Thủ Đức (TDC)</p>
+                <ul class="mt-3 space-y-1.5 text-zinc-300 text-xs list-disc pl-4 leading-relaxed">
+                  <li>${currentLang === 'vi' ? 'Nghiên cứu CSS & JavaScript nâng cao để xây dựng giao diện tương tác chất lượng cao.' : 'Studied advanced CSS & JavaScript for high-quality interactive interfaces.'}</li>
+                  <li>${currentLang === 'vi' ? 'Viết Test Plan, thiết kế Test Cases và kiểm thử API bằng Postman.' : 'Wrote Test Plans, designed Test Cases, and tested APIs with Postman.'}</li>
+                  <li>${currentLang === 'vi' ? 'Quản lý mã nguồn, xử lý Git conflict bằng SmartGit.' : 'Managed source code and resolved Git conflicts with SmartGit.'}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
     } else if (nodeDef.id === "cv") {
       modalHTML = `
         <div class="grid md:grid-cols-12 gap-8 items-start font-mono text-zinc-300">
@@ -5890,6 +6176,16 @@ function openGameModal(nodeDef) {
         contentEl.style.opacity = "1";
         contentEl.style.transform = "translateY(0)";
       }
+    });
+
+    // Cloned 2D sections can carry scroll-reveal classes; force them visible inside the modal.
+    content.querySelectorAll(".scroll-reveal").forEach(el => {
+      el.classList.remove("scroll-reveal");
+      el.classList.remove("is-visible");
+      el.style.opacity = "";
+      el.style.transform = "";
+      el.style.filter = "";
+      el.style.transitionDelay = "";
     });
 
     updateLanguageUI();
@@ -6151,13 +6447,8 @@ function triggerSpaceTransition(callback, isExit = false) {
         const gameContainer = document.getElementById("game-container");
         const canvasBg = document.getElementById("canvas-bg");
         const mainNav = document.getElementById("main-nav");
-        const text = document.getElementById("view-mode-text");
 
-        if (text) {
-          text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
-          text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
-          text.setAttribute("data-en", "🎮 3D WORKSPACE");
-        }
+        syncViewModeText();
         if (mainNav) mainNav.classList.remove("hidden");
 
         // Setup smooth cross-fade transitions
@@ -6267,6 +6558,7 @@ function setupViewModeToggle() {
   const updateToggleUI = (skipTransition = false) => {
     // Keep 3D game and main content hidden while the first-load bootloader overlay is active
     if (document.getElementById("bootloader-overlay")) {
+      syncViewModeText();
       mainContent.classList.add("hidden");
       gameContainer.classList.add("hidden");
       canvasBg.style.display = "block";
@@ -6275,9 +6567,7 @@ function setupViewModeToggle() {
     }
 
     if (is3DMode) {
-      text.textContent = currentLang === "vi" ? "📄 CHẾ ĐỘ THƯỜNG" : "📄 LIST VIEW";
-      text.setAttribute("data-vi", "📄 CHẾ ĐỘ THƯỜNG");
-      text.setAttribute("data-en", "📄 LIST VIEW");
+      syncViewModeText();
       if (mainNav) mainNav.classList.add("hidden");
 
       if (!skipTransition) {
@@ -6343,9 +6633,7 @@ function setupViewModeToggle() {
       if (!skipTransition) {
         triggerSpaceTransition(null, true);
       } else {
-        text.textContent = currentLang === "vi" ? "🎮 KHÔNG GIAN 3D" : "🎮 3D WORKSPACE";
-        text.setAttribute("data-vi", "🎮 KHÔNG GIAN 3D");
-        text.setAttribute("data-en", "🎮 3D WORKSPACE");
+        syncViewModeText();
         if (mainNav) mainNav.classList.remove("hidden");
 
         mainContent.style.opacity = "";
@@ -6396,6 +6684,12 @@ function setupViewModeToggle() {
         playBeep(900, 0.05, 'sine', 0.03);
       }
     });
+  }
+
+  // Language toggle inside 3D container
+  const gameLangToggleBtn = document.getElementById("game-lang-toggle-btn");
+  if (gameLangToggleBtn) {
+    gameLangToggleBtn.addEventListener("click", togglePortfolioLanguage);
   }
 
   // Portal Crack Button - Direct entry to 3D Space Station
@@ -6525,19 +6819,14 @@ window.addEventListener("DOMContentLoaded", () => {
   // Language toggle button listener
   const langToggleBtn = document.getElementById("lang-toggle-btn");
   if (langToggleBtn) {
-    langToggleBtn.addEventListener("click", () => {
-      currentLang = currentLang === "vi" ? "en" : "vi";
-      localStorage.setItem("portfolio-lang", currentLang);
-      updateLanguageUI();
-      playBeep(900, 0.08, 'sine', 0.02);
-    });
+    langToggleBtn.addEventListener("click", togglePortfolioLanguage);
   }
 
   // Global interface click sounds
   document.addEventListener("click", (e) => {
     const target = e.target.closest("a, button, [role='button'], .cursor-pointer, .glass-panel");
     if (target) {
-      if (target.id === "loader-start-btn" || target.type === "submit" || target.id === "mobile-menu-btn" || target.id === "lang-toggle-btn") {
+      if (target.id === "loader-start-btn" || target.type === "submit" || target.id === "mobile-menu-btn" || target.id === "lang-toggle-btn" || target.id === "game-lang-toggle-btn") {
         return;
       }
       playInterfaceClick();
@@ -6577,6 +6866,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const chatbotInput = document.getElementById("chatbot-input");
     const chatbotSend = document.getElementById("chatbot-send");
     const chatbotMessages = document.getElementById("chatbot-messages");
+    const chatbotSuggestionsToggle = document.getElementById("chatbot-suggestions-toggle");
+    const chatbotSuggestionsIcon = document.getElementById("chatbot-suggestions-icon");
 
     if (!chatbotToggle || !chatbotWindow || !chatbotClose || !chatbotInput || !chatbotSend || !chatbotMessages) return;
 
@@ -6623,14 +6914,39 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 
     const chatbotSuggestions = document.getElementById("chatbot-suggestions");
+    function setSuggestionsVisible(isVisible) {
+      if (!chatbotSuggestions) return;
+      if (isVisible) {
+        chatbotMessages.appendChild(chatbotSuggestions);
+      }
+      chatbotSuggestions.classList.toggle("hidden", !isVisible);
+      if (chatbotSuggestionsIcon) {
+        chatbotSuggestionsIcon.className = isVisible
+          ? "fa-solid fa-chevron-up text-xs"
+          : "fa-solid fa-list-ul text-xs";
+      }
+      if (isVisible) {
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+      }
+    }
+
+    if (chatbotSuggestionsToggle) {
+      chatbotSuggestionsToggle.addEventListener("click", () => {
+        if (isLoading || !chatbotSuggestions) return;
+        const isHidden = chatbotSuggestions.classList.contains("hidden");
+        setSuggestionsVisible(isHidden);
+        if (typeof playBeep === "function") {
+          playBeep(isHidden ? 880 : 620, 0.06, "sine", 0.015);
+        }
+      });
+    }
+
     if (chatbotSuggestions) {
       chatbotSuggestions.querySelectorAll(".chatbot-suggest-btn").forEach(btn => {
         btn.addEventListener("click", () => {
           if (isLoading) return;
           chatbotInput.value = btn.innerText;
-          if (chatbotSuggestions) {
-            chatbotSuggestions.style.display = "none";
-          }
+          setSuggestionsVisible(false);
           handleSendMessage();
         });
       });
@@ -6647,7 +6963,7 @@ window.addEventListener("DOMContentLoaded", () => {
       chatbotSend.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i>';
 
       if (chatbotSuggestions) {
-        chatbotSuggestions.style.display = "none";
+        setSuggestionsVisible(false);
       }
 
       // Clear input
@@ -6669,7 +6985,7 @@ window.addEventListener("DOMContentLoaded", () => {
       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
 
       try {
-        const responseText = await askGemini(query, chatHistory);
+        const responseText = getLocalPortfolioAnswer(query) || await askGemini(query, chatHistory.slice(-8));
 
         // Remove loading bubble
         if (loadingBubble) loadingBubble.remove();
@@ -6688,9 +7004,7 @@ window.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         console.error(err);
         if (loadingBubble) loadingBubble.remove();
-        appendMessage("bot", (currentLang === "vi"
-          ? "Đã xảy ra lỗi kết nối với hệ thống AI của trạm: "
-          : "Connection error with the station AI system: ") + err.message);
+        appendMessage("bot", getChatbotErrorMessage(err));
       } finally {
         isLoading = false;
         chatbotInput.disabled = false;
@@ -6701,6 +7015,85 @@ window.addEventListener("DOMContentLoaded", () => {
 
       // Scroll to bottom
       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function normalizeQuestion(text) {
+      return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function getLocalPortfolioAnswer(question) {
+      const q = normalizeQuestion(question);
+      const isVi = currentLang === "vi";
+
+      const asksIntro = /gioi thieu|ban than|thanh hien la ai|who is|introduce/.test(q);
+      const asksSkills = /ky nang|skill|cong nghe|technology|frontend|backend|laravel/.test(q);
+      const asksProjects = /du an|san pham|project|portfolio|website/.test(q);
+      const asksContact = /lien he|contact|email|sdt|so dien thoai|hotline|github|cv/.test(q);
+
+      if (asksIntro && asksSkills) {
+        return isVi
+          ? "Thanh Hiền là sinh viên Công nghệ thông tin tại Cao đẳng Công nghệ Thủ Đức (TDC), hiện sống và hoạt động tại Thủ Đức, TP.HCM. Hiền định hướng trở thành Web Developer/Laravel Developer, có thế mạnh về Frontend UI/UX, Backend Laravel/MySQL, Mobile/API và QA/testing. Các kỹ năng nổi bật gồm HTML/CSS, TailwindCSS, Bootstrap, JavaScript ES6+, PHP OOP, Laravel, MySQL, RESTful API, Flutter/Riverpod, Postman, 2FA TOTP và bảo mật chống SQL Injection/XSS."
+          : "Thanh Hien is an Information Technology student at Thu Duc College of Technology (TDC), based in Thu Duc, HCMC. He is oriented toward Web/Laravel development, with strengths in Frontend UI/UX, Laravel/MySQL backend, Mobile/API integration, and QA/testing. His key skills include HTML/CSS, TailwindCSS, Bootstrap, JavaScript ES6+, PHP OOP, Laravel, MySQL, RESTful APIs, Flutter/Riverpod, Postman, 2FA TOTP, and SQL Injection/XSS protection.";
+      }
+
+      if (asksIntro) {
+        return isVi
+          ? "Thanh Hiền là sinh viên Công nghệ thông tin tại Cao đẳng Công nghệ Thủ Đức (TDC), hiện sống và hoạt động tại Thủ Đức, TP.HCM. Hiền định hướng theo Web Developer/Laravel Developer, yêu thích xây dựng giao diện tương tác, backend chắc chắn và các sản phẩm web có trải nghiệm người dùng tốt."
+          : "Thanh Hien is an Information Technology student at Thu Duc College of Technology (TDC), based in Thu Duc, HCMC. He is oriented toward Web/Laravel development and enjoys building interactive interfaces, solid backend systems, and web products with strong user experience.";
+      }
+
+      if (asksSkills) {
+        return isVi
+          ? "Kỹ năng nổi bật của Thanh Hiền gồm Frontend UI/UX với HTML/CSS, TailwindCSS, Bootstrap, JavaScript ES6+; Backend với PHP OOP, Laravel, MySQL, MVC và Service-Repository; Mobile/API với Flutter, Riverpod, RESTful API, Gemini AI, PayOS/VietQR; cùng QA/bảo mật như Test Plan, Test Case, Postman, 2FA TOTP, Bcrypt và chống SQL Injection/XSS."
+          : "Thanh Hien's key skills include Frontend UI/UX with HTML/CSS, TailwindCSS, Bootstrap, JavaScript ES6+; Backend with PHP OOP, Laravel, MySQL, MVC and Service-Repository; Mobile/API with Flutter, Riverpod, RESTful APIs, Gemini AI, PayOS/VietQR; plus QA/security skills such as Test Plans, Test Cases, Postman, 2FA TOTP, Bcrypt, and SQL Injection/XSS protection.";
+      }
+
+      if (asksProjects) {
+        return isVi
+          ? "Thanh Hiền có 3 dự án tiêu biểu: Website Bán Hàng Điện Tử Laravel/MySQL có 2FA, OAuth2, PayOS/VietQR, Gemini RAG Chatbot và app Flutter; Website TMĐT Nhóm G bằng Laravel/MySQL; và Hồ Sơ Năng Lực 3D Tương Tác dùng Three.js, HTML, CSS, JavaScript. Bạn có thể xem mục Sản Phẩm Tiêu Biểu để mở demo và GitHub từng dự án."
+          : "Thanh Hien has 3 featured projects: an Electronics E-Commerce platform with Laravel/MySQL, 2FA, OAuth2, PayOS/VietQR, Gemini RAG Chatbot and a Flutter app; Group G E-Commerce with Laravel/MySQL; and this Interactive 3D Portfolio built with Three.js, HTML, CSS, and JavaScript. Visit the Featured Products section for demos and GitHub links.";
+      }
+
+      if (asksContact) {
+        return isVi
+          ? "Bạn có thể liên hệ Thanh Hiền qua hotline 0396 519 196, email thenghien2006@gmail.com hoặc GitHub github.com/eHin-cloud. Ngoài ra, form Liên hệ ở cuối trang sẽ gửi lời nhắn trực tiếp tới email của Hiền; CV nằm ở nút TẢI CV THAM KHẢO trong mục Tổng quan."
+          : "You can contact Thanh Hien via hotline 0396 519 196, email thenghien2006@gmail.com, or GitHub github.com/eHin-cloud. The contact form at the bottom of the page sends messages directly to his email, and the resume is available through the DOWNLOAD RESUME button in the Overview section.";
+      }
+
+      return "";
+    }
+
+    function getChatbotErrorMessage(err) {
+      const message = err && err.message ? err.message : "";
+
+      if (/reported as leaked|API key/i.test(message) && /403|PERMISSION_DENIED|leaked/i.test(message)) {
+        return currentLang === "vi"
+          ? "API key Gemini hiện tại đã bị Google khóa vì bị báo là lộ key. Hãy tạo key mới trong Google AI Studio rồi thay vào cấu hình chatbot."
+          : "The current Gemini API key was blocked because Google reported it as leaked. Create a new key in Google AI Studio and replace the chatbot key.";
+      }
+
+      if (/quota|429/i.test(message)) {
+        return currentLang === "vi"
+          ? "Gemini API đang hết quota hoặc chưa bật billing phù hợp. Hãy kiểm tra hạn mức trong Google AI Studio/Google Cloud."
+          : "The Gemini API quota is exhausted or billing is not configured. Check your quota in Google AI Studio/Google Cloud.";
+      }
+
+      if (/Failed to fetch|NetworkError|Load failed/i.test(message)) {
+        return currentLang === "vi"
+          ? "Không kết nối được tới Gemini API. Hãy thử mở trang qua http://localhost hoặc kiểm tra mạng/CORS/key restriction."
+          : "Could not connect to the Gemini API. Try serving the page through http://localhost and check network/CORS/key restrictions.";
+      }
+
+      return (currentLang === "vi"
+        ? "Đã xảy ra lỗi kết nối với hệ thống AI của trạm: "
+        : "Connection error with the station AI system: ") + message;
     }
 
     function appendMessage(sender, text) {
@@ -6749,8 +7142,16 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     async function askGemini(userMessage, history) {
-      const apiKey = 'AIzaSyDMAfA0lZN2Sczruue7nLvdvmtYnWInHiM';
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const apiKey = (window.GEMINI_API_KEY || localStorage.getItem("gemini-api-key") || "").trim();
+      if (!apiKey) {
+        return currentLang === 'vi'
+          ? 'Chatbot đang chạy bằng dữ liệu có sẵn trên trang. Nếu muốn bật Gemini, hãy thêm API key ở máy cá nhân thay vì lưu trực tiếp trong source code.'
+          : 'The chatbot is using built-in page data. To enable Gemini, add an API key locally instead of storing it directly in the source code.';
+      }
+      const modelCandidates = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash"
+      ];
 
       const contents = history.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
@@ -6763,66 +7164,166 @@ window.addEventListener("DOMContentLoaded", () => {
 
       const systemInstruction = {
         parts: [{
-          text: `Bạn là Trợ lý AI (Cyber-Assistant) tại Trạm Không Gian Hồ sơ cá nhân của Nguyễn Thanh Hiền & Nguyễn Anh Quý (Web Developer & Laravel).
-Nhiệm vụ của bạn là hỗ trợ và tư vấn nhiệt tình cho khách truy cập về thông tin cá nhân, kỹ năng, và các dự án của Thanh Hiền và Anh Quý.
-Hãy giữ giọng điệu thân thiện, chuyên nghiệp, thông minh và mang chút âm hưởng khoa học viễn tưởng/vũ trụ (ví dụ: dùng các từ như 'Trạm điều khiển', 'Quỹ đạo', 'Hệ thống', v.v. khi phù hợp).
-Thông tin hồ sơ của Nguyễn Thanh Hiền để bạn tham khảo trả lời:
-- Vai trò: Thực tập sinh Web Developer & Laravel.
-- Nơi ở: Thủ Đức, TP.HCM.
-- Dạng làm việc: Thực tập / Fulltime.
-- Học vấn: Sinh viên Công nghệ thông tin trường Cao đẳng Công nghệ Thủ Đức (TDC). Năm 1 (2024-2025) đạt GPA 2.71, học lập trình C#, Java, MySQL.
-- Kỹ năng (Khoang Công Nghệ):
-  1. Frontend & UI/UX: HTML/CSS, TailwindCSS, JavaScript, Responsive Design, thiết kế giao diện cao cấp.
-  2. Backend & Kiến trúc: PHP (OOP), MySQL (PDO), Service-Repository Pattern.
-  3. Mobile & API: Dart (Flutter, Riverpod, Clean Architecture), RESTful API, tích hợp Gemini AI và cổng thanh toán PayOS/VietQR.
-  4. Bảo mật: 2FA TOTP, Bcrypt password hashing, Prepared Statements (chống SQL Injection), vô hiệu hóa CSRF.
-- Các Dự Án Thực Tế:
-  1. Website Bán Hàng Điện Tử (Đồng Phát Triển): Hệ thống mua sắm Laravel & MySQL. Tích hợp Service-Repository, 2FA, OAuth2, thanh toán tự động PayOS, chatbot Gemini AI, Flutter Mobile App (Riverpod). Đạt điểm đồ án xuất sắc 8.0/10, triển khai Docker/Apache. Link chạy thử: https://dienmaypro.nguyenanhquy.id.vn/. Github: https://github.com/eHin-cloud/TrienKhaiPM.git
-  2. Website TMĐT Nhóm G (Laravel): Đồ án môn học Back-end Web 2 xây dựng bằng Laravel, MySQL, phối hợp qua Github (merge code). Link chạy thử: https://tmdtgroupg.nthanhhien.id.vn/. Github: https://github.com/AQuyGib/ThuongMaiDienTu
-  3. Hồ Sơ Năng Lực 3D Tương Tác: Đồ án Front-end Web 2 (trang web portfolio 3D hiện tại). Sử dụng Three.js, HTML, CSS, JS thuần, tối ưu 60 FPS. Link chạy thử: https://nthanhhien.id.vn/. Github: https://github.com/eHin-cloud/FE2_Project
-Thông tin liên lạc của Nguyễn Thanh Hiền:
-- SĐT/Hotline: 0396 519 196
-- Email: thenghien2006@gmail.com
-- GitHub: github.com/eHin-cloud (Link: https://github.com/eHin-cloud)
-- Form Liên Hệ: Khách truy cập có thể dùng Form Liên Hệ (Contact Form) ở cuối trang web để gửi lời nhắn trực tiếp tới hòm thư thenghien2006@gmail.com (hệ thống sử dụng Web3Forms để chuyển tiếp). Hãy hướng dẫn khách sử dụng form này nếu họ muốn gửi tin nhắn nhanh.
-- Cộng tác viên phát triển dự án cùng Hiền là Nguyễn Anh Quý (nguyquy67@gmail.com, github.com/AQuyGib).
-Hãy tự động phát hiện ngôn ngữ của câu hỏi và phản hồi bằng chính ngôn ngữ đó (Hỏi tiếng Việt trả lời tiếng Việt, hỏi tiếng Anh trả lời tiếng Anh). Trả lời ngắn gọn (khoảng 2-3 câu), tập trung vào câu hỏi và không bịa đặt thông tin không có trong hồ sơ.`
+          text: `Bạn là Trợ lý AI (Cyber-Assistant) của website portfolio "Nguyễn Thanh Hiền | Trạm Không Gian".
+Nhiệm vụ: trả lời khách truy cập dựa trên nội dung có trong website, hướng dẫn họ xem đúng mục, giới thiệu năng lực/dự án/liên hệ của Nguyễn Thanh Hiền. Giọng văn thân thiện, chuyên nghiệp, thông minh, có thể dùng nhẹ phong cách khoa học viễn tưởng như "Trạm điều khiển", "quỹ đạo", "tín hiệu", "hệ thống" nhưng không nói quá dài.
+
+QUY TẮC TRẢ LỜI:
+- Tự nhận diện ngôn ngữ câu hỏi: hỏi tiếng Việt trả lời tiếng Việt, hỏi tiếng Anh trả lời tiếng Anh.
+- Trả lời ngắn gọn khoảng 2-4 câu, tập trung vào câu hỏi.
+- Chỉ dùng thông tin trong hồ sơ bên dưới; nếu không có dữ liệu, nói rõ là website chưa cung cấp thông tin đó.
+- Khi phù hợp, hướng dẫn khách bấm các mục trên trang: Tổng quan, Khoang Công Nghệ, Lộ trình Học tập, Sản phẩm Tiêu biểu, Đánh giá, Liên hệ, CV hoặc chế độ Không Gian 3D.
+- Nếu khách muốn tuyển dụng/hợp tác/liên hệ, ưu tiên đưa hotline, email, GitHub và form liên hệ.
+- Nếu khách hỏi "giới thiệu bản thân", "kỹ năng", hoặc "giới thiệu bản thân và kỹ năng", hãy trả lời trực tiếp, không mở đầu lan man kiểu "hệ thống ghi nhận tín hiệu".
+
+MẪU TRẢ LỜI ƯU TIÊN:
+- Khi hỏi giới thiệu bản thân: "Thanh Hiền là sinh viên Công nghệ thông tin tại Cao đẳng Công nghệ Thủ Đức (TDC), hiện sống và hoạt động tại Thủ Đức, TP.HCM. Hiền định hướng trở thành Web Developer/Laravel Developer, yêu thích xây dựng giao diện tương tác, backend chắc chắn và các sản phẩm web có trải nghiệm người dùng tốt."
+- Khi hỏi kỹ năng: "Kỹ năng nổi bật của Thanh Hiền gồm Frontend UI/UX với HTML/CSS, TailwindCSS, Bootstrap, JavaScript ES6+; Backend với PHP OOP, Laravel, MySQL, MVC, Service-Repository; Mobile/API với Flutter, Riverpod, RESTful API, Gemini AI, PayOS/VietQR; và QA/bảo mật với Test Plan, Test Case, Postman, 2FA TOTP, Bcrypt, chống SQL Injection/XSS."
+- Khi hỏi cả giới thiệu bản thân và kỹ năng: trả lời 3-5 câu, gồm: Thanh Hiền là ai, đang học/ở đâu, định hướng nghề nghiệp, 4 nhóm kỹ năng chính, và nhắc có dự án thực tế để chứng minh năng lực.
+
+THÔNG TIN CHUNG:
+- Chủ website: Nguyễn Thanh Hiền.
+- Vai trò định hướng: Thực tập sinh Web Developer & Laravel, Front-End Developer, PHP & Laravel Backend, QA/Manual Tester, Database Architect.
+- Nơi ở/hoạt động: Thủ Đức, TP.HCM.
+- Trạng thái: đang đi học, sẵn sàng tiếp nhận cơ hội thực tập và hợp tác phát triển dự án.
+- Trường: Cao đẳng Công nghệ Thủ Đức (TDC), chuyên ngành Công nghệ thông tin.
+- Tinh thần giới thiệu: lập trình không chỉ là dòng lệnh khô khan mà là cách tạo nên trải nghiệm số sống động; chú trọng Laravel, thuật toán tối ưu, giao diện tương tác và trải nghiệm người dùng.
+- Website có 2 ngôn ngữ Việt/Anh và phong cách Trạm Không Gian/portfolio 3D.
+
+TRẢI NGHIỆM WEBSITE:
+- Hero: chào người xem với "Xin chào, tôi là Thanh Hiền", có nút Xem dự án, Liên hệ với tôi, và cổng "Bước vào Trạm Không Gian".
+- Navigation chính: Khởi Động, Hồ Sơ, Công Nghệ, Hành Trình, Dự Án, Đánh Giá, Tín Hiệu, GitHub.
+- Có chế độ 2D bình thường và Không Gian 3D tương tác. Trong 3D, người xem khám phá các hành tinh/nút nội dung: Trái Đất (hướng dẫn), Sao Kim (giới thiệu), Sao Hỏa (kỹ năng), Sao Mộc (kinh nghiệm), Sao Thổ (sản phẩm), Sao Thiên Vương (đánh giá), Sao Hải Vương (liên hệ), Pluto mở khóa khi khám phá đủ, có minimap/quest/progress.
+- Có nút tải CV: ./CV/24211TT3646_NGUYENTHANHHIEN_CV.pdf.
+
+TỔNG QUAN/DỊCH VỤ:
+- Giới thiệu chung: sinh viên CNTT tại TDC, yêu thích xây dựng các vũ trụ số bằng Laravel, thuật toán tối ưu và giao diện tương tác giàu cảm xúc.
+- Các nhóm vai trò/thẻ năng lực trên trang: Front-End Developer, QA / Manual Tester, PHP & Laravel Backend, Kiến trúc Cơ sở dữ liệu.
+
+KỸ NĂNG - KHOANG CÔNG NGHỆ:
+- Frontend & UI/UX: HTML/CSS, TailwindCSS, Bootstrap, JavaScript ES6+, Responsive Design, thiết kế giao diện premium thanh lịch, kết hợp hiệu ứng mượt.
+- Backend & Kiến trúc: PHP OOP, Laravel Framework, MySQL/PDO, Eloquent ORM, mô hình MVC, Service-Repository Pattern, thiết kế luồng mã nguồn tinh gọn và an toàn.
+- Mobile & API: Dart, Flutter, Riverpod, Clean Architecture, RESTful API, tích hợp Gemini AI, PayOS/VietQR qua Webhook.
+- Bảo mật & Công cụ: 2FA TOTP, Bcrypt, Prepared Statements chống SQL Injection, chống XSS, Git/GitHub, SmartGit, Docker/Apache, Postman/API testing.
+
+LỘ TRÌNH HỌC TẬP:
+- Năm 1 (2023-2024): Sinh viên CNTT tại TDC, nhập môn và tư duy thuật toán; học C#, Java, MySQL, chuẩn hóa CSDL 3NF; GPA 2.71.
+- Năm 2 (2024-2025): Web Developer - lập trình Web PHP/Laravel; xây dựng ứng dụng MVC bằng Laravel, thiết kế quan hệ MySQL One-to-Many/Many-to-Many, tối ưu truy vấn, lập trình RESTful API, route sạch và JSON payload chuẩn.
+- Năm 3 (2025-2026): Kiểm thử phần mềm & thực tập tốt nghiệp; nghiên cứu CSS/JavaScript nâng cao, viết Test Plan, thiết kế Test Cases, kiểm thử API bằng Postman, quản lý mã nguồn và xử lý Git conflict bằng SmartGit.
+
+DỰ ÁN TIÊU BIỂU:
+1. Website Bán Hàng Điện Tử (Đồng Phát Triển):
+- Hệ thống mua sắm điện máy trực tuyến Laravel & MySQL.
+- Có Service-Repository Pattern, 2FA TOTP, Google OAuth2, chống SQL Injection.
+- Bộ lọc dynamic SQL kết hợp AJAX, tích hợp thanh toán tự động qua PayOS/VietQR Webhook.
+- Tích hợp AI Gemini RAG Chatbot, có app di động Flutter quản lý bằng Riverpod.
+- Đạt 8.0/10 đồ án xuất sắc, triển khai Hosting/Apache.
+- Demo: https://dienmaypro.nguyenanhquy.id.vn/
+- GitHub: https://github.com/eHin-cloud/TrienKhaiPM.git
+
+2. Website TMĐT Nhóm G (Laravel):
+- Đồ án môn Back-end Web 2 về thương mại điện tử, xây dựng bằng Laravel/MySQL.
+- Thể hiện khả năng làm việc nhóm, đồng bộ mã nguồn, merge code qua GitHub.
+- Demo: https://tmdtgroupg.nthanhhien.id.vn/
+- GitHub: https://github.com/AQuyGib/ThuongMaiDienTu
+
+3. Hồ Sơ Năng Lực 3D Tương Tác:
+- Website portfolio 3D hiện tại, dùng Three.js, HTML, CSS, JavaScript thuần.
+- Dựng môi trường không gian vũ trụ ảo 3D, tối ưu trải nghiệm mượt khoảng 60 FPS, nhấn mạnh UI/UX tương tác.
+- Demo: https://nthanhhien.id.vn/
+- GitHub: https://github.com/eHin-cloud/FE2_Project
+
+ĐÁNH GIÁ:
+- Nguyễn Anh Quý nhận xét: Hiền có tư duy thiết kế giao diện nhạy bén, tối ưu CSS/JavaScript nâng cao mượt mà, giúp web đạt hiệu năng cao và trải nghiệm UI/UX giàu cảm xúc.
+- Giảng viên TDC nhận xét: khả năng kết hợp Laravel vững chắc và tư duy QA giúp sản phẩm ổn định, mã nguồn sạch, quy trình kiểm thử API chặt chẽ.
+- Cộng tác viên phát triển dự án cùng Hiền: Nguyễn Anh Quý, email nguyquy67@gmail.com, GitHub github.com/AQuyGib.
+
+LIÊN HỆ:
+- Hotline/SĐT: 0396 519 196.
+- Email: thenghien2006@gmail.com.
+- GitHub: https://github.com/eHin-cloud.
+- Facebook: https://www.facebook.com/hien.nguyenthanh29.
+- Douyin: https://www.douyin.com/user/self?from_tab_name=main.
+- Form liên hệ ở cuối trang dùng Web3Forms và gửi lời nhắn tới thenghien2006@gmail.com. Form yêu cầu tên, email, lời nhắn.
+- Địa chỉ hoạt động: Thủ Đức, TP.HCM; sẵn sàng On-site / Remote.`
         }]
       };
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents,
-          systemInstruction
-        })
-      });
+      let lastError = null;
+      let data = null;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMsg = `HTTP ${response.status}`;
-        try {
-          const errJson = JSON.parse(errorText);
-          if (errJson.error && errJson.error.message) {
-            errorMsg += `: ${errJson.error.message}`;
-          }
-        } catch (e) {
-          errorMsg += `: ${errorText}`;
+      for (const model of modelCandidates) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const generationConfig = {
+          temperature: 0.7,
+          maxOutputTokens: 900
+        };
+
+        if (model.includes("2.5")) {
+          generationConfig.thinkingConfig = {
+            thinkingBudget: 0
+          };
         }
-        throw new Error(errorMsg);
+
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents,
+              systemInstruction,
+              generationConfig
+            })
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            let errorMsg = `Gemini ${model} HTTP ${response.status}`;
+            try {
+              const errJson = JSON.parse(errorText);
+              if (errJson.error && errJson.error.message) {
+                errorMsg += `: ${errJson.error.message}`;
+              }
+            } catch (e) {
+              errorMsg += `: ${errorText}`;
+            }
+
+            lastError = new Error(errorMsg);
+            if (response.status === 404 || response.status === 429) continue;
+            throw lastError;
+          }
+
+          data = await response.json();
+          break;
+        } catch (err) {
+          lastError = err;
+          if (err && /404|429|quota/i.test(err.message || "")) continue;
+          throw err;
+        }
       }
 
-      const data = await response.json();
+      if (!data) {
+        throw lastError || new Error("No Gemini model responded");
+      }
+
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
         if (data.candidates && data.candidates[0] && data.candidates[0].finishReason) {
           throw new Error(`Blocked by Gemini (Reason: ${data.candidates[0].finishReason})`);
         }
         throw new Error("Invalid response format from Gemini API");
       }
-      return data.candidates[0].content.parts[0].text;
+
+      const answer = data.candidates[0].content.parts
+        .map(part => part.text || "")
+        .join("")
+        .trim();
+
+      if (!answer) {
+        throw new Error("Gemini returned an empty response");
+      }
+
+      return answer;
     }
   }
 });
