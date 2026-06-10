@@ -982,8 +982,7 @@ function setupScrollRevealAnimations() {
     "#projects .grid > div",
     "#testimonials > div",
     "#testimonials .grid > div",
-    "#contact .grid > div",
-    "footer"
+    "#contact .grid > div"
   ];
 
   const revealEls = Array.from(mainContent.querySelectorAll(revealSelectors.join(",")))
