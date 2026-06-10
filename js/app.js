@@ -652,11 +652,12 @@ function startBootloader() {
 
             // Trigger animations inside site
             startSiteAnimations();
+            isBootFinished = true;
 
             // Show chatbot toggle button after entering
             const chatbotToggle = document.getElementById("chatbot-toggle");
             if (chatbotToggle) {
-              chatbotToggle.classList.remove("hidden");
+              updateChatbotVisibility();
             }
 
             // Trigger appropriate view mode transitions
@@ -1487,6 +1488,7 @@ let gameInitialized = false;
 let gamePortalGroup = null, gamePortalVortex = null, gamePortalRing = null, gamePortalSprite = null;
 let portalAngle = 0, portalDist = 30.0;
 let is3DMode = false;
+let isBootFinished = false;
 let isShootingEarth = false;
 let shootEarthTimeStart = 0;
 let isShootingPlanet = false;
@@ -6564,6 +6566,7 @@ function triggerSpaceTransition(callback, isExit = false) {
           }
 
           stopGame3D();
+          updateChatbotVisibility();
           if (callback) callback();
         }, 800);
       } else {
@@ -6626,18 +6629,20 @@ function setupViewModeToggle() {
 
   const updateToggleUI = (skipTransition = false) => {
     // Keep 3D game and main content hidden while the first-load bootloader overlay is active
-    if (document.getElementById("bootloader-overlay")) {
+    if (!isBootFinished) {
       syncViewModeText();
       mainContent.classList.add("hidden");
       gameContainer.classList.add("hidden");
       canvasBg.style.display = "block";
       if (mainNav) mainNav.classList.add("hidden");
+      updateChatbotVisibility();
       return;
     }
 
     if (is3DMode) {
       syncViewModeText();
       if (mainNav) mainNav.classList.add("hidden");
+      updateChatbotVisibility();
 
       if (!skipTransition) {
         // Accelerate background stars of canvas-bg
@@ -6713,6 +6718,7 @@ function setupViewModeToggle() {
         canvasBg.style.display = "block";
 
         stopGame3D();
+        updateChatbotVisibility();
       }
     }
   };
@@ -6765,6 +6771,7 @@ function setupViewModeToggle() {
       is3DMode = true;
       localStorage.setItem("view-mode-3d", is3DMode);
       syncViewModeText();
+      updateChatbotVisibility();
 
       if (mainNav) mainNav.classList.add("hidden");
 
@@ -6820,6 +6827,31 @@ function setupSciFiInteractionAudio() {
       playMenuHoverSound();
     });
   });
+}
+
+// ==========================================================================
+// CHATBOT VISIBILITY CONTROL
+// ==========================================================================
+function updateChatbotVisibility() {
+  const chatbotToggle = document.getElementById("chatbot-toggle");
+  const chatbotWindow = document.getElementById("chatbot-window");
+  const isBooting = !isBootFinished;
+
+  if (isBooting || is3DMode) {
+    if (chatbotToggle) {
+      chatbotToggle.classList.add("hidden");
+      chatbotToggle.classList.remove("is-open");
+      chatbotToggle.setAttribute("aria-expanded", "false");
+    }
+    if (chatbotWindow) {
+      chatbotWindow.classList.remove("is-open");
+      chatbotWindow.setAttribute("aria-hidden", "true");
+    }
+  } else {
+    if (chatbotToggle) {
+      chatbotToggle.classList.remove("hidden");
+    }
+  }
 }
 
 // ==========================================================================
@@ -6965,6 +6997,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Initialize floating AI chatbot
   initSpaceChatbot();
+  updateChatbotVisibility();
 
   function initSpaceChatbot() {
     const chatbotToggle = document.getElementById("chatbot-toggle");

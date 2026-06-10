@@ -90,7 +90,7 @@ if (fs.existsSync(cvSrcDir)) {
 const apiSrcDir = path.join(__dirname, 'api');
 const apiDistDir = path.join(distDir, 'api');
 copyDirectoryFiltered(apiSrcDir, apiDistDir, file => {
-  return file === 'gemini.php';
+  return file === 'gemini.php' || file === '.env.php';
 });
 if (fs.existsSync(path.join(apiDistDir, 'gemini.php'))) {
   console.log("📦 Đang sao chép backend proxy API...");

@@ -27,3 +27,4 @@ TestResults.xml
 .env.*
 api/.env.php
 !api/.env.example.php
+dist/api/.env.php
