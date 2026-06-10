@@ -7418,12 +7418,17 @@ window.addEventListener("DOMContentLoaded", () => {
     function setSuggestionsVisible(isVisible) {
       if (!chatbotSuggestions) return;
       if (isVisible) {
-        chatbotSuggestions.classList.remove("hidden");
+        chatbotSuggestions.classList.remove("max-h-0", "opacity-0", "mt-0", "pointer-events-none");
+        chatbotSuggestions.classList.add("max-h-[260px]", "opacity-100", "mt-4", "pointer-events-auto");
         if (chatbotSuggestionsIcon) {
           chatbotSuggestionsIcon.className = "fa-solid fa-chevron-down text-xs";
         }
+        setTimeout(() => {
+          chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }, 80);
       } else {
-        chatbotSuggestions.classList.add("hidden");
+        chatbotSuggestions.classList.remove("max-h-[260px]", "opacity-100", "mt-4", "pointer-events-auto");
+        chatbotSuggestions.classList.add("max-h-0", "opacity-0", "mt-0", "pointer-events-none");
         if (chatbotSuggestionsIcon) {
           chatbotSuggestionsIcon.className = "fa-solid fa-chevron-up text-xs";
         }
@@ -7433,7 +7438,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (chatbotSuggestionsToggle) {
       chatbotSuggestionsToggle.addEventListener("click", () => {
         if (isLoading || !chatbotSuggestions) return;
-        const isHidden = chatbotSuggestions.classList.contains("hidden");
+        const isHidden = chatbotSuggestions.classList.contains("max-h-0");
         setSuggestionsVisible(isHidden);
       });
     }
@@ -7909,7 +7914,7 @@ LIÊN HỆ:
         const chatData = {
           expiry: Date.now() + 10 * 60 * 1000, // 10 minutes from now
           history: chatHistory,
-          suggestionsVisible: chatbotSuggestions ? !chatbotSuggestions.classList.contains("hidden") : false,
+          suggestionsVisible: chatbotSuggestions ? !chatbotSuggestions.classList.contains("max-h-0") : false,
           html: chatbotMessages.innerHTML
         };
         localStorage.setItem("chatbot_session", JSON.stringify(chatData));
