@@ -7420,12 +7420,12 @@ window.addEventListener("DOMContentLoaded", () => {
       if (isVisible) {
         chatbotSuggestions.classList.remove("hidden");
         if (chatbotSuggestionsIcon) {
-          chatbotSuggestionsIcon.className = "fa-solid fa-xmark text-xs";
+          chatbotSuggestionsIcon.className = "fa-solid fa-chevron-down text-xs";
         }
       } else {
         chatbotSuggestions.classList.add("hidden");
         if (chatbotSuggestionsIcon) {
-          chatbotSuggestionsIcon.className = "fa-solid fa-list-ul text-xs";
+          chatbotSuggestionsIcon.className = "fa-solid fa-chevron-up text-xs";
         }
       }
     }
@@ -7690,7 +7690,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
       msgDiv.appendChild(avatar);
       msgDiv.appendChild(bubble);
-      chatbotMessages.appendChild(msgDiv);
+      
+      if (chatbotSuggestions && chatbotSuggestions.parentNode === chatbotMessages) {
+        chatbotMessages.insertBefore(msgDiv, chatbotSuggestions);
+      } else {
+        chatbotMessages.appendChild(msgDiv);
+      }
     }
 
     function appendLoadingBubble() {
@@ -7711,7 +7716,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
       msgDiv.appendChild(avatar);
       msgDiv.appendChild(bubble);
-      chatbotMessages.appendChild(msgDiv);
+      
+      if (chatbotSuggestions && chatbotSuggestions.parentNode === chatbotMessages) {
+        chatbotMessages.insertBefore(msgDiv, chatbotSuggestions);
+      } else {
+        chatbotMessages.appendChild(msgDiv);
+      }
       return msgDiv;
     }
 
@@ -7899,6 +7909,7 @@ LIÊN HỆ:
         const chatData = {
           expiry: Date.now() + 10 * 60 * 1000, // 10 minutes from now
           history: chatHistory,
+          suggestionsVisible: chatbotSuggestions ? !chatbotSuggestions.classList.contains("hidden") : false,
           html: chatbotMessages.innerHTML
         };
         localStorage.setItem("chatbot_session", JSON.stringify(chatData));
@@ -7915,7 +7926,27 @@ LIÊN HỆ:
           if (parsed && parsed.expiry && Date.now() < parsed.expiry) {
             chatHistory = parsed.history || [];
             if (chatHistory.length > 0) {
+              // Detach the live suggestion container with listeners
+              if (chatbotSuggestions) {
+                chatbotSuggestions.remove();
+              }
+              
+              // Restore messages HTML
               chatbotMessages.innerHTML = parsed.html;
+              
+              // Remove the static/duplicate suggestions container from the restored HTML
+              const restoredSuggestions = chatbotMessages.querySelector("#chatbot-suggestions");
+              if (restoredSuggestions) {
+                restoredSuggestions.remove();
+              }
+              
+              // Re-append the live suggestion container at the end
+              if (chatbotSuggestions) {
+                chatbotMessages.appendChild(chatbotSuggestions);
+                // Restore visibility state
+                setSuggestionsVisible(!!parsed.suggestionsVisible);
+              }
+              
               chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
               return true;
             }

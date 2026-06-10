@@ -1395,31 +1395,29 @@
             Xin chào! Tôi là Cyber-Assistant tại Trạm Không Gian. Tôi có thể giải đáp các thắc mắc của bạn về hồ sơ
             năng lực, lộ trình học tập hay các dự án của Thanh Hiền.
           </p>
-    </div>
-  </div>
-
-    <!-- Suggestion Chips Container -->
-    <div id="chatbot-suggestions" class="hidden border-t border-white/5 bg-[#151030] p-3 flex flex-col gap-2 max-h-[160px] overflow-y-auto scrollbar-thin">
-      <button
-        class="chatbot-suggest-btn text-left text-[11px] bg-[#0c102b] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-        data-vi="Giới thiệu bản thân của Thanh Hiền?" data-en="Can you introduce Thanh Hien?">
-        Giới thiệu bản thân của Thanh Hiền?
-      </button>
-      <button
-        class="chatbot-suggest-btn text-left text-[11px] bg-[#0c102b] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-        data-vi="Kỹ năng nổi bật của Thanh Hiền là gì?" data-en="What are Thanh Hien's key skills?">
-        Kỹ năng nổi bật của Thanh Hiền là gì?
-      </button>
-      <button
-        class="chatbot-suggest-btn text-left text-[11px] bg-[#0c102b] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-        data-vi="Các dự án tiêu biểu mà Hiền đã thực hiện?" data-en="What are the key projects Hien has done?">
-        Các dự án tiêu biểu mà Hiền đã thực hiện?
-      </button>
-      <button
-        class="chatbot-suggest-btn text-left text-[11px] bg-[#0c102b] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-        data-vi="Làm thế nào để liên hệ trực tiếp với Hiền?" data-en="How can I contact Hien directly?">
-        Làm thế nào để liên hệ trực tiếp với Hiền?
-      </button>
+      <!-- Suggestion Chips Container -->
+      <div id="chatbot-suggestions" class="hidden flex flex-col gap-2 mt-4">
+        <button
+          class="chatbot-suggest-btn w-full text-left text-[11px] bg-[#151030]/40 hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-4 py-2.5 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Giới thiệu bản thân của Thanh Hiền?" data-en="Can you introduce Thanh Hien?">
+          Giới thiệu bản thân của Thanh Hiền?
+        </button>
+        <button
+          class="chatbot-suggest-btn w-full text-left text-[11px] bg-[#151030]/40 hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-4 py-2.5 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Kỹ năng nổi bật của Thanh Hiền là gì?" data-en="What are Thanh Hien's key skills?">
+          Kỹ năng nổi bật của Thanh Hiền là gì?
+        </button>
+        <button
+          class="chatbot-suggest-btn w-full text-left text-[11px] bg-[#151030]/40 hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-4 py-2.5 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Các dự án tiêu biểu mà Hiền đã thực hiện?" data-en="What are the key projects Hien has done?">
+          Các dự án tiêu biểu mà Hiền đã thực hiện?
+        </button>
+        <button
+          class="chatbot-suggest-btn w-full text-left text-[11px] bg-[#151030]/40 hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-4 py-2.5 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Làm thế nào để liên hệ trực tiếp với Hiền?" data-en="How can I contact Hien directly?">
+          Làm thế nào để liên hệ trực tiếp với Hiền?
+        </button>
+      </div>
     </div>
 
     <!-- Chat Input -->
@@ -1427,7 +1425,7 @@
       <button id="chatbot-suggestions-toggle"
         class="w-8 h-8 rounded-lg bg-[#0c102b] border border-purple-500/25 hover:border-[#06b6d4]/60 text-[#06b6d4] flex justify-center items-center transition-colors"
         title="Mở câu gợi ý" aria-label="Toggle suggested questions">
-        <i id="chatbot-suggestions-icon" class="fa-solid fa-list-ul text-xs"></i>
+        <i id="chatbot-suggestions-icon" class="fa-solid fa-chevron-up text-xs"></i>
       </button>
       <input type="text" id="chatbot-input" placeholder="Hỏi điều gì đó về Thanh Hiền..."
         class="flex-1 bg-[#0c102b] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#06b6d4]/50 transition-colors"
