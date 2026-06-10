@@ -7458,6 +7458,7 @@ window.addEventListener("DOMContentLoaded", () => {
         chatbotToggle.classList.add("is-open");
         chatbotWindow.setAttribute("aria-hidden", "false");
         chatbotToggle.setAttribute("aria-expanded", "true");
+        setSuggestionsVisible(true);
         if (!isLoading) {
           setTimeout(() => chatbotInput.focus(), 220);
         }
