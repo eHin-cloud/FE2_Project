@@ -6719,6 +6719,7 @@ function openSunThanksModal() {
   `;
 
   content.innerHTML = modalHTML;
+  updateLanguageUI();
   modal.classList.remove("hidden");
   setTimeout(() => {
     modal.classList.remove("opacity-0");
