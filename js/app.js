@@ -7787,7 +7787,7 @@ LIÊN HỆ:
 - Email: thenghien2006@gmail.com.
 - GitHub: https://github.com/eHin-cloud.
 - Facebook: https://www.facebook.com/hien.nguyenthanh29.
-- Douyin: https://www.douyin.com/user/self?from_tab_name=main.
+- Zalo: https://zalo.me/0396519196.
 - Form liên hệ ở cuối trang dùng Web3Forms và gửi lời nhắn tới thenghien2006@gmail.com. Form yêu cầu tên, email, lời nhắn.
 - Địa chỉ hoạt động: Thủ Đức, TP.HCM; sẵn sàng On-site / Remote.`
         }]
