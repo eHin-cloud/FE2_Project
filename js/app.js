@@ -1652,7 +1652,6 @@ let sunChargeSurge = 1.0;
 let laserSoundPlayed = false;
 let explosionSoundPlayed = false;
 let isPortalHovered = false;
-let gameClosestNode = null;
 
 let joystickActive = false;
 let joystickStartPos = { x: 0, y: 0 };
@@ -4193,10 +4192,6 @@ function handleGameKeyDown(e) {
   if (lowKey in keysPressed) {
     keysPressed[lowKey] = true;
   }
-
-  if (lowKey === 'e') {
-    triggerClosestNodeConnection();
-  }
 }
 
 function handleGameKeyUp(e) {
@@ -5392,7 +5387,15 @@ function gameAnimate() {
       }
     }
 
-
+    if (minDistance < 6.5 && closestNode && closestNode.def.id !== "home" && !isPlutoLocked && !visitedNodes.includes(closestNode.def.id) && !isShootingPlanet && !isShootingEarth && !transitionLoadingActive) {
+      isShootingPlanet = true;
+      shootingPlanetNode = closestNode;
+      shootPlanetTimeStart = performance.now();
+      gamePlayerTargetPos = null;
+      gameCamShakeOffset.set(0, 0, 0);
+      laserSoundPlayed = false;
+      explosionSoundPlayed = false;
+    }
 
     if (isShootingEarth) {
       const elapsed = performance.now() - shootEarthTimeStart;
@@ -5907,7 +5910,6 @@ function gameAnimate() {
   const interactionText = document.getElementById("interaction-text");
 
   if (minDistance < 3.8 && closestNode && !activeModalNode && !transitionLoadingActive && !isShootingPlanet && !isShootingEarth) {
-    gameClosestNode = closestNode;
     if (interactionHud && interactionText) {
       interactionHud.classList.remove("hidden");
       const nodeNameVi = getNodeName(closestNode.def, 'vi');
@@ -5915,23 +5917,23 @@ function gameAnimate() {
 
       let isPlutoLocked = false;
       if (closestNode.def.id === "cv") {
-        const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-        if (coreVisitedCount < 7) {
+        const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+        if (coreVisitedCount < 6) {
           isPlutoLocked = true;
         }
       }
 
       let viMsg, enMsg;
       if (isPlutoLocked) {
-        const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - VUI LÒNG MỞ KHÓA CÁC TRẠM KHÁC (${coreVisitedCount}/7)`;
-        enMsg = `NEAR ${nodeNameEn} - PLEASE UNLOCK ALL OTHER PLANETS FIRST (${coreVisitedCount}/7)`;
+        const coreVisitedCount = ["about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
+        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - VUI LÒNG MỞ KHÓA CÁC TRẠM KHÁC (${coreVisitedCount}/6)`;
+        enMsg = `NEAR ${nodeNameEn} - PLEASE UNLOCK ALL OTHER PLANETS FIRST (${coreVisitedCount}/6)`;
       } else if (visitedNodes.includes(closestNode.def.id)) {
-        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - NHẤP VÀO ĐÂY HOẶC PHÍM [E] ĐỂ KẾT NỐI`;
-        enMsg = `NEAR ${nodeNameEn} - CLICK HERE OR PRESS [E] TO CONNECT`;
+        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - NHẤN VÀO ĐỂ KẾT NỐI`;
+        enMsg = `NEAR ${nodeNameEn} NODE - CLICK TO CONNECT`;
       } else {
-        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - NHẤP VÀO ĐÂY HOẶC PHÍM [E] ĐỂ KÍCH HOẠT PHÁO HỦY DIỆT`;
-        enMsg = `NEAR ${nodeNameEn} - CLICK HERE OR PRESS [E] TO ENGAGE CANNON`;
+        viMsg = `ĐANG Ở GẦN ĐỊA DANH ${nodeNameVi} - NHẤN VÀO ĐỂ KHỞI ĐỘNG PHÁO HỦY DIỆT`;
+        enMsg = `NEAR ${nodeNameEn} NODE - CLICK TO ENGAGE CANNON`;
       }
 
       interactionText.textContent = currentLang === 'vi' ? viMsg : enMsg;
@@ -5947,8 +5949,12 @@ function gameAnimate() {
         locText.textContent = displayVal;
       }
     }
+
+    if (minDistance < 3.2 && !activeModalNode && !transitionLoadingActive && lastOpenedNode !== closestNode.def.id) {
+      lastOpenedNode = closestNode.def.id;
+      openGameModal(closestNode.def);
+    }
   } else {
-    gameClosestNode = null;
     if (interactionHud) {
       interactionHud.classList.add("hidden");
     }
@@ -6230,43 +6236,6 @@ function stopGame3D() {
   }
 }
 
-function triggerClosestNodeConnection() {
-  if (!gameClosestNode || activeModalNode || transitionLoadingActive || isShootingPlanet || isShootingEarth) return;
-
-  // Block access to Pluto if locked
-  if (gameClosestNode.def.id === "cv") {
-    const coreVisitedCount = ["home", "about", "skills", "experience", "projects", "testimonials", "contact"].filter(id => visitedNodes.includes(id)).length;
-    if (coreVisitedCount < 7) {
-      if (typeof playBeep === 'function') {
-        playBeep(400, 0.15, 'sine', 0.05);
-      }
-      showSafetyNotice(
-        currentLang === 'vi' ? `🔒 VUI LÒNG MỞ KHÓA ${7 - coreVisitedCount} HÀNH TINH NỮA ĐỂ TRUY CẬP (${coreVisitedCount}/7)` : `🔒 PLEASE UNLOCK ${7 - coreVisitedCount} MORE PLANETS TO ACCESS (${coreVisitedCount}/7)`,
-        "#a855f7"
-      );
-      return;
-    }
-  }
-
-  if (typeof playBeep === 'function') {
-    playBeep(600, 0.1, 'sine', 0.05);
-  }
-
-  if (!visitedNodes.includes(gameClosestNode.def.id)) {
-    // Engages the laser cannon to unlock the planet!
-    isShootingPlanet = true;
-    shootingPlanetNode = gameClosestNode;
-    shootPlanetTimeStart = performance.now();
-    gamePlayerTargetPos = null;
-    gameCamShakeOffset.set(0, 0, 0);
-    laserSoundPlayed = false;
-    explosionSoundPlayed = false;
-  } else {
-    // Already visited, just open the modal
-    openGameModal(gameClosestNode.def);
-  }
-}
-
 function openGameModal(nodeDef) {
   const modal = document.getElementById("game-modal");
   const content = document.getElementById("game-modal-content");
@@ -6358,7 +6327,7 @@ function openGameModal(nodeDef) {
                   <ul class="list-disc pl-4 space-y-1 text-zinc-400">
                     <li><strong>Cách di chuyển:</strong> Kéo cần gạt <span class="text-cyan-400">Joystick ảo</span> ở phía dưới bên trái (nếu bạn sử dụng điện thoại/máy tính bảng) hoặc sử dụng các phím <span class="text-cyan-400">W, A, S, D / Phím mũi tên</span> hoặc <span class="text-cyan-400">nhấp chuột phải</span> lên mặt sàn 3D (nếu sử dụng máy tính) để bay tàu đi.</li>
                     <li><strong>Xoay camera:</strong> Hãy chạm và vuốt màn hình (trên điện thoại) hoặc nhấn giữ chuột trái và kéo (trên máy tính) để xoay đổi góc nhìn quanh chiến cơ.</li>
-                    <li><strong>Khám phá các trạm:</strong> Hãy điều khiển tàu bay lại gần 6 trạm hành tinh chính xung quanh lõi trung tâm: <span class="text-purple-400">Sao Kim, Sao Hỏa, Sao Mộc, Sao Thổ, Sao Thiên Vương, Sao Hải Vương</span>. Khi lại gần hành tinh, hãy <span class="text-cyan-400">nhấp vào bảng thông báo ở trên</span> hoặc nhấn phím <span class="text-cyan-400">[E]</span> để kết nối dữ liệu.</li>
+                    <li><strong>Khám phá các trạm:</strong> Hãy điều khiển tàu bay lại gần 6 trạm hành tinh chính xung quanh lõi trung tâm: <span class="text-purple-400">Sao Kim, Sao Hỏa, Sao Mộc, Sao Thổ, Sao Thiên Vương, Sao Hải Vương</span>. Khi nhấn vào hành tinh, cổng dữ liệu sẽ kết nối và hiển thị.</li>
                     <li><strong>Mở khóa trạm ẩn CV:</strong> Trạm <span class="text-amber-400">Sao Diêm Vương (Pluto)</span> ở ngoài cùng đang bị khóa bằng lá chắn bảo vệ. Bạn cần phải bay qua và mở khóa toàn bộ 6 trạm hành tinh chính ở trên, khi đó cầu dẫn đến Sao Diêm Vương mới xuất hiện để bạn tải bản CV đầy đủ.</li>
                     <li><strong>Thoát chế độ 3D:</strong> <span class="font-bold text-rose-400">Chú ý:</span> Để quay về trang giới thiệu chính (giao diện 2D thông thường), bạn không thể bấm quay lại ngay tại bảng này mà phải điều khiển chiến cơ bay vào bên trong vùng hào quang của <span class="text-emerald-400">Cổng thoát Sao Thủy (Exit Mercury Portal)</span> nằm ngẫu nhiên ngoài rìa không gian, hoặc click trực tiếp vào nút <span class="text-rose-400">"THOÁT 3D"</span> ở góc trên cùng bên phải màn hình.</li>
                   </ul>
@@ -6372,7 +6341,7 @@ function openGameModal(nodeDef) {
                   <ul class="list-disc pl-4 space-y-1 text-zinc-400">
                     <li><strong>Movement:</strong> Use the virtual <span class="text-cyan-400">joystick handle</span> in the bottom-left (on mobile) or use <span class="text-cyan-400">W, A, S, D / Arrow keys</span> or <span class="text-cyan-400">Right-click</span> on the space floor grid (on desktop) to fly.</li>
                     <li><strong>Camera Control:</strong> Touch & drag on screen (mobile) or hold Left-click & drag (desktop) to rotate the viewport.</li>
-                    <li><strong>Connect to Planets:</strong> Fly close to the 6 core planet nodes: <span class="text-purple-400">Venus, Mars, Jupiter, Saturn, Uranus, and Neptune</span>. When near a node, <span class="text-cyan-400">click the top HUD banner</span> or press key <span class="text-cyan-400">[E]</span> to establish a connection.</li>
+                    <li><strong>Connect to Planets:</strong> Fly close to the 6 core planet nodes: <span class="text-purple-400">Venus, Mars, Jupiter, Saturn, Uranus, and Neptune</span>. Clicking on a node establishes a secure connection.</li>
                     <li><strong>Unlock Pluto (CV):</strong> <span class="text-amber-400">Pluto</span> is protected by an energy shield. You must first unlock all 6 core planet nodes. Once done, the bridge to Pluto will be deployed, allowing you to access and download the CV!</li>
                     <li><strong>Exit 3D Workspace:</strong> <span class="font-bold text-rose-400">Important Note:</span> To return to the standard 2D list view, you must navigate your ship directly into the glowing green <span class="text-emerald-400">Mercury Exit Portal</span> positioned on the outer rim, or click the <span class="text-rose-400">"EXIT 3D"</span> button in the top-right corner.</li>
                   </ul>
@@ -7301,13 +7270,6 @@ window.addEventListener("DOMContentLoaded", () => {
   startBootloader();
   // Set up form handlers
   setupContactForm();
-
-  const interHud = document.getElementById("interaction-hud");
-  if (interHud) {
-    interHud.addEventListener("click", () => {
-      triggerClosestNodeConnection();
-    });
-  }
 
   // Set up view mode toggle
   setupViewModeToggle();
