@@ -7406,8 +7406,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const chatbotInput = document.getElementById("chatbot-input");
     const chatbotSend = document.getElementById("chatbot-send");
     const chatbotMessages = document.getElementById("chatbot-messages");
-    const chatbotSuggestionsToggle = document.getElementById("chatbot-suggestions-toggle");
-    const chatbotSuggestionsIcon = document.getElementById("chatbot-suggestions-icon");
+
 
     if (!chatbotToggle || !chatbotWindow || !chatbotClose || !chatbotInput || !chatbotSend || !chatbotMessages) return;
 
@@ -7464,44 +7463,7 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    const chatbotSuggestions = document.getElementById("chatbot-suggestions");
-    function setSuggestionsVisible(isVisible) {
-      if (!chatbotSuggestions) return;
-      if (isVisible) {
-        chatbotMessages.appendChild(chatbotSuggestions);
-      }
-      chatbotSuggestions.classList.toggle("hidden", !isVisible);
-      if (chatbotSuggestionsIcon) {
-        chatbotSuggestionsIcon.className = isVisible
-          ? "fa-solid fa-chevron-up text-xs"
-          : "fa-solid fa-list-ul text-xs";
-      }
-      if (isVisible) {
-        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-      }
-    }
 
-    if (chatbotSuggestionsToggle) {
-      chatbotSuggestionsToggle.addEventListener("click", () => {
-        if (isLoading || !chatbotSuggestions) return;
-        const isHidden = chatbotSuggestions.classList.contains("hidden");
-        setSuggestionsVisible(isHidden);
-        if (typeof playBeep === "function") {
-          playBeep(isHidden ? 880 : 620, 0.06, "sine", 0.015);
-        }
-      });
-    }
-
-    if (chatbotSuggestions) {
-      chatbotSuggestions.querySelectorAll(".chatbot-suggest-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          if (isLoading) return;
-          chatbotInput.value = btn.innerText;
-          setSuggestionsVisible(false);
-          handleSendMessage();
-        });
-      });
-    }
 
     async function handleSendMessage() {
       if (isLoading) return;
@@ -7513,9 +7475,6 @@ window.addEventListener("DOMContentLoaded", () => {
       chatbotSend.disabled = true;
       chatbotSend.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i>';
 
-      if (chatbotSuggestions) {
-        setSuggestionsVisible(false);
-      }
 
       // Clear input
       chatbotInput.value = "";
