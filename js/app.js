@@ -18,13 +18,13 @@ localStorage.removeItem("visitedNodes");
 // BACKGROUND MUSIC PLAYER (freefai1.mp3)
 // ==========================================================================
 let bgMusic = null;
-let isAudioMuted = true; // Muted by default to avoid disturbing users
+let isAudioMuted = false; // Enabled by default for autoplay in 3D
 
 function initBgMusic() {
   if (!bgMusic) {
     bgMusic = new Audio('./img/freefai1.mp3');
     bgMusic.loop = true;
-    bgMusic.volume = 0.4;
+    bgMusic.volume = 0.07; // Soft background ambient level
     bgMusic.muted = isAudioMuted;
   }
 }
@@ -434,7 +434,7 @@ function playScrambleChirp() {
 
 let currentDuckTimeout = null;
 
-function duckBgMusic(targetVolume = 0.08, duration = 3000) {
+function duckBgMusic(targetVolume = 0.02, duration = 3000) {
   if (!bgMusic || isAudioMuted) return;
   
   // Transition volume down instantly
@@ -445,7 +445,7 @@ function duckBgMusic(targetVolume = 0.08, duration = 3000) {
   // Restore volume after duration
   currentDuckTimeout = setTimeout(() => {
     if (bgMusic && !isAudioMuted) {
-      bgMusic.volume = 0.4; // original volume
+      bgMusic.volume = 0.07; // original volume
     }
   }, duration);
 }
@@ -2493,6 +2493,9 @@ function updatePlutoLockState() {
 }
 
 function initGame3D() {
+  isAudioMuted = false;
+  updateSoundToggleButtonUI();
+  
   playBgMusic();
   gameCameraTargetRadius = 16;
   gameCameraRadius = 16;
