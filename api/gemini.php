@@ -79,15 +79,27 @@ foreach ($modelCandidates as $model) {
     $responseBody = false;
     $statusCode = 0;
 
+    $serverName = $_SERVER['SERVER_NAME'] ?? '';
+    $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+    $isLocal = in_array($remoteAddr, ['127.0.0.1', '::1']) || 
+               in_array($serverName, ['localhost', '127.0.0.1']) || 
+               preg_match('/^192\.168\./', $remoteAddr) || 
+               preg_match('/^10\./', $remoteAddr);
+
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
-        curl_setopt_array($ch, [
+        $curlOptions = [
             CURLOPT_POST => true,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_POSTFIELDS => $requestBody,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 25,
-        ]);
+        ];
+        if ($isLocal) {
+            $curlOptions[CURLOPT_SSL_VERIFYPEER] = false;
+            $curlOptions[CURLOPT_SSL_VERIFYHOST] = false;
+        }
+        curl_setopt_array($ch, $curlOptions);
         $responseBody = curl_exec($ch);
         $statusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($responseBody === false) {
@@ -95,7 +107,7 @@ foreach ($modelCandidates as $model) {
         }
         curl_close($ch);
     } else {
-        $context = stream_context_create([
+        $streamOptions = [
             'http' => [
                 'method' => 'POST',
                 'header' => implode("\r\n", $headers),
@@ -103,7 +115,14 @@ foreach ($modelCandidates as $model) {
                 'timeout' => 25,
                 'ignore_errors' => true,
             ],
-        ]);
+        ];
+        if ($isLocal) {
+            $streamOptions['ssl'] = [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ];
+        }
+        $context = stream_context_create($streamOptions);
         $responseBody = file_get_contents($url, false, $context);
         $statusLine = $http_response_header[0] ?? '';
         if (preg_match('/\s(\d{3})\s/', $statusLine, $matches)) {
