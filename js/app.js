@@ -7406,13 +7406,50 @@ window.addEventListener("DOMContentLoaded", () => {
     const chatbotInput = document.getElementById("chatbot-input");
     const chatbotSend = document.getElementById("chatbot-send");
     const chatbotMessages = document.getElementById("chatbot-messages");
-
+    const chatbotSuggestionsToggle = document.getElementById("chatbot-suggestions-toggle");
+    const chatbotSuggestionsIcon = document.getElementById("chatbot-suggestions-icon");
+    const chatbotSuggestions = document.getElementById("chatbot-suggestions");
 
     if (!chatbotToggle || !chatbotWindow || !chatbotClose || !chatbotInput || !chatbotSend || !chatbotMessages) return;
 
     let chatHistory = [];
     let isWindowOpen = false;
     let isLoading = false;
+
+    function setSuggestionsVisible(isVisible) {
+      if (!chatbotSuggestions) return;
+      if (isVisible) {
+        chatbotSuggestions.classList.remove("hidden");
+        if (chatbotSuggestionsIcon) {
+          chatbotSuggestionsIcon.className = "fa-solid fa-xmark text-xs";
+        }
+      } else {
+        chatbotSuggestions.classList.add("hidden");
+        if (chatbotSuggestionsIcon) {
+          chatbotSuggestionsIcon.className = "fa-solid fa-list-ul text-xs";
+        }
+      }
+    }
+
+    if (chatbotSuggestionsToggle) {
+      chatbotSuggestionsToggle.addEventListener("click", () => {
+        if (isLoading || !chatbotSuggestions) return;
+        const isHidden = chatbotSuggestions.classList.contains("hidden");
+        setSuggestionsVisible(isHidden);
+      });
+    }
+
+    if (chatbotSuggestions) {
+      chatbotSuggestions.querySelectorAll(".chatbot-suggest-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (isLoading) return;
+          const text = currentLang === "vi" ? btn.dataset.vi : btn.dataset.en;
+          chatbotInput.value = text;
+          setSuggestionsVisible(false);
+          handleSendMessage();
+        });
+      });
+    }
 
     // Toggle Chat Window
     chatbotToggle.addEventListener("click", () => {
@@ -7475,6 +7512,9 @@ window.addEventListener("DOMContentLoaded", () => {
       chatbotSend.disabled = true;
       chatbotSend.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i>';
 
+      if (chatbotSuggestions) {
+        setSuggestionsVisible(false);
+      }
 
       // Clear input
       chatbotInput.value = "";
@@ -7495,7 +7535,7 @@ window.addEventListener("DOMContentLoaded", () => {
       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
 
       try {
-        const responseText = getLocalPortfolioAnswer(query) || await askGemini(query, chatHistory.slice(-8));
+        const responseText = await askGemini(query, chatHistory.slice(-8));
 
         // Remove loading bubble
         if (loadingBubble) loadingBubble.remove();
