@@ -34,13 +34,13 @@ function initSciFiSfx() {
     uiBeepAudio = new Audio('./img/beep.mp3');
     uiBeepAudio.preload = 'auto';
     uiBeepAudio.volume = 0.24;
-    uiBeepAudio.muted = isAudioMuted;
+    uiBeepAudio.muted = false;
   }
   if (!portalWarpAudio) {
     portalWarpAudio = new Audio('./img/warp.mp3');
     portalWarpAudio.preload = 'auto';
     portalWarpAudio.volume = 0.6;
-    portalWarpAudio.muted = isAudioMuted;
+    portalWarpAudio.muted = false;
   }
 }
 
@@ -115,10 +115,6 @@ function toggleAudio() {
       bgMusic.muted = true;
       bgMusic.pause();
     }
-    if (uiBeepAudio) uiBeepAudio.muted = true;
-    if (portalWarpAudio) portalWarpAudio.muted = true;
-    
-    stopChargingHum();
   } else {
     if (bgMusic) {
       bgMusic.muted = false;
@@ -126,8 +122,6 @@ function toggleAudio() {
         bgMusic.play().catch(err => console.warn(err));
       }
     }
-    if (uiBeepAudio) uiBeepAudio.muted = false;
-    if (portalWarpAudio) portalWarpAudio.muted = false;
     
     try {
       if (!audioCtx) {
@@ -168,7 +162,6 @@ function setupAudioToggle() {
 }
 
 function playAudioFile(audio, fallback) {
-  if (isAudioMuted) return;
   initSciFiSfx();
   if (!audio) {
     if (typeof fallback === "function") fallback();
@@ -178,7 +171,7 @@ function playAudioFile(audio, fallback) {
   try {
     const sound = audio.cloneNode();
     sound.volume = audio.volume;
-    sound.muted = isAudioMuted;
+    sound.muted = false;
     sound.play().catch(() => {
       if (typeof fallback === "function") fallback();
     });
@@ -188,7 +181,6 @@ function playAudioFile(audio, fallback) {
 }
 
 function playMenuHoverSound() {
-  if (isAudioMuted) return;
   const now = performance.now();
   if (now - lastMenuHoverSoundAt < 90) return;
   lastMenuHoverSoundAt = now;
@@ -198,7 +190,6 @@ function playMenuHoverSound() {
 }
 
 function playPortalWarpSound() {
-  if (isAudioMuted) return;
   initSciFiSfx();
   playAudioFile(portalWarpAudio, () => {
     playBeep(180, 0.12, "sawtooth", 0.04);
@@ -252,7 +243,6 @@ function init3DSpacePortfolio() {
 }
 
 function initAudio() {
-  if (isAudioMuted) return;
   console.log("initAudio called. Current state:", audioCtx ? audioCtx.state : "uninitialized");
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -266,7 +256,6 @@ function initAudio() {
 }
 
 function playBeep(freq = 440, duration = 0.1, type = 'sine', volume = 0.05) {
-  if (isAudioMuted) return;
   try {
     initAudio();
     if (!audioCtx) return;
@@ -372,7 +361,6 @@ function playInterfaceClick() {
 }
 
 function playDataTelemetryNoise() {
-  if (isAudioMuted) return;
   if (!audioCtx || audioCtx.state === 'suspended') return;
   try {
     const time = audioCtx.currentTime;
@@ -423,7 +411,6 @@ function playDataTelemetryNoise() {
 }
 
 function playScrambleChirp() {
-  if (isAudioMuted) return;
   if (!audioCtx || audioCtx.state === 'suspended') return;
   try {
     const time = audioCtx.currentTime;
@@ -448,7 +435,7 @@ function playScrambleChirp() {
 let currentDuckTimeout = null;
 
 function duckBgMusic(targetVolume = 0.08, duration = 3000) {
-  if (!bgMusic || isMusicMuted) return;
+  if (!bgMusic || isAudioMuted) return;
   
   // Transition volume down instantly
   bgMusic.volume = targetVolume;
@@ -457,14 +444,13 @@ function duckBgMusic(targetVolume = 0.08, duration = 3000) {
   
   // Restore volume after duration
   currentDuckTimeout = setTimeout(() => {
-    if (bgMusic && !isMusicMuted) {
+    if (bgMusic && !isAudioMuted) {
       bgMusic.volume = 0.4; // original volume
     }
   }, duration);
 }
 
 function playLaserShootSound() {
-  if (isAudioMuted) return;
   try {
     initAudio();
     if (!audioCtx || audioCtx.state === 'suspended') return;
@@ -508,7 +494,6 @@ function playLaserShootSound() {
 }
 
 function playExplosionSound() {
-  if (isAudioMuted) return;
   try {
     initAudio();
     if (!audioCtx || audioCtx.state === 'suspended') return;
@@ -518,7 +503,7 @@ function playExplosionSound() {
 
     const time = audioCtx.currentTime;
 
-    // 1. Core "ĐÙNG" Shockwave (Triangle wave for grit/punch)
+    // 1. Core \"ĐÙNG\" Shockwave (Triangle wave for grit/punch)
     const oscBoom = audioCtx.createOscillator();
     const boomGain = audioCtx.createGain();
     oscBoom.type = "triangle";
