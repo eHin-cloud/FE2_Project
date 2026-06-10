@@ -5,6 +5,9 @@ let audioCtx;
 let chargingOsc, chargingLFO, chargingGain;
 let starfieldSpeedMultiplier = 1.0;
 let transitionLoadingActive = false;
+let uiBeepAudio = null;
+let portalWarpAudio = null;
+let lastMenuHoverSoundAt = 0;
 
 // Clean up legacy space state caches to ensure a fresh session on load
 localStorage.removeItem("gameNodePositions");
@@ -21,12 +24,26 @@ function initBgMusic() {
     bgMusic = new Audio('./img/freefai1.mp3');
     bgMusic.loop = true;
     bgMusic.volume = 0.4;
+    bgMusic.muted = false;
+  }
+}
+
+function initSciFiSfx() {
+  if (!uiBeepAudio) {
+    uiBeepAudio = new Audio('./img/beep.mp3');
+    uiBeepAudio.preload = 'auto';
+    uiBeepAudio.volume = 0.24;
+  }
+  if (!portalWarpAudio) {
+    portalWarpAudio = new Audio('./img/warp.mp3');
+    portalWarpAudio.preload = 'auto';
+    portalWarpAudio.volume = 0.6;
   }
 }
 
 function playBgMusic() {
   initBgMusic();
-  if (bgMusic && !isMusicMuted) {
+  if (bgMusic) {
     bgMusic.play().catch(err => {
       console.warn("Background music autoplay was blocked:", err);
     });
@@ -40,36 +57,41 @@ function stopBgMusic() {
   }
 }
 
-function toggleBgMusic() {
-  initBgMusic();
-  isMusicMuted = !isMusicMuted;
-  if (bgMusic) {
-    bgMusic.muted = isMusicMuted;
-    if (!isMusicMuted) {
-      bgMusic.play().catch(() => {});
-    }
+function playAudioFile(audio, fallback) {
+  initSciFiSfx();
+  if (!audio) {
+    if (typeof fallback === "function") fallback();
+    return;
   }
-  
-  // Update button icon & text attributes
-  const musicIcon = document.getElementById("music-btn-icon");
-  const musicText = document.getElementById("music-btn-text");
-  if (musicIcon) {
-    if (isMusicMuted) {
-      musicIcon.className = "fa-solid fa-volume-xmark text-[10px]";
-      if (musicText) {
-        musicText.setAttribute("data-vi", "TẮT ÂM");
-        musicText.setAttribute("data-en", "MUTED");
-        musicText.textContent = currentLang === "vi" ? "TẮT ÂM" : "MUTED";
-      }
-    } else {
-      musicIcon.className = "fa-solid fa-volume-high text-[10px]";
-      if (musicText) {
-        musicText.setAttribute("data-vi", "ÂM THANH");
-        musicText.setAttribute("data-en", "AUDIO");
-        musicText.textContent = currentLang === "vi" ? "ÂM THANH" : "AUDIO";
-      }
-    }
+
+  try {
+    const sound = audio.cloneNode();
+    sound.volume = audio.volume;
+    sound.play().catch(() => {
+      if (typeof fallback === "function") fallback();
+    });
+  } catch (e) {
+    if (typeof fallback === "function") fallback();
   }
+}
+
+function playMenuHoverSound() {
+  const now = performance.now();
+  if (now - lastMenuHoverSoundAt < 90) return;
+  lastMenuHoverSoundAt = now;
+
+  initSciFiSfx();
+  playAudioFile(uiBeepAudio, () => playBeep(960, 0.035, "sine", 0.018));
+}
+
+function playPortalWarpSound() {
+  initSciFiSfx();
+  playAudioFile(portalWarpAudio, () => {
+    playBeep(180, 0.12, "sawtooth", 0.04);
+    setTimeout(() => playBeep(420, 0.12, "triangle", 0.035), 80);
+    setTimeout(() => playBeep(900, 0.16, "sine", 0.035), 190);
+    setTimeout(() => playBeep(1500, 0.2, "sine", 0.025), 330);
+  });
 }
 
 function initAudio() {
@@ -695,6 +717,9 @@ function updateLanguageUI() {
   translatableElements.forEach(el => {
     const text = currentLang === "vi" ? el.getAttribute("data-vi") : el.getAttribute("data-en");
     el.textContent = text;
+    if (el.hasAttribute("data-text-vi") && el.hasAttribute("data-text-en")) {
+      el.setAttribute("data-text", currentLang === "vi" ? el.getAttribute("data-text-vi") : el.getAttribute("data-text-en"));
+    }
   });
 
   // Update view mode toggle text based on current mode, not stale translated attributes
@@ -903,6 +928,8 @@ function initStarfieldBackground() {
   const planet1CoreGeom = new THREE.SphereGeometry(28, 32, 32);
   const planet1CoreMat = new THREE.MeshPhongMaterial({
     color: 0x020617,
+    emissive: 0x063a46,
+    emissiveIntensity: 0.45,
     shininess: 80,
     bumpScale: 0.05
   });
@@ -912,6 +939,8 @@ function initStarfieldBackground() {
   const planet1ShellGeom = new THREE.SphereGeometry(28.5, 32, 32);
   const planet1ShellMat = new THREE.MeshPhongMaterial({
     color: 0x06b6d4,
+    emissive: 0x06b6d4,
+    emissiveIntensity: 0.35,
     wireframe: true,
     transparent: true,
     opacity: 0.25
@@ -941,6 +970,8 @@ function initStarfieldBackground() {
   const planet2CoreGeom = new THREE.SphereGeometry(16, 32, 32);
   const planet2CoreMat = new THREE.MeshPhongMaterial({
     color: 0x0d0824,
+    emissive: 0x3b1268,
+    emissiveIntensity: 0.5,
     shininess: 60
   });
   const planet2Core = new THREE.Mesh(planet2CoreGeom, planet2CoreMat);
@@ -949,6 +980,8 @@ function initStarfieldBackground() {
   const planet2ShellGeom = new THREE.SphereGeometry(16.4, 16, 16);
   const planet2ShellMat = new THREE.MeshPhongMaterial({
     color: 0xa855f7,
+    emissive: 0xa855f7,
+    emissiveIntensity: 0.35,
     wireframe: true,
     transparent: true,
     opacity: 0.3
@@ -1009,18 +1042,29 @@ function initStarfieldBackground() {
 
     // Rotate planets and shells
     if (planet1Group) {
-      planet1Core.rotation.y += 0.001;
-      planet1Shell.rotation.y += 0.0025;
-      planet1Ring.rotation.z -= 0.0003;
-
       const time = Date.now() * 0.0005;
+      const pulse = 0.5 + Math.sin(time * 2.6) * 0.5;
+      planet1Core.rotation.y += 0.0022;
+      planet1Core.rotation.x += 0.0004;
+      planet1Shell.rotation.y += 0.0055;
+      planet1Shell.rotation.x -= 0.0016;
+      planet1Ring.rotation.z -= 0.0012;
+      planet1Shell.material.opacity = 0.23 + pulse * 0.16;
+      planet1Ring.material.opacity = 0.14 + pulse * 0.12;
+      planet1Core.material.emissiveIntensity = 0.35 + pulse * 0.35;
+      planet1Group.scale.setScalar(1 + pulse * 0.025);
       planet1Group.position.y = 50 + Math.sin(time) * 4;
     }
     if (planet2Group) {
-      planet2Core.rotation.y -= 0.0015;
-      planet2Shell.rotation.x += 0.002;
-
       const time = Date.now() * 0.0007;
+      const pulse = 0.5 + Math.sin(time * 2.9 + 1.4) * 0.5;
+      planet2Core.rotation.y -= 0.0032;
+      planet2Core.rotation.z += 0.0007;
+      planet2Shell.rotation.x += 0.0045;
+      planet2Shell.rotation.y -= 0.002;
+      planet2Shell.material.opacity = 0.24 + pulse * 0.2;
+      planet2Core.material.emissiveIntensity = 0.4 + pulse * 0.45;
+      planet2Group.scale.setScalar(1 + pulse * 0.035);
       planet2Group.position.y = -40 + Math.sin(time) * 3;
     }
     if (planet3Group) {
@@ -1078,7 +1122,9 @@ function initHeroMesh() {
   });
 
   const mesh = new THREE.Mesh(geom, mat);
-  scene.add(mesh);
+  const outerWireGroup = new THREE.Group();
+  outerWireGroup.add(mesh);
+  scene.add(outerWireGroup);
 
   // Inner solid core
   const innerGeom = new THREE.IcosahedronGeometry(1.2, 0);
@@ -1089,7 +1135,9 @@ function initHeroMesh() {
     shininess: 120
   });
   const innerMesh = new THREE.Mesh(innerGeom, innerMat);
-  scene.add(innerMesh);
+  const innerCoreGroup = new THREE.Group();
+  innerCoreGroup.add(innerMesh);
+  scene.add(innerCoreGroup);
 
   // Resize handler for wrapper container
   const resize = () => {
@@ -1102,17 +1150,25 @@ function initHeroMesh() {
   window.addEventListener("resize", resize);
   resize();
 
+  let lastFrameTime = performance.now();
   const animate = () => {
     requestAnimationFrame(animate);
 
-    mesh.rotation.y += 0.005;
-    mesh.rotation.x += 0.003;
+    const now = performance.now();
+    const delta = Math.min((now - lastFrameTime) / 16.6667, 2);
+    lastFrameTime = now;
 
-    innerMesh.rotation.y -= 0.008;
-    innerMesh.rotation.x -= 0.004;
+    // Outer wireframe sphere: slow, continuous orbit around Y.
+    outerWireGroup.rotation.y += 0.006 * delta;
+    outerWireGroup.rotation.x += 0.0018 * delta;
+
+    // Inner cyan polyhedron: counter-rotates and tilts on X for depth.
+    innerCoreGroup.rotation.y -= 0.009 * delta;
+    innerCoreGroup.rotation.x += 0.006 * delta;
+    innerMesh.rotation.z -= 0.0035 * delta;
 
     // Pulse core
-    const scale = 1 + Math.sin(Date.now() * 0.002) * 0.15;
+    const scale = 1 + Math.sin(now * 0.002) * 0.15;
     innerMesh.scale.set(scale, scale, scale);
 
     renderer.render(scene, camera);
@@ -6675,17 +6731,6 @@ function setupViewModeToggle() {
     });
   }
 
-  // Music mute/unmute toggle inside 3D container
-  const musicToggleBtn = document.getElementById("toggle-music-btn");
-  if (musicToggleBtn) {
-    musicToggleBtn.addEventListener("click", () => {
-      toggleBgMusic();
-      if (typeof playBeep === 'function') {
-        playBeep(900, 0.05, 'sine', 0.03);
-      }
-    });
-  }
-
   // Language toggle inside 3D container
   const gameLangToggleBtn = document.getElementById("game-lang-toggle-btn");
   if (gameLangToggleBtn) {
@@ -6697,14 +6742,10 @@ function setupViewModeToggle() {
   if (portalBtn) {
     portalBtn.addEventListener("click", () => {
       if (!is3DMode) {
+        playPortalWarpSound();
         is3DMode = true;
         localStorage.setItem("view-mode-3d", is3DMode);
         updateToggleUI(false);
-        if (typeof playBeep === 'function') {
-          playBeep(1200, 0.15, 'sine', 0.08);
-          setTimeout(() => playBeep(1500, 0.1, 'sine', 0.05), 150);
-          setTimeout(() => playBeep(1800, 0.08, 'sine', 0.03), 300);
-        }
       } else {
         const gameContainer = document.getElementById("game-container");
         if (gameContainer) gameContainer.scrollIntoView({ behavior: 'smooth' });
@@ -6717,10 +6758,23 @@ function setupViewModeToggle() {
   updateToggleUI(true);
 }
 
+function setupSciFiInteractionAudio() {
+  const menuLinks = document.querySelectorAll(
+    "#main-nav ul a, #mobile-menu a, #view-mode-btn, #lang-toggle-btn"
+  );
+
+  menuLinks.forEach(link => {
+    link.addEventListener("pointerenter", () => {
+      playMenuHoverSound();
+    });
+  });
+}
+
 // ==========================================================================
 // SYSTEM ENTRYPOINT
 // ==========================================================================
 window.addEventListener("DOMContentLoaded", () => {
+  initSciFiSfx();
   // 3D Background runs immediately
   initStarfieldBackground();
   // Bootloader runs
@@ -6730,6 +6784,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Set up view mode toggle
   setupViewModeToggle();
+  setupSciFiInteractionAudio();
 
   // Bind instructions HUD collapsible header toggle
   const hudHeader = document.getElementById("hud-header");
@@ -6879,15 +6934,21 @@ window.addEventListener("DOMContentLoaded", () => {
     chatbotToggle.addEventListener("click", () => {
       isWindowOpen = !isWindowOpen;
       if (isWindowOpen) {
-        chatbotWindow.classList.remove("scale-0");
-        chatbotWindow.classList.add("scale-100");
-        if (!isLoading) chatbotInput.focus();
+        chatbotWindow.classList.add("is-open");
+        chatbotToggle.classList.add("is-open");
+        chatbotWindow.setAttribute("aria-hidden", "false");
+        chatbotToggle.setAttribute("aria-expanded", "true");
+        if (!isLoading) {
+          setTimeout(() => chatbotInput.focus(), 220);
+        }
         if (typeof playBeep === "function") {
           playBeep(880, 0.08, "sine", 0.02);
         }
       } else {
-        chatbotWindow.classList.remove("scale-100");
-        chatbotWindow.classList.add("scale-0");
+        chatbotWindow.classList.remove("is-open");
+        chatbotToggle.classList.remove("is-open");
+        chatbotWindow.setAttribute("aria-hidden", "true");
+        chatbotToggle.setAttribute("aria-expanded", "false");
         if (typeof playBeep === "function") {
           playBeep(600, 0.08, "triangle", 0.02);
         }
@@ -6898,8 +6959,10 @@ window.addEventListener("DOMContentLoaded", () => {
     chatbotClose.addEventListener("click", (e) => {
       e.stopPropagation();
       isWindowOpen = false;
-      chatbotWindow.classList.remove("scale-100");
-      chatbotWindow.classList.add("scale-0");
+      chatbotWindow.classList.remove("is-open");
+      chatbotToggle.classList.remove("is-open");
+      chatbotWindow.setAttribute("aria-hidden", "true");
+      chatbotToggle.setAttribute("aria-expanded", "false");
       if (typeof playBeep === "function") {
         playBeep(600, 0.08, "triangle", 0.02);
       }
@@ -7321,23 +7384,3 @@ LIÊN HỆ:
   }
 });
 
-// Lock developer tools & right click to prevent inspect
-document.addEventListener('contextmenu', e => e.preventDefault());
-
-document.addEventListener('keydown', e => {
-  // Block F12 (123)
-  if (e.keyCode === 123 || e.key === 'F12') {
-    e.preventDefault();
-    return false;
-  }
-  // Block Ctrl+Shift+I (73), Ctrl+Shift+J (74), Ctrl+Shift+C (67)
-  if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'i' || e.key === 'j' || e.key === 'c')) {
-    e.preventDefault();
-    return false;
-  }
-  // Block Ctrl+U (85)
-  if (e.ctrlKey && (e.keyCode === 85 || e.key === 'u' || e.key === 'U')) {
-    e.preventDefault();
-    return false;
-  }
-});

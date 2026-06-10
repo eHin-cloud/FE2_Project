@@ -123,3 +123,728 @@
     bottom: 8px !important;
   }
 }
+
+/* Desktop navbar alignment: keep long Vietnamese labels on one line */
+#main-nav {
+  align-items: center !important;
+  column-gap: clamp(0.75rem, 1.8vw, 2rem);
+}
+
+#main-nav > div,
+#main-nav ul,
+#main-nav .nav-actions,
+#main-nav li,
+#main-nav a,
+#main-nav button {
+  align-items: center;
+}
+
+#main-nav ul {
+  flex-wrap: nowrap;
+  gap: clamp(1rem, 2vw, 2.25rem) !important;
+  min-width: 0;
+}
+
+#main-nav li,
+#main-nav a,
+#main-nav button,
+#main-nav span {
+  white-space: nowrap;
+}
+
+#main-nav a,
+#main-nav button {
+  display: inline-flex;
+  line-height: 1;
+}
+
+#main-nav .nav-actions {
+  flex-wrap: nowrap;
+  gap: clamp(0.5rem, 1vw, 0.9rem) !important;
+  flex-shrink: 0;
+}
+
+#view-mode-btn,
+#lang-toggle-btn {
+  min-height: 2.25rem;
+  justify-content: center;
+}
+
+@media screen and (min-width: 768px) {
+  #mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1180px) {
+  #main-nav {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  #main-nav ul {
+    gap: clamp(0.58rem, 1.05vw, 0.95rem) !important;
+    font-size: 0.8rem !important;
+  }
+
+  #view-mode-btn,
+  #lang-toggle-btn,
+  #main-nav .nav-actions a {
+    padding-left: 0.55rem !important;
+    padding-right: 0.55rem !important;
+  }
+
+  #main-nav > div:first-child a span {
+    display: none !important;
+  }
+
+  #view-mode-text {
+    max-width: 0;
+    overflow: hidden;
+    display: inline-block !important;
+  }
+
+  #main-nav .nav-actions {
+    gap: 0.45rem !important;
+  }
+}
+
+/* Hero 3D object: compositor hints for smooth 60 FPS canvas animation */
+.hero-orbital-stage,
+#canvas-hero-3d {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* If the hero object is ever rebuilt as DOM/SVG, these classes provide the same motion in pure CSS. */
+.hero-wireframe-orb {
+  animation: hero-wireframe-spin-y 18s linear infinite;
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.hero-inner-polyhedron {
+  animation: hero-polyhedron-counter-spin 12s linear infinite;
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.portal-premium-btn {
+  display: inline-flex;
+  width: min(34rem, calc(100vw - 2rem));
+  min-height: clamp(5.4rem, 12vw, 7.5rem);
+  padding: 1.1rem 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #ffffff;
+  overflow: visible;
+  isolation: isolate;
+  transform: translateZ(0);
+  transition:
+    transform 0.3s ease,
+    filter 0.3s ease;
+}
+
+.portal-premium-btn::before,
+.portal-premium-btn::after {
+  content: "";
+  position: absolute;
+  inset: 14% 4%;
+  pointer-events: none;
+  clip-path: polygon(0 47%, 9% 28%, 19% 39%, 29% 12%, 40% 32%, 52% 8%, 63% 34%, 78% 20%, 91% 39%, 100% 50%, 90% 62%, 78% 54%, 66% 82%, 55% 60%, 43% 91%, 33% 63%, 20% 76%, 11% 60%);
+}
+
+.portal-premium-btn::before {
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0.7;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.portal-premium-btn::after {
+  z-index: 2;
+  background:
+    linear-gradient(110deg, transparent 0 18%, rgba(34, 211, 238, 0.48) 20%, transparent 22% 55%, rgba(192, 132, 252, 0.45) 58%, transparent 61%),
+    linear-gradient(290deg, transparent 0 35%, rgba(255, 255, 255, 0.45) 36%, transparent 39% 100%);
+  opacity: 0.46;
+  filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.58));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.portal-premium-btn:hover {
+  transform: scale(1.03);
+  filter: drop-shadow(0 0 18px rgba(34, 211, 238, 0.34));
+}
+
+.portal-premium-btn:hover::before {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.portal-premium-btn:hover::after {
+  opacity: 0.74;
+  transform: scale(1.03);
+}
+
+.portal-crack-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  clip-path: polygon(0 47%, 9% 28%, 19% 39%, 29% 12%, 40% 32%, 52% 8%, 63% 34%, 78% 20%, 91% 39%, 100% 50%, 90% 62%, 78% 54%, 66% 82%, 55% 60%, 43% 91%, 33% 63%, 20% 76%, 11% 60%);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transform: scale(0.98);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.portal-premium-btn:hover .portal-crack-mask {
+  transform: scale(1.03);
+  filter: saturate(1.25) brightness(1.15);
+}
+
+.portal-swirl,
+.portal-swirl-fast,
+.portal-crack-rim {
+  position: absolute;
+  inset: -42%;
+  pointer-events: none;
+}
+
+.portal-swirl {
+  background:
+    conic-gradient(
+      from 18deg,
+      transparent 0 12%,
+      rgba(6, 182, 212, 0.28) 16%,
+      rgba(145, 94, 255, 0.2) 25%,
+      transparent 36% 48%,
+      rgba(255, 255, 255, 0.18) 52%,
+      rgba(6, 182, 212, 0.22) 61%,
+      transparent 72% 100%
+    ),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.32) 0 2%, rgba(6, 182, 212, 0.16) 7%, rgba(145, 94, 255, 0.12) 19%, transparent 44%);
+  opacity: 0.72;
+  animation: portal-swirl-spin 12s linear infinite;
+}
+
+.portal-swirl-fast {
+  inset: -18%;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(255, 255, 255, 0.16) 0 2deg,
+      transparent 2deg 13deg,
+      rgba(6, 182, 212, 0.18) 13deg 16deg,
+      transparent 16deg 28deg
+    );
+  opacity: 0.38;
+  filter: blur(0.5px);
+  animation: portal-swirl-spin-reverse 8s linear infinite;
+}
+
+.portal-crack-rim {
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.5), transparent),
+    radial-gradient(circle at 50% 50%, transparent 0 36%, rgba(192, 132, 252, 0.2) 46%, transparent 66%);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+.portal-cta-text {
+  position: relative;
+  z-index: 3;
+  max-width: 100%;
+  color: #f8fbff;
+  font-family: var(--font-display);
+  font-size: clamp(0.68rem, 2.1vw, 0.86rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 7px rgba(6, 182, 212, 0.7),
+    0 0 16px rgba(145, 94, 255, 0.52),
+    0 0 28px rgba(6, 182, 212, 0.22);
+  animation: portal-text-energy-crack 2.1s steps(1, end) infinite;
+  transition: text-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.portal-cta-text::before,
+.portal-cta-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.portal-cta-text::before {
+  color: #22d3ee;
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 0 54%);
+  transform: translate(-1px, 0);
+}
+
+.portal-cta-text::after {
+  color: #c084fc;
+  clip-path: polygon(0 52%, 100% 42%, 100% 100%, 0 100%);
+  transform: translate(1px, 0);
+}
+
+.portal-premium-btn:hover .portal-cta-text::before,
+.portal-premium-btn:hover .portal-cta-text::after {
+  animation: portal-text-glitch-slice 0.72s steps(1, end) infinite;
+}
+
+.portal-premium-btn:hover .portal-cta-text {
+  color: #ffffff;
+  text-shadow:
+    0 0 10px rgba(34, 211, 238, 0.95),
+    0 0 22px rgba(145, 94, 255, 0.82),
+    0 0 38px rgba(34, 211, 238, 0.48);
+}
+
+@keyframes portal-button-neon-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 16px rgba(6, 182, 212, 0.24),
+      0 0 32px rgba(145, 94, 255, 0.22),
+      inset 0 0 16px rgba(6, 182, 212, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 24px rgba(6, 182, 212, 0.45),
+      0 0 46px rgba(145, 94, 255, 0.4),
+      inset 0 0 24px rgba(145, 94, 255, 0.18);
+  }
+}
+
+@keyframes portal-energy-scan {
+  0% {
+    transform: translateX(-42%);
+  }
+  100% {
+    transform: translateX(42%);
+  }
+}
+
+@keyframes portal-swirl-spin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes portal-swirl-spin-reverse {
+  from {
+    transform: rotate(360deg) scale(0.92);
+  }
+  to {
+    transform: rotate(0deg) scale(0.92);
+  }
+}
+
+.portal-premium-btn:hover .portal-swirl {
+  animation-duration: 7s;
+}
+
+.portal-premium-btn:hover .portal-swirl-fast {
+  animation-duration: 4.5s;
+}
+
+@keyframes portal-text-energy-crack {
+  0%, 82%, 90%, 100% {
+    transform: translate(0, 0);
+    filter: none;
+  }
+  84% {
+    transform: translate(1px, -1px);
+    filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.85));
+  }
+  86% {
+    transform: translate(-1px, 1px);
+    filter: drop-shadow(0 0 12px rgba(192, 132, 252, 0.9));
+  }
+}
+
+@keyframes portal-text-glitch-slice {
+  0%, 100% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+    transform: translate(-3px, -1px);
+  }
+  40% {
+    opacity: 0.7;
+    transform: translate(3px, 1px);
+  }
+  60% {
+    opacity: 0.9;
+    transform: translate(-2px, 1px);
+  }
+  80% {
+    opacity: 0.65;
+    transform: translate(2px, -1px);
+  }
+}
+
+@keyframes hero-wireframe-spin-y {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes hero-polyhedron-counter-spin {
+  from {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(360deg) rotateY(-360deg);
+  }
+}
+
+/* CRT station polish: global scan sweep, periodic text glitch, and reduced-motion safety */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  z-index: 9997;
+  opacity: 0.16;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.045) 0,
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  mix-blend-mode: screen;
+}
+
+body::after {
+  z-index: 9998;
+  opacity: 0.22;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(6, 182, 212, 0.06) 45%,
+    rgba(168, 85, 247, 0.11) 50%,
+    rgba(6, 182, 212, 0.06) 55%,
+    transparent 100%
+  );
+  transform: translateY(-120%);
+  animation: radar-scanline-sweep 6s linear infinite;
+}
+
+.cyber-glitch-title {
+  position: relative;
+  display: inline-block;
+  max-width: calc(100vw - 32px);
+  white-space: nowrap;
+  font-size: clamp(0.78rem, 4vw, 1.875rem) !important;
+  letter-spacing: clamp(0.035em, 1vw, 0.2em) !important;
+  isolation: isolate;
+  animation: station-title-glitch 1.8s steps(1, end) infinite;
+}
+
+.cyber-glitch-title::before,
+.cyber-glitch-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  color: transparent;
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cyber-glitch-title::before {
+  filter: drop-shadow(-2px 0 rgba(6, 182, 212, 0.95));
+}
+
+.cyber-glitch-title::after {
+  filter: drop-shadow(2px 0 rgba(168, 85, 247, 0.9));
+}
+
+@keyframes radar-scanline-sweep {
+  0% {
+    transform: translateY(-120%);
+  }
+  100% {
+    transform: translateY(120%);
+  }
+}
+
+@keyframes station-title-glitch {
+  0%, 86%, 100% {
+    transform: translate(0, 0);
+  }
+  87% {
+    transform: translate(1px, -1px) skewX(-4deg);
+  }
+  88% {
+    transform: translate(-2px, 1px) skewX(5deg);
+  }
+  89% {
+    transform: translate(2px, 0);
+  }
+  90% {
+    transform: translate(0, 0);
+  }
+}
+
+.cyber-glitch-title::before {
+  animation: station-title-glitch-before 1.8s steps(1, end) infinite;
+}
+
+.cyber-glitch-title::after {
+  animation: station-title-glitch-after 1.8s steps(1, end) infinite;
+}
+
+#bootloader-hud {
+  width: min(100%, 32rem);
+}
+
+#bootloader-hud > p {
+  max-width: calc(100vw - 36px);
+  white-space: nowrap;
+  font-size: clamp(0.43rem, 2.2vw, 0.625rem) !important;
+  letter-spacing: clamp(0.16em, 1.45vw, 0.5em) !important;
+}
+
+#loader-progress-container {
+  width: min(16rem, calc(100vw - 48px)) !important;
+}
+
+#loader-status-text {
+  min-width: 0;
+  max-width: calc(100% - 42px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 380px) {
+  #bootloader-hud {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  #bootloader-hud .relative.w-48.h-48 {
+    width: 10rem !important;
+    height: 10rem !important;
+    margin-bottom: 1.4rem !important;
+  }
+
+  #loader-start-btn,
+  #loader-core-charging {
+    width: 5.25rem !important;
+    height: 5.25rem !important;
+  }
+
+  .cyber-glitch-title {
+    font-size: clamp(0.72rem, 3.75vw, 0.95rem) !important;
+    letter-spacing: 0.025em !important;
+  }
+}
+
+@keyframes station-title-glitch-before {
+  0%, 86%, 91%, 100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
+  }
+  87% {
+    opacity: 0.9;
+    clip-path: inset(0 0 62% 0);
+    transform: translate(-3px, 0);
+  }
+  88% {
+    opacity: 0.7;
+    clip-path: inset(42% 0 34% 0);
+    transform: translate(3px, -1px);
+  }
+  89% {
+    opacity: 0.85;
+    clip-path: inset(68% 0 0 0);
+    transform: translate(-2px, 1px);
+  }
+}
+
+@keyframes station-title-glitch-after {
+  0%, 86%, 91%, 100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
+  }
+  87% {
+    opacity: 0.75;
+    clip-path: inset(64% 0 0 0);
+    transform: translate(3px, 1px);
+  }
+  88% {
+    opacity: 0.9;
+    clip-path: inset(12% 0 58% 0);
+    transform: translate(-3px, 0);
+  }
+  89% {
+    opacity: 0.8;
+    clip-path: inset(38% 0 38% 0);
+    transform: translate(2px, -1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after,
+  .cyber-glitch-title,
+  .cyber-glitch-title::before,
+  .cyber-glitch-title::after,
+  .portal-premium-btn,
+  .portal-premium-btn::before,
+  .portal-swirl,
+  .portal-swirl-fast,
+  .portal-cta-text,
+  .portal-premium-btn:hover .portal-cta-text::before,
+  .portal-premium-btn:hover .portal-cta-text::after {
+    animation: none;
+  }
+}
+
+.cyber-assistant-toggle {
+  isolation: isolate;
+}
+
+.cyber-assistant-toggle:not(.is-open) {
+  animation: assistant-icon-glow 2.4s ease-in-out infinite;
+}
+
+.cyber-assistant-toggle::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(6, 182, 212, 0.28);
+  border-radius: 9999px;
+  opacity: 0;
+  transform: scale(0.82);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.cyber-assistant-toggle:not(.is-open)::before {
+  animation: assistant-ring-pulse 2.4s ease-out infinite;
+}
+
+.cyber-assistant-toggle.is-open,
+.cyber-assistant-toggle.is-open::before,
+.cyber-assistant-toggle.is-open .chatbot-pulse-ring {
+  animation: none;
+}
+
+.cyber-assistant-toggle.is-open::before,
+.cyber-assistant-toggle.is-open .chatbot-pulse-ring {
+  opacity: 0;
+}
+
+.chatbot-pulse-ring {
+  opacity: 0.5;
+  transform: scale(1);
+  pointer-events: none;
+}
+
+.cyber-assistant-toggle:not(.is-open) .chatbot-pulse-ring {
+  animation: assistant-soft-pulse 2.4s ease-in-out infinite;
+}
+
+.chatbot-window {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(28px) scale(0.98);
+  transition:
+    opacity 0.32s ease,
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.36s;
+  will-change: opacity, transform;
+}
+
+.chatbot-window.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition-delay: 0s;
+}
+
+@keyframes assistant-icon-glow {
+  0%, 100% {
+    box-shadow: 0 10px 28px rgba(145, 94, 255, 0.32), 0 0 0 rgba(6, 182, 212, 0);
+  }
+  50% {
+    box-shadow: 0 12px 34px rgba(145, 94, 255, 0.48), 0 0 22px rgba(6, 182, 212, 0.34);
+  }
+}
+
+@keyframes assistant-soft-pulse {
+  0%, 100% {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.42;
+    transform: scale(1.22);
+  }
+}
+
+@keyframes assistant-ring-pulse {
+  0% {
+    opacity: 0.42;
+    transform: scale(0.82);
+  }
+  70%, 100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cyber-assistant-toggle,
+  .cyber-assistant-toggle::before,
+  .chatbot-pulse-ring {
+    animation: none !important;
+  }
+
+  .chatbot-window {
+    transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+    transform: none;
+  }
+
+.chatbot-window.is-open {
+  transform: none;
+  }
+}

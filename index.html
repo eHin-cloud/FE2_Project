@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0">
   
   <script>
-    // Self-Healing Version Sync to force-bypass browser cache
+    // Silent version sync to force-bypass browser cache without exposing cache UI.
     (function() {
       var localVersion = "BUILD_VERSION_PLACEHOLDER";
       if (window.location.protocol !== 'file:') {
@@ -16,42 +16,13 @@
           .then(function(res) { return res.json(); })
           .then(function(data) {
             if (data && data.version && data.version !== localVersion) {
-              var showUpdateUI = function() {
-                if (!document.body) {
-                  setTimeout(showUpdateUI, 50);
-                  return;
-                }
-                var overlay = document.createElement('div');
-                overlay.style.position = 'fixed';
-                overlay.style.top = '0';
-                overlay.style.left = '0';
-                overlay.style.width = '100%';
-                overlay.style.height = '100%';
-                overlay.style.background = 'rgba(5, 8, 22, 0.98)';
-                overlay.style.color = '#06b6d4';
-                overlay.style.zIndex = '999999';
-                overlay.style.display = 'flex';
-                overlay.style.justifyContent = 'center';
-                overlay.style.alignItems = 'center';
-                overlay.style.fontFamily = 'monospace';
-                overlay.style.padding = '20px';
-                overlay.style.textAlign = 'center';
-                
-                overlay.innerHTML = `
-                  <div style="border: 2px solid #06b6d4; padding: 40px 30px; background: rgba(6, 182, 212, 0.05); max-width: 480px; box-shadow: 0 0 35px rgba(6, 182, 212, 0.3); border-radius: 12px; box-sizing: border-box;">
-                    <h2 style="margin: 0 0 15px 0; color: #fff; font-size: 18px; letter-spacing: 2px;">▲ PHÁT HIỆN PHIÊN BẢN MỚI ▲</h2>
-                    <h3 style="margin: 0 0 20px 0; color: #06b6d4; font-size: 14px; letter-spacing: 1px;">NEW UPDATE DETECTED</h3>
-                    <p style="color: #aaa; font-size: 12px; margin-bottom: 25px; line-height: 1.6; text-align: left;">Trình duyệt của bạn đang hiển thị phiên bản cũ lưu trong bộ nhớ đệm (Cache). Hệ thống đang tự động tải lại phiên bản mới nhất từ máy chủ...</p>
-                    <button onclick="window.location.reload(true)" style="background: #06b6d4; color: #000; border: none; padding: 12px 24px; font-family: inherit; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; box-shadow: 0 0 15px rgba(6, 182, 212, 0.6); letter-spacing: 1px; transition: all 0.3s;">CẬP NHẬT NGAY / FORCE RELOAD</button>
-                  </div>
-                `;
-                document.body.appendChild(overlay);
-                
-                setTimeout(function() {
-                  window.location.reload(true);
-                }, 1200);
-              };
-              showUpdateUI();
+              var reloadKey = 'portfolio-version-reload';
+              if (sessionStorage.getItem(reloadKey) !== String(data.version)) {
+                sessionStorage.setItem(reloadKey, String(data.version));
+                var url = new URL(window.location.href);
+                url.searchParams.set('v', data.version);
+                window.location.replace(url.toString());
+              }
             }
           })
           .catch(function(err) {});
@@ -65,12 +36,20 @@
   <meta name="keywords" content="frontend, backend, laravel, web, ui, three.js, portfolio">
   <meta name="author" content="Nguyễn Thanh Hiền">
 
+  <!-- Futuristic typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+
+  <!-- Font Awesome Icons: load this before rendering any <i class="fa-..."> icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    referrerpolicy="no-referrer">
+
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./css/style.css">
-
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <title>Nguyễn Thanh Hiền | Trạm Không Gian</title>
 </head>
@@ -134,7 +113,8 @@
 
       <!-- Station Title -->
       <h1
-        class="text-2xl sm:text-3xl font-black font-display tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-purple-400 py-2 leading-relaxed filter drop-shadow-[0_0_12px_rgba(6,182,212,0.4)] uppercase">
+        class="cyber-glitch-title text-2xl sm:text-3xl font-black font-display tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-purple-400 py-2 leading-relaxed filter drop-shadow-[0_0_12px_rgba(6,182,212,0.4)] uppercase"
+        data-text="NGUYỄN THANH HIỀN">
         NGUYỄN THANH HIỀN
       </h1>
       <p class="text-[10px] font-mono tracking-[0.5em] text-cyan-400/70 mb-8 uppercase">
@@ -280,12 +260,6 @@
 
     <!-- Top Right Cyber Controller Panel -->
     <div id="right-hud-container" class="absolute top-8 right-8 flex items-center gap-3 z-30 pointer-events-auto">
-      <button id="toggle-music-btn"
-        class="cyber-hud-btn px-3 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all"
-        title="Bật/Tắt nhạc nền" aria-label="Toggle background music">
-        <i id="music-btn-icon" class="fa-solid fa-volume-high text-[10px]"></i>
-        <span id="music-btn-text" class="hidden sm:inline" data-vi="ÂM THANH" data-en="AUDIO">ÂM THANH</span>
-      </button>
       <button id="game-lang-toggle-btn"
         class="cyber-hud-btn px-3 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all"
         title="Đổi ngôn ngữ" aria-label="Toggle language">
@@ -434,7 +408,7 @@
       </li>
     </ul>
 
-    <div class="flex items-center gap-1.5 sm:gap-3">
+    <div class="nav-actions flex items-center gap-1.5 sm:gap-3">
       <!-- View Mode Toggle button -->
       <button id="view-mode-btn"
         class="px-2.5 py-1.5 sm:px-3 rounded-xl border border-purple-500/20 hover:border-purple-500/50 text-xs font-mono font-bold tracking-widest text-purple-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
@@ -451,7 +425,7 @@
 
       <div class="hidden md:block">
         <a href="https://github.com/eHin-cloud" target="_blank"
-          class="px-5 py-2 rounded-xl bg-[#1d1836] border border-purple-500/20 hover:border-purple-500/50 text-white font-semibold transition-all">
+          class="px-5 py-2 rounded-xl bg-[#1d1836] border border-purple-500/20 hover:border-purple-500/50 text-white font-semibold transition-all inline-flex items-center whitespace-nowrap">
           <i class="fa-brands fa-github mr-2"></i>GitHub
         </a>
       </div>
@@ -519,7 +493,7 @@
         </div>
 
         <!-- Right 3D Object Canvas -->
-        <div class="md:col-span-5 flex justify-center items-center relative h-[300px] md:h-[450px]">
+        <div class="hero-orbital-stage md:col-span-5 flex justify-center items-center relative h-[300px] md:h-[450px]">
           <canvas id="canvas-hero-3d" class="w-full h-full max-w-[400px] max-h-[400px]"></canvas>
         </div>
 
@@ -527,39 +501,18 @@
 
       <!-- Space Portal / Crack - Click to enter 3D Mode -->
       <div class="relative mt-12 md:absolute md:bottom-8 md:left-1/2 md:-translate-x-1/2 md:mt-0 flex flex-col justify-center items-center gap-2 z-10">
-        <p class="text-zinc-500 text-[10px] font-mono uppercase tracking-[0.3em] animate-pulse"
-          data-vi="⚡ Bước vào Trạm Không Gian" data-en="⚡ Enter the Space Station">
-          ⚡ Bước vào Trạm Không Gian
-        </p>
-        <button id="portal-crack-btn" class="portal-crack group relative cursor-pointer"
+        <button id="portal-crack-btn" class="portal-crack portal-premium-btn group relative cursor-pointer"
           aria-label="Enter 3D Space Station">
-          <!-- Outer glow ring -->
-          <div
-            class="absolute inset-0 rounded-full bg-purple-500/20 blur-xl group-hover:bg-purple-500/40 transition-all duration-500 scale-150">
-          </div>
-          <!-- Portal crack shape -->
-          <div class="relative w-14 h-20 flex justify-center items-center">
-            <!-- Crack line SVG -->
-            <svg
-              class="w-full h-full drop-shadow-[0_0_12px_rgba(145,94,255,0.6)] group-hover:drop-shadow-[0_0_20px_rgba(145,94,255,0.9)] transition-all duration-300"
-              viewBox="0 0 40 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 2 L22 12 L18 18 L24 28 L16 34 L22 44 L18 52 L20 58" stroke="url(#portalGradient)"
-                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse" />
-              <path d="M20 2 L22 12 L18 18 L24 28 L16 34 L22 44 L18 52 L20 58" stroke="white" stroke-width="1"
-                stroke-linecap="round" stroke-linejoin="round" opacity="0.6" />
-              <!-- Spark particles -->
-              <circle cx="22" cy="12" r="1.5" fill="#915eff" class="animate-ping" style="animation-duration:2s" />
-              <circle cx="24" cy="28" r="1.5" fill="#a855f7" class="animate-ping" style="animation-duration:1.5s" />
-              <circle cx="18" cy="44" r="1" fill="#c084fc" class="animate-ping" style="animation-duration:2.5s" />
-              <defs>
-                <linearGradient id="portalGradient" x1="20" y1="2" x2="20" y2="58" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#c084fc" />
-                  <stop offset="50%" stop-color="#915eff" />
-                  <stop offset="100%" stop-color="#6d28d9" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
+          <span class="portal-crack-mask" aria-hidden="true">
+            <span class="portal-swirl"></span>
+            <span class="portal-swirl portal-swirl-fast"></span>
+            <span class="portal-crack-rim"></span>
+          </span>
+          <span class="portal-cta-text" data-text="⚡ BƯỚC VÀO TRẠM KHÔNG GIAN"
+            data-text-vi="⚡ BƯỚC VÀO TRẠM KHÔNG GIAN" data-text-en="⚡ ENTER THE SPACE STATION"
+            data-vi="⚡ Bước vào Trạm Không Gian" data-en="⚡ Enter the Space Station">
+            ⚡ Bước vào Trạm Không Gian
+          </span>
         </button>
       </div>
     </section>
@@ -1308,18 +1261,19 @@
      ========================================================================== -->
     <!-- Chatbot Toggle Button -->
     <div id="chatbot-toggle"
-      class="hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#915eff] to-[#06b6d4] text-white flex justify-center items-center cursor-pointer shadow-lg shadow-purple-900/50 hover:scale-110 active:scale-95 transition-all duration-300 group">
+      role="button" aria-expanded="false" aria-controls="chatbot-window"
+      class="cyber-assistant-toggle hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#915eff] to-[#06b6d4] text-white flex justify-center items-center cursor-pointer shadow-lg shadow-purple-900/50 hover:scale-110 active:scale-95 transition-all duration-300 group">
       <i class="fa-solid fa-robot text-xl group-hover:rotate-12 transition-transform"></i>
       <span
         class="absolute right-16 bg-[#0c102b] border border-purple-500/30 text-white text-[10px] py-1 px-2.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-mono shadow-md"
         data-vi="Trợ lý AI" data-en="AI Assistant">Trợ lý AI</span>
       <!-- Glowing pulse effect -->
-      <div class="absolute inset-0 rounded-full bg-[#915eff]/30 animate-ping -z-10"></div>
+      <div class="chatbot-pulse-ring absolute inset-0 rounded-full bg-[#915eff]/20 -z-10"></div>
     </div>
 
     <!-- Chatbot Chat Window -->
-    <div id="chatbot-window"
-      class="fixed bottom-24 right-6 sm:w-[360px] w-[calc(100vw-32px)] h-[480px] rounded-2xl border border-purple-500/30 bg-[#0c102b]/95 backdrop-blur-md flex flex-col justify-between overflow-hidden shadow-2xl transition-all duration-300 transform scale-0 origin-bottom-right z-50">
+    <div id="chatbot-window" aria-hidden="true"
+      class="chatbot-window fixed bottom-24 right-6 sm:w-[360px] w-[calc(100vw-32px)] h-[480px] rounded-2xl border border-purple-500/30 bg-[#0c102b]/95 backdrop-blur-md flex flex-col justify-between overflow-hidden shadow-2xl origin-bottom-right z-50">
 
       <!-- Chat Header -->
       <div

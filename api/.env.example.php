@@ -1,4 +1,0 @@
-<?php
-return [
-    'GEMINI_API_KEY' => 'PASTE_YOUR_GEMINI_KEY_HERE',
-];
