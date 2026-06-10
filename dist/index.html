@@ -10,7 +10,7 @@
   <script>
     // Silent version sync to force-bypass browser cache without exposing cache UI.
     (function() {
-      var localVersion = "1781091822781";
+      var localVersion = "1781092205829";
       if (window.location.protocol !== 'file:') {
         fetch('./version.json?t=' + Date.now())
           .then(function(res) { return res.json(); })
@@ -49,9 +49,9 @@
 
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="./css/style.css?v=1781091822781">
-  <link rel="stylesheet" href="./css/cursor-glow.css?v=1781091822781">
-  <link rel="stylesheet" href="./css/chatbot.css?v=1781091822781">
+  <link rel="stylesheet" href="./css/style.css?v=1781092205829">
+  <link rel="stylesheet" href="./css/cursor-glow.css?v=1781092205829">
+  <link rel="stylesheet" href="./css/chatbot.css?v=1781092205829">
 
   <title>Nguyễn Thanh Hiền | Trạm Không Gian</title>
 </head>
@@ -271,6 +271,13 @@
         <i class="fa-solid fa-globe text-[10px]"></i>
         <span id="game-lang-text">VI</span>
       </button>
+
+      <button id="game-sound-toggle-btn"
+        class="cyber-hud-btn px-3 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all"
+        title="Bật/Tắt âm thanh" aria-label="Toggle sound">
+        <i id="game-sound-toggle-icon" class="fa-solid fa-volume-xmark text-[10px]"></i>
+        <span id="game-sound-text" data-vi="ÂM THANH: TẮT" data-en="AUDIO: OFF">ÂM THANH: TẮT</span>
+      </button>
       <button id="exit-3d-btn"
         class="cyber-hud-btn px-5 py-2.5 rounded-lg text-xs font-mono font-bold tracking-widest flex items-center gap-2 transition-all">
         <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -426,6 +433,14 @@
         class="px-2.5 py-1.5 sm:px-3 rounded-xl border border-cyan-500/20 hover:border-cyan-500/50 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-[#0c102b] transition-all flex items-center gap-1.5">
         <i class="fa-solid fa-globe text-[10px]"></i>
         <span id="lang-text">VI</span>
+      </button>
+
+      <!-- Sound Toggle button -->
+      <button id="sound-toggle-btn"
+        class="px-2.5 py-1.5 sm:px-3 rounded-xl border border-amber-500/20 hover:border-amber-500/50 text-xs font-mono font-bold tracking-widest text-amber-400 bg-[#0c102b] transition-all flex items-center gap-1.5"
+        title="Bật/Tắt âm thanh" aria-label="Toggle sound">
+        <i id="sound-toggle-icon" class="fa-solid fa-volume-xmark text-[10px]"></i>
+        <span id="sound-text" class="hidden sm:inline" data-vi="ÂM THANH: TẮT" data-en="AUDIO: OFF">ÂM THANH: TẮT</span>
       </button>
 
       <div class="hidden md:block">
@@ -1397,7 +1412,7 @@
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
-    <script src="./js/app.js?v=1781091822781"></script>
+    <script src="./js/app.js?v=1781092205829"></script>
 
     <!-- Chatbot Interaction Logic -->
     <script>

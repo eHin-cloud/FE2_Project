@@ -18,10 +18,15 @@ localStorage.removeItem("visitedNodes");
 // BACKGROUND MUSIC PLAYER (freefai1.mp3)
 // ==========================================================================
 let bgMusic = null;
-let isMusicMuted = false;
+let isAudioMuted = true; // Muted by default to avoid disturbing users
 
 function initBgMusic() {
-  // Background music is disabled
+  if (!bgMusic) {
+    bgMusic = new Audio('./img/freefai1.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.4;
+    bgMusic.muted = isAudioMuted;
+  }
 }
 
 function initSciFiSfx() {
@@ -29,16 +34,26 @@ function initSciFiSfx() {
     uiBeepAudio = new Audio('./img/beep.mp3');
     uiBeepAudio.preload = 'auto';
     uiBeepAudio.volume = 0.24;
+    uiBeepAudio.muted = isAudioMuted;
   }
   if (!portalWarpAudio) {
     portalWarpAudio = new Audio('./img/warp.mp3');
     portalWarpAudio.preload = 'auto';
     portalWarpAudio.volume = 0.6;
+    portalWarpAudio.muted = isAudioMuted;
   }
 }
 
 function playBgMusic() {
-  // Background music is disabled
+  initBgMusic();
+  if (bgMusic) {
+    bgMusic.muted = isAudioMuted;
+    if (!isAudioMuted) {
+      bgMusic.play().catch(err => {
+        console.warn("Background music autoplay was blocked:", err);
+      });
+    }
+  }
 }
 
 function stopBgMusic() {
@@ -48,7 +63,112 @@ function stopBgMusic() {
   }
 }
 
+function updateSoundToggleButtonUI() {
+  const soundText2D = document.getElementById("sound-text");
+  const soundIcon2D = document.getElementById("sound-toggle-icon");
+  const soundText3D = document.getElementById("game-sound-text");
+  const soundIcon3D = document.getElementById("game-sound-toggle-icon");
+  const isVi = (currentLang === "vi");
+
+  if (isAudioMuted) {
+    if (soundText2D) {
+      soundText2D.innerText = isVi ? "ÂM THANH: TẮT" : "AUDIO: OFF";
+      soundText2D.setAttribute("data-vi", "ÂM THANH: TẮT");
+      soundText2D.setAttribute("data-en", "AUDIO: OFF");
+    }
+    if (soundIcon2D) {
+      soundIcon2D.className = "fa-solid fa-volume-xmark text-[10px]";
+    }
+    if (soundText3D) {
+      soundText3D.innerText = isVi ? "ÂM THANH: TẮT" : "AUDIO: OFF";
+      soundText3D.setAttribute("data-vi", "ÂM THANH: TẮT");
+      soundText3D.setAttribute("data-en", "AUDIO: OFF");
+    }
+    if (soundIcon3D) {
+      soundIcon3D.className = "fa-solid fa-volume-xmark text-[10px]";
+    }
+  } else {
+    if (soundText2D) {
+      soundText2D.innerText = isVi ? "ÂM THANH: BẬT" : "AUDIO: ON";
+      soundText2D.setAttribute("data-vi", "ÂM THANH: BẬT");
+      soundText2D.setAttribute("data-en", "AUDIO: ON");
+    }
+    if (soundIcon2D) {
+      soundIcon2D.className = "fa-solid fa-volume-high text-[10px]";
+    }
+    if (soundText3D) {
+      soundText3D.innerText = isVi ? "ÂM THANH: BẬT" : "AUDIO: ON";
+      soundText3D.setAttribute("data-vi", "ÂM THANH: BẬT");
+      soundText3D.setAttribute("data-en", "AUDIO: ON");
+    }
+    if (soundIcon3D) {
+      soundIcon3D.className = "fa-solid fa-volume-high text-[10px]";
+    }
+  }
+}
+
+function toggleAudio() {
+  isAudioMuted = !isAudioMuted;
+  
+  if (isAudioMuted) {
+    if (bgMusic) {
+      bgMusic.muted = true;
+      bgMusic.pause();
+    }
+    if (uiBeepAudio) uiBeepAudio.muted = true;
+    if (portalWarpAudio) portalWarpAudio.muted = true;
+    
+    stopChargingHum();
+  } else {
+    if (bgMusic) {
+      bgMusic.muted = false;
+      if (is3DMode) {
+        bgMusic.play().catch(err => console.warn(err));
+      }
+    }
+    if (uiBeepAudio) uiBeepAudio.muted = false;
+    if (portalWarpAudio) portalWarpAudio.muted = false;
+    
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    } catch(e) {}
+    
+    if (is3DMode) {
+      playBgMusic();
+    } else {
+      playBeep(880, 0.08, "sine", 0.03);
+    }
+  }
+  
+  updateSoundToggleButtonUI();
+}
+
+function setupAudioToggle() {
+  const soundBtn2D = document.getElementById("sound-toggle-btn");
+  const soundBtn3D = document.getElementById("game-sound-toggle-btn");
+
+  if (soundBtn2D) {
+    soundBtn2D.addEventListener("click", () => {
+      toggleAudio();
+    });
+  }
+
+  if (soundBtn3D) {
+    soundBtn3D.addEventListener("click", () => {
+      toggleAudio();
+    });
+  }
+
+  updateSoundToggleButtonUI();
+}
+
 function playAudioFile(audio, fallback) {
+  if (isAudioMuted) return;
   initSciFiSfx();
   if (!audio) {
     if (typeof fallback === "function") fallback();
@@ -58,6 +178,7 @@ function playAudioFile(audio, fallback) {
   try {
     const sound = audio.cloneNode();
     sound.volume = audio.volume;
+    sound.muted = isAudioMuted;
     sound.play().catch(() => {
       if (typeof fallback === "function") fallback();
     });
@@ -67,6 +188,7 @@ function playAudioFile(audio, fallback) {
 }
 
 function playMenuHoverSound() {
+  if (isAudioMuted) return;
   const now = performance.now();
   if (now - lastMenuHoverSoundAt < 90) return;
   lastMenuHoverSoundAt = now;
@@ -76,6 +198,7 @@ function playMenuHoverSound() {
 }
 
 function playPortalWarpSound() {
+  if (isAudioMuted) return;
   initSciFiSfx();
   playAudioFile(portalWarpAudio, () => {
     playBeep(180, 0.12, "sawtooth", 0.04);
@@ -83,6 +206,39 @@ function playPortalWarpSound() {
     setTimeout(() => playBeep(900, 0.16, "sine", 0.035), 190);
     setTimeout(() => playBeep(1500, 0.2, "sine", 0.025), 330);
   });
+}
+
+function playWhooshSound() {
+  if (isAudioMuted) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const time = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(80, time);
+    osc.frequency.exponentialRampToValueAtTime(800, time + 0.35);
+
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(200, time);
+    filter.frequency.exponentialRampToValueAtTime(1800, time + 0.3);
+
+    gain.gain.setValueAtTime(0.01, time);
+    gain.gain.exponentialRampToValueAtTime(0.03, time + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.00001, time + 0.4);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start(time);
+    osc.stop(time + 0.4);
+  } catch (e) {
+    console.warn("Whoosh sound failed:", e);
+  }
 }
 
 function pause2DParticleLoopForTransition() {
@@ -96,6 +252,7 @@ function init3DSpacePortfolio() {
 }
 
 function initAudio() {
+  if (isAudioMuted) return;
   console.log("initAudio called. Current state:", audioCtx ? audioCtx.state : "uninitialized");
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -109,8 +266,10 @@ function initAudio() {
 }
 
 function playBeep(freq = 440, duration = 0.1, type = 'sine', volume = 0.05) {
+  if (isAudioMuted) return;
   try {
     initAudio();
+    if (!audioCtx) return;
     console.log(`playBeep: freq=${freq}, duration=${duration}, type=${type}, volume=${volume}`);
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -132,8 +291,10 @@ function playBeep(freq = 440, duration = 0.1, type = 'sine', volume = 0.05) {
 }
 
 function startChargingHum() {
+  if (isAudioMuted) return;
   try {
     initAudio();
+    if (!audioCtx) return;
     chargingOsc = audioCtx.createOscillator();
     chargingLFO = audioCtx.createOscillator();
     chargingGain = audioCtx.createGain();
@@ -211,6 +372,7 @@ function playInterfaceClick() {
 }
 
 function playDataTelemetryNoise() {
+  if (isAudioMuted) return;
   if (!audioCtx || audioCtx.state === 'suspended') return;
   try {
     const time = audioCtx.currentTime;
@@ -261,6 +423,7 @@ function playDataTelemetryNoise() {
 }
 
 function playScrambleChirp() {
+  if (isAudioMuted) return;
   if (!audioCtx || audioCtx.state === 'suspended') return;
   try {
     const time = audioCtx.currentTime;
@@ -301,6 +464,7 @@ function duckBgMusic(targetVolume = 0.08, duration = 3000) {
 }
 
 function playLaserShootSound() {
+  if (isAudioMuted) return;
   try {
     initAudio();
     if (!audioCtx || audioCtx.state === 'suspended') return;
@@ -344,6 +508,7 @@ function playLaserShootSound() {
 }
 
 function playExplosionSound() {
+  if (isAudioMuted) return;
   try {
     initAudio();
     if (!audioCtx || audioCtx.state === 'suspended') return;
@@ -713,6 +878,10 @@ function updateLanguageUI() {
   langTexts.forEach(el => {
     el.textContent = currentLang.toUpperCase();
   });
+
+  if (typeof updateSoundToggleButtonUI === "function") {
+    updateSoundToggleButtonUI();
+  }
 
   // Update elements with data-vi and data-en
   const translatableElements = document.querySelectorAll("[data-vi][data-en]");
@@ -1463,6 +1632,8 @@ let gameStars = null;
 let gameStarsTwinkleA = null;
 let gameStarsTwinkleB = null;
 let gameNebulaClouds = [];
+let gameSpaceDust = null;
+let activeShootingStars = [];
 let gameTechFloor = null;
 let gameGridHelper = null;
 let gameFloorPointLight = null;
@@ -2481,6 +2652,49 @@ function initGame3D() {
   const galaxyBand = new THREE.Points(galaxyGeom, galaxyMat);
   gameScene.add(galaxyBand);
 
+  // Space Dust Particles (Bụi không gian lơ lửng)
+  const dustGeom = new THREE.BufferGeometry();
+  const dustCount = 400;
+  const dustPositions = new Float32Array(dustCount * 3);
+  const dustVelocities = [];
+  const dustColors = new Float32Array(dustCount * 3);
+  const dustPalette = [
+    new THREE.Color("#00f3ff"), // Cyan
+    new THREE.Color("#d946ef"), // Pink/Purple
+    new THREE.Color("#3b82f6"), // Blue
+    new THREE.Color("#10b981")  // Emerald
+  ];
+
+  for (let i = 0; i < dustCount; i++) {
+    dustPositions[i * 3] = (Math.random() - 0.5) * 80;
+    dustPositions[i * 3 + 1] = Math.random() * 12 - 4; // floating slightly above/below deck
+    dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 80;
+    
+    dustVelocities.push({
+      x: (Math.random() - 0.5) * 0.02,
+      y: (Math.random() - 0.5) * 0.01,
+      z: (Math.random() - 0.5) * 0.02
+    });
+
+    const c = dustPalette[Math.floor(Math.random() * dustPalette.length)];
+    dustColors[i * 3] = c.r;
+    dustColors[i * 3 + 1] = c.g;
+    dustColors[i * 3 + 2] = c.b;
+  }
+  dustGeom.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+  dustGeom.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+  
+  const dustMat = new THREE.PointsMaterial({
+    size: 0.22,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending
+  });
+  gameSpaceDust = new THREE.Points(dustGeom, dustMat);
+  gameSpaceDust.userData = { velocities: dustVelocities };
+  gameScene.add(gameSpaceDust);
+
   // Dynamic Background Nebula / Gas Clouds
   gameNebulaClouds = [];
   const nebulaColors = ["#0284c7", "#7c3aed", "#0891b2"];
@@ -3395,6 +3609,19 @@ function initGame3D() {
     coreMesh.name = "planet_core";
     iconMesh.add(coreMesh);
 
+    // Additive glow mesh for hover effect
+    const glowGeom = new THREE.SphereGeometry(planetRadius * 1.35, 32, 32);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: def.color,
+      transparent: true,
+      opacity: 0, // start invisible, fade in on hover
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide
+    });
+    const glowMesh = new THREE.Mesh(glowGeom, glowMat);
+    glowMesh.name = "hover_glow";
+    iconMesh.add(glowMesh);
+
     // Unique orbiting features matching actual planet properties
     if (def.id === "home") {
       // Earth: Atmosphere glow + Orbiting Moon!
@@ -3593,6 +3820,9 @@ function initGame3D() {
       if (typeof playBeep === 'function') {
         playBeep(650, 0.08, 'sine', 0.02);
       }
+      if (typeof playWhooshSound === 'function') {
+        playWhooshSound();
+      }
     }
   });
 
@@ -3736,6 +3966,63 @@ function initGame3D() {
         const intersects = raycaster.intersectObject(sun);
         if (intersects.length > 0) {
           openSunThanksModal();
+          return;
+        }
+      }
+    }
+
+    const targets = [];
+    gameNodes.forEach(node => {
+      node.group.traverse(child => {
+        if (child.isMesh || child.isSprite) {
+          targets.push(child);
+          child.userData.nodeRef = node;
+          child.userData.isPortal = false;
+        }
+      });
+    });
+
+    if (gamePortalGroup) {
+      gamePortalGroup.traverse(child => {
+        if (child.isMesh || child.isSprite) {
+          targets.push(child);
+          child.userData.nodeRef = null;
+          child.userData.isPortal = true;
+        }
+      });
+    }
+
+    const intersects = raycaster.intersectObjects(targets);
+    if (intersects.length > 0) {
+      const hitObject = intersects[0].object;
+      if (hitObject.userData.isPortal) {
+        gamePlayerTargetPos = {
+          x: gamePortalGroup.position.x,
+          z: gamePortalGroup.position.z
+        };
+        if (moveIndicator) {
+          moveIndicator.position.set(gamePlayerTargetPos.x, -1.47, gamePlayerTargetPos.z);
+          moveIndicator.visible = true;
+          moveIndicator.scale.set(1.6, 1.6, 1.6);
+          moveIndicator.material.opacity = 1.0;
+        }
+        playBeep(880, 0.08, "sine", 0.03);
+        playWhooshSound();
+      } else {
+        const node = hitObject.userData.nodeRef;
+        if (node) {
+          gamePlayerTargetPos = {
+            x: node.group.position.x,
+            z: node.group.position.z
+          };
+          if (moveIndicator) {
+            moveIndicator.position.set(gamePlayerTargetPos.x, -1.47, gamePlayerTargetPos.z);
+            moveIndicator.visible = true;
+            moveIndicator.scale.set(1.6, 1.6, 1.6);
+            moveIndicator.material.opacity = 1.0;
+          }
+          playBeep(880, 0.08, "sine", 0.03);
+          playWhooshSound();
         }
       }
     }
@@ -5003,6 +5290,13 @@ function gameAnimate() {
     const nextScale = currentScale + (targetScale - currentScale) * 0.15;
     node.group.scale.set(nextScale, nextScale, nextScale);
 
+    // Smoothly fade hover glow opacity
+    const glowMesh = node.mesh.getObjectByName("hover_glow");
+    if (glowMesh) {
+      const targetGlowOpacity = node.isHovered ? 0.6 : 0.0;
+      glowMesh.material.opacity += (targetGlowOpacity - glowMesh.material.opacity) * 0.15;
+    }
+
     // Rotate core planet sphere
     const spinSpeed = node.isHovered ? 0.035 : 0.008;
     node.mesh.rotation.y += spinSpeed;
@@ -5787,6 +6081,101 @@ function gameAnimate() {
       }
     }
     gameStars.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Space Dust Animation
+  if (gameSpaceDust && gameSpaceDust.geometry && gameSpaceDust.geometry.attributes.position) {
+    const posAttr = gameSpaceDust.geometry.attributes.position;
+    const vels = gameSpaceDust.userData.velocities;
+    const array = posAttr.array;
+    for (let i = 0; i < posAttr.count; i++) {
+      let x = array[i * 3] + vels[i].x;
+      let y = array[i * 3 + 1] + vels[i].y;
+      let z = array[i * 3 + 2] + vels[i].z;
+      
+      // Keep them bound within a box
+      if (x < -40 || x > 40) vels[i].x *= -1;
+      if (y < -4 || y > 8) vels[i].y *= -1;
+      if (z < -40 || z > 40) vels[i].z *= -1;
+      
+      array[i * 3] = x;
+      array[i * 3 + 1] = y;
+      array[i * 3 + 2] = z;
+    }
+    posAttr.needsUpdate = true;
+  }
+
+  // Shooting Stars Animation
+  if (activeShootingStars.length < 3 && Math.random() < 0.006) {
+    const start = new THREE.Vector3(
+      (Math.random() - 0.5) * 300,
+      100 + Math.random() * 50,
+      (Math.random() - 0.5) * 300
+    );
+    const dir = new THREE.Vector3(
+      (Math.random() - 0.5) * 2,
+      -1 - Math.random() * 0.5,
+      (Math.random() - 0.5) * 2
+    ).normalize();
+    
+    const length = 15 + Math.random() * 25;
+    const speed = 4 + Math.random() * 6;
+    
+    const points = [
+      start.clone(),
+      start.clone().addScaledVector(dir, -length)
+    ];
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    const colors = [
+      1, 1, 1, // Head is white
+      0.2, 0.6, 1 // Tail is light blue
+    ];
+    geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    const mat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const line = new THREE.Line(geom, mat);
+    gameScene.add(line);
+    
+    activeShootingStars.push({
+      mesh: line,
+      pos: start,
+      dir: dir,
+      speed: speed,
+      life: 1.0,
+      decay: 0.015 + Math.random() * 0.01
+    });
+  }
+  
+  for (let i = activeShootingStars.length - 1; i >= 0; i--) {
+    const star = activeShootingStars[i];
+    star.life -= star.decay;
+    if (star.life <= 0) {
+      gameScene.remove(star.mesh);
+      star.mesh.geometry.dispose();
+      star.mesh.material.dispose();
+      activeShootingStars.splice(i, 1);
+    } else {
+      star.pos.addScaledVector(star.dir, star.speed);
+      
+      const positions = star.mesh.geometry.attributes.position.array;
+      positions[0] = star.pos.x;
+      positions[1] = star.pos.y;
+      positions[2] = star.pos.z;
+      
+      const tail = star.pos.clone().addScaledVector(star.dir, -20);
+      positions[3] = tail.x;
+      positions[4] = tail.y;
+      positions[5] = tail.z;
+      
+      star.mesh.geometry.attributes.position.needsUpdate = true;
+      star.mesh.material.opacity = star.life;
+    }
   }
 
   // Smoothly interpolate camera radius towards target
@@ -6859,6 +7248,7 @@ window.addEventListener("DOMContentLoaded", () => {
   // Set up view mode toggle
   setupViewModeToggle();
   setupSciFiInteractionAudio();
+  setupAudioToggle();
 
   // Bind instructions HUD collapsible header toggle
   const hudHeader = document.getElementById("hud-header");
