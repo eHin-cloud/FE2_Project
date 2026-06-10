@@ -7716,7 +7716,7 @@ QUY TẮC TRẢ LỜI:
 - Tự nhận diện ngôn ngữ câu hỏi: hỏi tiếng Việt trả lời tiếng Việt, hỏi tiếng Anh trả lời tiếng Anh.
 - Trả lời ngắn gọn khoảng 2-4 câu, tập trung vào câu hỏi.
 - Chỉ dùng thông tin trong hồ sơ bên dưới; nếu không có dữ liệu, nói rõ là website chưa cung cấp thông tin đó.
-- Khi phù hợp, hướng dẫn khách bấm các mục trên trang: Tổng quan, Kỹ Năng, Lộ trình Học tập, Sản phẩm Tiêu biểu, Đánh giá, Liên hệ, CV hoặc chế độ Không Gian 3D.
+- Khi phù hợp, hướng dẫn khách bấm các mục trên trang: Tổng quan, Khoang Công Nghệ, Lộ trình Học tập, Sản phẩm Tiêu biểu, Đánh giá, Liên hệ, CV hoặc chế độ Không Gian 3D.
 - Nếu khách muốn tuyển dụng/hợp tác/liên hệ, ưu tiên đưa hotline, email, GitHub và form liên hệ.
 - Nếu khách hỏi "giới thiệu bản thân", "kỹ năng", hoặc "giới thiệu bản thân và kỹ năng", hãy trả lời trực tiếp, không mở đầu lan man kiểu "hệ thống ghi nhận tín hiệu".
 
