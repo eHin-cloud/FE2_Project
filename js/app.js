@@ -5,6 +5,7 @@ let audioCtx;
 let chargingOsc, chargingLFO, chargingGain;
 let starfieldSpeedMultiplier = 1.0;
 let transitionLoadingActive = false;
+let isWarping = false;
 let uiBeepAudio = null;
 let portalWarpAudio = null;
 let lastMenuHoverSoundAt = 0;
@@ -92,6 +93,16 @@ function playPortalWarpSound() {
     setTimeout(() => playBeep(900, 0.16, "sine", 0.035), 190);
     setTimeout(() => playBeep(1500, 0.2, "sine", 0.025), 330);
   });
+}
+
+function pause2DParticleLoopForTransition() {
+  // Placeholder: pause/dispose any 2D canvas particle RAF or interval here before the 3D scene starts.
+}
+
+function init3DSpacePortfolio() {
+  if (typeof initGame3D === "function") {
+    initGame3D();
+  }
 }
 
 function initAudio() {
@@ -6517,6 +6528,8 @@ function triggerSpaceTransition(callback, isExit = false) {
           mainContent.style.transition = "opacity 0.8s ease-in-out";
           mainContent.style.opacity = "0";
           mainContent.classList.remove("hidden");
+          mainContent.style.display = "";
+          mainContent.classList.remove("vortex-sucked");
           mainContent.offsetHeight; // trigger reflow
           mainContent.style.opacity = "1";
         }
@@ -6694,6 +6707,8 @@ function setupViewModeToggle() {
 
         mainContent.style.opacity = "";
         mainContent.classList.remove("hidden");
+        mainContent.style.display = "";
+        mainContent.classList.remove("vortex-sucked");
         gameContainer.classList.add("hidden");
         canvasBg.style.display = "block";
 
@@ -6740,12 +6755,49 @@ function setupViewModeToggle() {
   // Portal Crack Button - Direct entry to 3D Space Station
   const portalBtn = document.getElementById("portal-crack-btn");
   if (portalBtn) {
+    const startPortalVortexTransition = () => {
+      if (isWarping || transitionLoadingActive) return;
+
+      const vortexDuration = 1800;
+
+      isWarping = true;
+      starfieldSpeedMultiplier = 20.0;
+      is3DMode = true;
+      localStorage.setItem("view-mode-3d", is3DMode);
+      syncViewModeText();
+
+      if (mainNav) mainNav.classList.add("hidden");
+
+      mainContent.style.display = "";
+      mainContent.classList.remove("hidden");
+
+      requestAnimationFrame(() => {
+        mainContent.classList.add("vortex-sucked");
+      });
+
+      setTimeout(() => {
+        // Safe hook: stop/pause 2D canvas particle loops here to free GPU before booting WebGL.
+        pause2DParticleLoopForTransition();
+
+        mainContent.style.display = "none";
+        mainContent.classList.add("hidden");
+        mainContent.classList.remove("vortex-sucked");
+
+        gameContainer.classList.remove("hidden");
+        canvasBg.style.display = "none";
+        starfieldSpeedMultiplier = 1.0;
+
+        init3DSpacePortfolio();
+        triggerSpaceTransition(() => {
+          isWarping = false;
+        });
+      }, vortexDuration);
+    };
+
     portalBtn.addEventListener("click", () => {
       if (!is3DMode) {
         playPortalWarpSound();
-        is3DMode = true;
-        localStorage.setItem("view-mode-3d", is3DMode);
-        updateToggleUI(false);
+        startPortalVortexTransition();
       } else {
         const gameContainer = document.getElementById("game-container");
         if (gameContainer) gameContainer.scrollIntoView({ behavior: 'smooth' });
