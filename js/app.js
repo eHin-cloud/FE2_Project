@@ -24,7 +24,7 @@ function initBgMusic() {
   if (!bgMusic) {
     bgMusic = new Audio('./img/freefai1.mp3');
     bgMusic.loop = true;
-    bgMusic.volume = 0.07; // Soft background ambient level
+    bgMusic.volume = 0.12; // Soft background ambient level
     bgMusic.muted = isAudioMuted;
   }
 }
@@ -434,7 +434,7 @@ function playScrambleChirp() {
 
 let currentDuckTimeout = null;
 
-function duckBgMusic(targetVolume = 0.02, duration = 3000) {
+function duckBgMusic(targetVolume = 0.03, duration = 3000) {
   if (!bgMusic || isAudioMuted) return;
   
   // Transition volume down instantly
@@ -445,7 +445,7 @@ function duckBgMusic(targetVolume = 0.02, duration = 3000) {
   // Restore volume after duration
   currentDuckTimeout = setTimeout(() => {
     if (bgMusic && !isAudioMuted) {
-      bgMusic.volume = 0.07; // original volume
+      bgMusic.volume = 0.12; // original volume
     }
   }, duration);
 }
@@ -456,7 +456,7 @@ function playLaserShootSound() {
     if (!audioCtx || audioCtx.state === 'suspended') return;
     
     // Duck music during laser fire
-    duckBgMusic(0.12, 1800);
+    duckBgMusic(0.03, 1800);
 
     const time = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
@@ -499,7 +499,7 @@ function playExplosionSound() {
     if (!audioCtx || audioCtx.state === 'suspended') return;
     
     // Duck music deeply for explosion
-    duckBgMusic(0.04, 3800);
+    duckBgMusic(0.01, 3800);
 
     const time = audioCtx.currentTime;
 
