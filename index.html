@@ -1114,62 +1114,56 @@
     <section class="py-24 max-w-7xl mx-auto px-6 md:px-16" id="contact">
       <div class="grid md:grid-cols-12 gap-10 items-stretch">
 
-        <!-- Contact Form -->
+        <!-- CV Introduction Card -->
         <div
-          class="md:col-span-7 bg-[#0c102b] p-8 md:p-12 rounded-3xl border border-white/5 flex flex-col justify-between">
+          class="md:col-span-7 bg-[#0c102b] p-8 md:p-12 rounded-3xl border border-white/5 flex flex-col justify-between space-y-6 font-mono text-zinc-300">
           <div>
-            <p class="text-zinc-500 uppercase tracking-widest text-xs font-mono" data-vi="Kết nối với tôi"
-              data-en="Get in Touch">Kết nối với tôi</p>
-            <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1 mb-2" data-vi="Liên hệ."
-              data-en="Contact.">Liên hệ.</h2>
-            <p class="text-zinc-400 text-xs mt-2 leading-relaxed font-mono"
-              data-vi="* Lời nhắn từ form này sẽ được gửi thẳng tới hòm thư: thenghien2006@gmail.com"
-              data-en="* Messages from this form will be sent directly to: thenghien2006@gmail.com">
-              * Lời nhắn từ form này sẽ được gửi thẳng tới hòm thư: thenghien2006@gmail.com
+            <p class="text-zinc-500 uppercase tracking-widest text-xs mb-1" data-vi="HỒ SƠ NĂNG LỰC"
+              data-en="PROFESSIONAL RESUME">HỒ SƠ NĂNG LỰC</p>
+            <h2 class="text-4xl md:text-5xl font-black text-white font-display mt-1 mb-2" data-vi="Giới thiệu."
+              data-en="About Me.">Giới thiệu.</h2>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-zinc-400 text-xs uppercase tracking-widest">// HỒ SƠ CHUYÊN MÔN / PROFESSIONAL PROFILE</h3>
+            <p class="text-zinc-300 text-sm leading-relaxed"
+              data-vi="Sinh viên ngành Công nghệ thông tin với định hướng phát triển chuyên sâu về lập trình Web Fullstack (Laravel & Frontend). Đam mê xây dựng hệ thống tối ưu, viết mã nguồn sạch và sáng tạo các giao diện người dùng giàu tương tác 3D."
+              data-en="Information Technology student focusing on Fullstack Web Development (Laravel & Frontend). Passionate about optimizing system architectures, writing clean code, and crafting rich 3D user interfaces.">
+              Sinh viên ngành Công nghệ thông tin với định hướng phát triển chuyên sâu về lập trình Web Fullstack (Laravel & Frontend). Đam mê xây dựng hệ thống tối ưu, viết mã nguồn sạch và sáng tạo các giao diện người dùng giàu tương tác 3D.
             </p>
           </div>
 
-          <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" class="mt-10 space-y-6">
-            <input type="hidden" name="access_key" value="485d1f89-b631-4354-b9c1-e455f11c910d">
-            <div class="flex flex-col">
-              <label for="name" class="text-white text-sm font-semibold mb-2" data-vi="Tên của bạn*"
-                data-en="Your Name*">Tên của bạn*</label>
-              <input type="text" id="name" name="name" placeholder="Nhập tên của bạn"
-                class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650"
-                required data-vi-placeholder="Nhập tên của bạn" data-en-placeholder="Enter your name">
-              <span id="name-error" class="text-xs text-rose-500 mt-1.5 hidden"
-                data-vi="Tên không hợp lệ (tối thiểu 3 ký tự)!" data-en="Invalid name (minimum 3 characters)!">Tên không
-                hợp lệ (tối thiểu 3 ký tự)!</span>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
+              <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-2" data-vi="// KỸ NĂNG CỐT LÕI" data-en="// KEY SKILLS">// KỸ NĂNG CỐT LÕI</h4>
+              <ul class="text-xs text-zinc-400 space-y-1.5 list-disc pl-4">
+                <li>PHP & Laravel Framework</li>
+                <li>HTML5, CSS3 & JavaScript (ES6+)</li>
+                <li>Tailwind CSS & WebGL / Three.js</li>
+                <li>MySQL & Database Optimization</li>
+              </ul>
             </div>
-
-            <div class="flex flex-col">
-              <label for="email" class="text-white text-sm font-semibold mb-2" data-vi="Email của bạn*"
-                data-en="Your Email*">Email của bạn*</label>
-              <input type="email" id="email" name="email" placeholder="example@email.com"
-                class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all placeholder:text-zinc-650"
-                required data-vi-placeholder="example@email.com" data-en-placeholder="example@email.com">
-              <span id="email-error" class="text-xs text-rose-500 mt-1.5 hidden" data-vi="Email không hợp lệ!"
-                data-en="Invalid email address!">Email không hợp lệ!</span>
+            <div class="p-4 border border-white/5 bg-white/5 rounded-xl">
+              <h4 class="text-white text-xs font-bold uppercase tracking-wider mb-2" data-vi="// HỌC VẤN & CHỨNG CHỈ" data-en="// EDUCATION & CERTIFICATES">// HỌC VẤN & CHỨNG CHỈ</h4>
+              <ul class="text-xs text-zinc-400 space-y-1.5 list-disc pl-4">
+                <li data-vi="Cao đẳng Công nghệ Thủ Đức (TDC)" data-en="Thu Duc College of Technology (TDC)">Cao đẳng Công nghệ Thủ Đức (TDC)</li>
+                <li data-vi="Chuyên ngành Công nghệ thông tin" data-en="Major: Information Technology">Chuyên ngành Công nghệ thông tin</li>
+                <li>GPA: 3.2+ / 4.0</li>
+              </ul>
             </div>
+          </div>
 
-            <div class="flex flex-col">
-              <label for="message" class="text-white text-sm font-semibold mb-2" data-vi="Lời nhắn*"
-                data-en="Your Message*">Lời nhắn*</label>
-              <textarea id="message" name="message" rows="5" placeholder="Bạn muốn nhắn gì cho tôi?"
-                class="bg-[#151030] py-4 px-6 rounded-xl border border-white/10 focus:border-[#915eff] text-white text-sm outline-none transition-all resize-none placeholder:text-zinc-650"
-                required data-vi-placeholder="Bạn muốn nhắn gì cho tôi?"
-                data-en-placeholder="What would you like to say?"></textarea>
-              <span id="message-error" class="text-xs text-rose-500 mt-1.5 hidden"
-                data-vi="Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!"
-                data-en="Invalid message (minimum 5 characters)!">Tin nhắn không hợp lệ (tối thiểu 5 ký tự)!</span>
-            </div>
-
-            <button type="submit"
-              class="w-full md:w-auto px-8 py-3.5 bg-[#915eff] hover:bg-[#a855f7] active:scale-95 text-white font-bold rounded-xl transition-all shadow-md shadow-purple-900/40"
-              data-vi="Gửi" data-en="Send">
-              Gửi
+          <div class="pt-4 flex flex-wrap gap-4">
+            <button onclick="window.print();" class="px-6 py-2.5 rounded-full border border-zinc-400/40 hover:border-zinc-300 bg-zinc-800/20 text-zinc-300 hover:text-white font-bold transition-all duration-300 flex items-center gap-2 text-xs">
+              <i class="fa-solid fa-print"></i> <span data-vi="IN BẢN CV" data-en="PRINT CV">IN BẢN CV</span>
             </button>
-          </form>
+            <a href="./CV/24211TT3646_NGUYENTHANHHIEN_CV.pdf" target="_blank" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-lg text-xs">
+              <i class="fa-solid fa-download"></i> <span data-vi="TẢI CV PDF THAM KHẢO" data-en="DOWNLOAD RESUME PDF">TẢI CV PDF THAM KHẢO</span>
+            </a>
+            <button onclick="triggerChatbotWithPrompt(currentLang === 'vi' ? 'Hãy giới thiệu tóm tắt về CV của Nguyễn Thanh Hiền' : 'Please introduce a summary of Nguyen Thanh Hien\'s CV');" class="px-6 py-2.5 rounded-full bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500 text-purple-300 hover:text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-md text-xs">
+              <i class="fa-solid fa-robot animate-pulse"></i> <span data-vi="HỎI AI VỀ CV" data-en="ASK AI ABOUT CV">HỎI AI VỀ CV</span>
+            </button>
+          </div>
         </div>
 
         <!-- Right 3D Earth Globe & Contact Details Card -->
