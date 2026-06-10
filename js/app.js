@@ -6571,6 +6571,9 @@ function openGameModal(nodeDef) {
               <a href="./CV/24211TT3646_NGUYENTHANHHIEN_CV.pdf" target="_blank" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-lg">
                 <i class="fa-solid fa-download"></i> ${currentLang === 'vi' ? 'TẢI CV PDF THAM KHẢO' : 'DOWNLOAD RESUME PDF'}
               </a>
+              <button onclick="triggerChatbotWithPrompt('${currentLang === 'vi' ? 'Hãy giới thiệu tóm tắt về CV của Nguyễn Thanh Hiền' : 'Please introduce a summary of Nguyen Thanh Hien\'s CV'}');" class="px-6 py-2.5 rounded-full bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500 text-purple-300 hover:text-white font-bold transition-all duration-300 flex items-center gap-2 shadow-md">
+                <i class="fa-solid fa-robot animate-pulse"></i> ${currentLang === 'vi' ? 'HỎI AI VỀ CV' : 'ASK AI ABOUT CV'}
+              </button>
             </div>
           </div>
         </div>
@@ -7245,6 +7248,36 @@ function updateChatbotVisibility() {
   }
 }
 
+window.triggerChatbotWithPrompt = function(promptText) {
+  const chatbotToggle = document.getElementById("chatbot-toggle");
+  const chatbotWindow = document.getElementById("chatbot-window");
+  const chatbotInput = document.getElementById("chatbot-input");
+  const chatbotSend = document.getElementById("chatbot-send");
+  
+  if (!chatbotWindow || !chatbotInput || !chatbotSend) return;
+  
+  // Close active 3D modal first
+  closeGameModal();
+  
+  // Unhide chatbot elements
+  if (chatbotToggle) {
+    chatbotToggle.classList.remove("hidden");
+    chatbotToggle.classList.add("is-open");
+    chatbotToggle.setAttribute("aria-expanded", "true");
+  }
+  
+  chatbotWindow.classList.add("is-open");
+  chatbotWindow.setAttribute("aria-hidden", "false");
+  
+  // Set prompt text
+  chatbotInput.value = promptText;
+  
+  // Trigger click to submit
+  setTimeout(() => {
+    chatbotSend.click();
+  }, 200);
+};
+
 // ==========================================================================
 // SYSTEM ENTRYPOINT
 // ==========================================================================
@@ -7440,6 +7473,9 @@ window.addEventListener("DOMContentLoaded", () => {
       chatbotToggle.classList.remove("is-open");
       chatbotWindow.setAttribute("aria-hidden", "true");
       chatbotToggle.setAttribute("aria-expanded", "false");
+      if (is3DMode) {
+        updateChatbotVisibility();
+      }
       if (typeof playBeep === "function") {
         playBeep(600, 0.08, "triangle", 0.02);
       }
