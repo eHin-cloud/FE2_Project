@@ -8,9 +8,9 @@ Chào mừng bạn đến với dự án Portfolio cá nhân của **Nguyễn Th
 
 ### 1. 🎮 Chế Độ Không Gian 3D (Three.js Virtual Universe)
 * **Vận hành phi thuyền**: Cho phép người dùng trực tiếp điều khiển chiến cơ trinh sát bay lơ lửng trong Hệ Mặt Trời ảo bằng phím `W, A, S, D` / Phím mũi tên, chuột hoặc Joystick ảo trên thiết bị di động.
-* **Cơ chế tương tác trạm hành tinh**:
+* **Cơ chế tương tác trạm hành tinh (Cách chơi)**:
   * Tích hợp 6 trạm hành tinh chính xung quanh lõi mặt trời tương ứng với các chương mục: *Trái Đất (Hướng dẫn), Sao Kim (Giới thiệu), Sao Hỏa (Kỹ năng), Sao Mộc (Kinh nghiệm), Sao Thổ (Sản phẩm), Sao Thiên Vương (Đánh giá), Sao Hải Vương (Liên hệ)*.
-  * Cải tiến cơ chế kết nối: Thay đổi chỉ dẫn từ việc tự động kết nối khi **"Đứng yên" (Stay Still)** sang hành động chủ động **"Nhấn vào" (Click)** trực tiếp lên hành tinh để mở cổng dữ liệu.
+  * **Bắn laser kích hoạt**: Người chơi chạm/nhấp trực tiếp vào màn hình để **bắn tia laser từ phi thuyền vào các hành tinh** nhằm mở cổng kết nối dữ liệu thông tin (thay cho cơ chế tự động đứng yên cũ).
 * **Khu vực đặc biệt Pluto (Sao Diêm Vương)**:
   * Được bảo vệ bởi lớp lá chắn năng lượng. Chỉ mở khóa khi phi hành gia hoàn thành việc kích hoạt kết nối thông tin của cả 6 hành tinh chính.
   * Tích hợp thẻ hồ sơ CV chuyên nghiệp của Nguyễn Thanh Hiền tại trạm Pluto.
