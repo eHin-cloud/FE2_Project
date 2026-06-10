@@ -25,11 +25,13 @@ function copyDirectoryFiltered(srcDir, destDir, shouldCopyFile) {
   });
 }
 
-// 1. Tạo thư mục dist
+// 1. Xóa sạch thư mục dist cũ rồi tạo lại (tránh file cũ tồn đọng)
 const distDir = path.join(__dirname, 'dist');
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir);
+if (fs.existsSync(distDir)) {
+  fs.rmSync(distDir, { recursive: true, force: true });
+  console.log("🧹 Đã xóa sạch thư mục dist cũ.");
 }
+fs.mkdirSync(distDir);
 
 // 2. Sao chép HTML và nén/mã hóa CSS sang thư mục dist
 console.log("📦 Đang sao chép HTML và nén bảo mật tệp CSS...");
@@ -41,7 +43,7 @@ const buildVersion = Date.now();
 let htmlContent = fs.readFileSync(distHtmlPath, 'utf8');
 htmlContent = htmlContent
   .replace('BUILD_VERSION_PLACEHOLDER', buildVersion)
-  .replace('href="./css/style.css"', `href="./css/style.css?v=${buildVersion}"`)
+  .replace(/href="\.\/css\/([^"]+\.css)"/g, `href="./css/$1?v=${buildVersion}"`)
   .replace('src="./js/app.js"', `src="./js/app.js?v=${buildVersion}"`);
 fs.writeFileSync(distHtmlPath, htmlContent);
 console.log(`⚡ Đã tự động thêm cache-busting: ?v=${buildVersion}`);

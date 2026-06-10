@@ -1,0 +1,51 @@
+/* ============================================================================
+   CURSOR-FOLLOWING PURPLE GLOW ORB
+   ============================================================================ */
+.cursor-glow-orb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 420px;
+  height: 420px;
+  pointer-events: none;
+  z-index: 9990;
+  opacity: 0;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  transition: opacity 0.45s ease;
+  background:
+    radial-gradient(circle at center,
+      rgba(168, 85, 247, 0.18) 0%,
+      rgba(139, 92, 246, 0.12) 18%,
+      rgba(124, 58, 237, 0.07) 36%,
+      rgba(109, 40, 217, 0.03) 52%,
+      transparent 68%
+    );
+  filter: blur(2px);
+  animation: cursor-glow-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes cursor-glow-breathe {
+  0%, 100% {
+    width: 420px;
+    height: 420px;
+    filter: blur(2px) brightness(1);
+  }
+  50% {
+    width: 460px;
+    height: 460px;
+    filter: blur(3px) brightness(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-glow-orb {
+    display: none;
+  }
+}
+
+@media (hover: none) {
+  .cursor-glow-orb {
+    display: none;
+  }
+}

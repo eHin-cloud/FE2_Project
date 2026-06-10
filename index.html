@@ -50,11 +50,16 @@
   <!-- CSS Dependencies -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/cursor-glow.css">
+  <link rel="stylesheet" href="./css/chatbot.css">
 
   <title>Nguyễn Thanh Hiền | Trạm Không Gian</title>
 </head>
 
 <body class="bg-[#050816] text-white">
+
+  <!-- Cursor-following Purple Glow Orb -->
+  <div id="cursor-glow" class="cursor-glow-orb"></div>
 
   <!-- ==========================================================================
        BOOTLOADER / LOADER SCREEN OVERLAY (SCI-FI TERMINAL)
@@ -1256,108 +1261,281 @@
         </div>
       </div>
     </footer>
-    <!-- ==========================================================================
-     CYBER AI CHATBOT ASSISTANT
+  </div><!-- end #main-content -->
+
+  <!-- ==========================================================================
+     CYBER AI CHATBOT ASSISTANT (outside main-content so it's always visible)
      ========================================================================== -->
-    <!-- Chatbot Toggle Button -->
-    <div id="chatbot-toggle"
-      role="button" aria-expanded="false" aria-controls="chatbot-window"
-      class="cyber-assistant-toggle hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#915eff] to-[#06b6d4] text-white flex justify-center items-center cursor-pointer shadow-lg shadow-purple-900/50 hover:scale-110 active:scale-95 transition-all duration-300 group">
-      <i class="fa-solid fa-robot text-xl group-hover:rotate-12 transition-transform"></i>
-      <span
-        class="absolute right-16 bg-[#0c102b] border border-purple-500/30 text-white text-[10px] py-1 px-2.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-mono shadow-md"
-        data-vi="Trợ lý AI" data-en="AI Assistant">Trợ lý AI</span>
-      <!-- Glowing pulse effect -->
-      <div class="chatbot-pulse-ring absolute inset-0 rounded-full bg-[#915eff]/20 -z-10"></div>
+  <!-- Chatbot Toggle Button -->
+  <div id="chatbot-toggle"
+    role="button" aria-expanded="false" aria-controls="chatbot-window"
+    class="cyber-assistant-toggle fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-tr from-[#915eff] to-[#06b6d4] text-white flex justify-center items-center cursor-pointer shadow-lg shadow-purple-900/50 hover:scale-110 active:scale-95 transition-all duration-300 group">
+    <i class="fa-solid fa-robot text-xl group-hover:rotate-12 transition-transform"></i>
+    <span
+      class="absolute right-16 bg-[#0c102b] border border-purple-500/30 text-white text-[10px] py-1 px-2.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-mono shadow-md"
+      data-vi="Trợ lý AI" data-en="AI Assistant">Trợ lý AI</span>
+    <!-- Glowing pulse effect -->
+    <div class="chatbot-pulse-ring absolute inset-0 rounded-full bg-[#915eff]/20 -z-10"></div>
+  </div>
+
+  <!-- Chatbot Chat Window -->
+  <div id="chatbot-window" aria-hidden="true"
+    class="chatbot-window fixed bottom-24 right-6 sm:w-[360px] w-[calc(100vw-32px)] h-[480px] rounded-2xl border border-purple-500/30 bg-[#0c102b]/95 backdrop-blur-md flex flex-col justify-between overflow-hidden shadow-2xl origin-bottom-right z-50">
+
+    <!-- Chat Header -->
+    <div
+      class="bg-gradient-to-r from-[#1d1836] to-[#151030] border-b border-white/5 px-4 py-3 flex justify-between items-center text-white">
+      <div class="flex items-center gap-2">
+        <div class="relative w-8 h-8 rounded-lg bg-[#915eff]/10 flex justify-center items-center text-[#915eff]">
+          <i class="fa-solid fa-robot text-sm"></i>
+          <span
+            class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#10b981] border-2 border-[#0c102b]"></span>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold font-display" data-vi="Trợ Lý Trạm Không Gian" data-en="Space Station AI">Trợ
+            Lý Trạm Không Gian</h4>
+          <p class="text-[9px] text-[#06b6d4] font-mono tracking-wider" data-vi="ĐANG HOẠT ĐỘNG"
+            data-en="SYSTEM ONLINE">ĐANG HOẠT ĐỘNG</p>
+        </div>
+      </div>
+      <button id="chatbot-close" class="text-zinc-400 hover:text-white transition-colors p-1">
+        <i class="fa-solid fa-xmark text-base"></i>
+      </button>
     </div>
 
-    <!-- Chatbot Chat Window -->
-    <div id="chatbot-window" aria-hidden="true"
-      class="chatbot-window fixed bottom-24 right-6 sm:w-[360px] w-[calc(100vw-32px)] h-[480px] rounded-2xl border border-purple-500/30 bg-[#0c102b]/95 backdrop-blur-md flex flex-col justify-between overflow-hidden shadow-2xl origin-bottom-right z-50">
-
-      <!-- Chat Header -->
-      <div
-        class="bg-gradient-to-r from-[#1d1836] to-[#151030] border-b border-white/5 px-4 py-3 flex justify-between items-center text-white">
-        <div class="flex items-center gap-2">
-          <div class="relative w-8 h-8 rounded-lg bg-[#915eff]/10 flex justify-center items-center text-[#915eff]">
-            <i class="fa-solid fa-robot text-sm"></i>
-            <span
-              class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#10b981] border-2 border-[#0c102b]"></span>
-          </div>
-          <div>
-            <h4 class="text-xs font-bold font-display" data-vi="Trợ Lý Trạm Không Gian" data-en="Space Station AI">Trợ
-              Lý Trạm Không Gian</h4>
-            <p class="text-[9px] text-[#06b6d4] font-mono tracking-wider" data-vi="ĐANG HOẠT ĐỘNG"
-              data-en="SYSTEM ONLINE">ĐANG HOẠT ĐỘNG</p>
-          </div>
+    <!-- Chat Messages -->
+    <div id="chatbot-messages" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-xs scrollbar-thin">
+      <!-- Bot Message 1 -->
+      <div class="flex gap-2">
+        <div class="w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0">
+          <i class="fa-solid fa-robot text-[10px]"></i>
         </div>
-        <button id="chatbot-close" class="text-zinc-400 hover:text-white transition-colors p-1">
-          <i class="fa-solid fa-xmark text-base"></i>
-        </button>
-      </div>
-
-      <!-- Chat Messages -->
-      <div id="chatbot-messages" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-xs scrollbar-thin">
-        <!-- Bot Message 1 -->
-        <div class="flex gap-2">
-          <div class="w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0">
-            <i class="fa-solid fa-robot text-[10px]"></i>
-          </div>
-          <div
-            class="bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 max-w-[80%] text-zinc-300 leading-relaxed font-sans">
-            <p data-vi="Xin chào! Tôi là Cyber-Assistant tại Trạm Không Gian. Tôi có thể giải đáp các thắc mắc của bạn về hồ sơ năng lực, lộ trình học tập hay các dự án của Thanh Hiền."
-              data-en="Hello! I am the Cyber-Assistant of the Space Station. I can answer your questions about Thanh Hien's portfolio, learning roadmap, or projects.">
-              Xin chào! Tôi là Cyber-Assistant tại Trạm Không Gian. Tôi có thể giải đáp các thắc mắc của bạn về hồ sơ
-              năng lực, lộ trình học tập hay các dự án của Thanh Hiền.
-            </p>
-          </div>
-        </div>
-
-        <!-- Suggestion Chips Container -->
-        <div id="chatbot-suggestions" class="flex flex-col gap-2 pl-8">
-          <button
-            class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-            data-vi="Giới thiệu bản thân của Thanh Hiền?" data-en="Can you introduce Thanh Hien?">
-            Giới thiệu bản thân của Thanh Hiền?
-          </button>
-          <button
-            class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-            data-vi="Kỹ năng nổi bật của Thanh Hiền là gì?" data-en="What are Thanh Hien's key skills?">
-            Kỹ năng nổi bật của Thanh Hiền là gì?
-          </button>
-          <button
-            class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-            data-vi="Các dự án tiêu biểu mà Hiền đã thực hiện?" data-en="What are the key projects Hien has done?">
-            Các dự án tiêu biểu mà Hiền đã thực hiện?
-          </button>
-          <button
-            class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
-            data-vi="Làm thế nào để liên hệ trực tiếp với Hiền?" data-en="How can I contact Hien directly?">
-            Làm thế nào để liên hệ trực tiếp với Hiền?
-          </button>
+        <div
+          class="bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 max-w-[80%] text-zinc-300 leading-relaxed font-sans">
+          <p data-vi="Xin chào! Tôi là Cyber-Assistant tại Trạm Không Gian. Tôi có thể giải đáp các thắc mắc của bạn về hồ sơ năng lực, lộ trình học tập hay các dự án của Thanh Hiền."
+            data-en="Hello! I am the Cyber-Assistant of the Space Station. I can answer your questions about Thanh Hien's portfolio, learning roadmap, or projects.">
+            Xin chào! Tôi là Cyber-Assistant tại Trạm Không Gian. Tôi có thể giải đáp các thắc mắc của bạn về hồ sơ
+            năng lực, lộ trình học tập hay các dự án của Thanh Hiền.
+          </p>
         </div>
       </div>
 
-      <!-- Chat Input -->
-      <div class="p-3 border-t border-white/5 bg-[#151030] flex gap-2 items-center">
-        <button id="chatbot-suggestions-toggle"
-          class="w-8 h-8 rounded-lg bg-[#0c102b] border border-purple-500/25 hover:border-[#06b6d4]/60 text-[#06b6d4] flex justify-center items-center transition-colors"
-          title="Mở câu gợi ý" aria-label="Toggle suggested questions">
-          <i id="chatbot-suggestions-icon" class="fa-solid fa-list-ul text-xs"></i>
+      <!-- Suggestion Chips Container -->
+      <div id="chatbot-suggestions" class="flex flex-col gap-2 pl-8">
+        <button
+          class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Giới thiệu bản thân của Thanh Hiền?" data-en="Can you introduce Thanh Hien?">
+          Giới thiệu bản thân của Thanh Hiền?
         </button>
-        <input type="text" id="chatbot-input" placeholder="Hỏi điều gì đó về Thanh Hiền..."
-          class="flex-1 bg-[#0c102b] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#06b6d4]/50 transition-colors"
-          data-vi-placeholder="Hỏi điều gì đó về Thanh Hiền..." data-en-placeholder="Ask something about Thanh Hien...">
-        <button id="chatbot-send"
-          class="w-8 h-8 rounded-lg bg-[#915eff] hover:bg-[#7b4ee3] active:scale-95 text-white flex justify-center items-center transition-colors">
-          <i class="fa-solid fa-paper-plane text-xs"></i>
+        <button
+          class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Kỹ năng nổi bật của Thanh Hiền là gì?" data-en="What are Thanh Hien's key skills?">
+          Kỹ năng nổi bật của Thanh Hiền là gì?
+        </button>
+        <button
+          class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Các dự án tiêu biểu mà Hiền đã thực hiện?" data-en="What are the key projects Hien has done?">
+          Các dự án tiêu biểu mà Hiền đã thực hiện?
+        </button>
+        <button
+          class="chatbot-suggest-btn text-left text-[11px] bg-[#151030] hover:bg-[#915eff]/20 border border-purple-500/20 text-[#06b6d4] px-3 py-2 rounded-xl transition-all duration-300 transform hover:translate-x-1"
+          data-vi="Làm thế nào để liên hệ trực tiếp với Hiền?" data-en="How can I contact Hien directly?">
+          Làm thế nào để liên hệ trực tiếp với Hiền?
         </button>
       </div>
     </div>
+
+    <!-- Chat Input -->
+    <div class="p-3 border-t border-white/5 bg-[#151030] flex gap-2 items-center">
+      <button id="chatbot-suggestions-toggle"
+        class="w-8 h-8 rounded-lg bg-[#0c102b] border border-purple-500/25 hover:border-[#06b6d4]/60 text-[#06b6d4] flex justify-center items-center transition-colors"
+        title="Mở câu gợi ý" aria-label="Toggle suggested questions">
+        <i id="chatbot-suggestions-icon" class="fa-solid fa-list-ul text-xs"></i>
+      </button>
+      <input type="text" id="chatbot-input" placeholder="Hỏi điều gì đó về Thanh Hiền..."
+        class="flex-1 bg-[#0c102b] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-[#06b6d4]/50 transition-colors"
+        data-vi-placeholder="Hỏi điều gì đó về Thanh Hiền..." data-en-placeholder="Ask something about Thanh Hien...">
+      <button id="chatbot-send"
+        class="w-8 h-8 rounded-lg bg-[#915eff] hover:bg-[#7b4ee3] active:scale-95 text-white flex justify-center items-center transition-colors">
+        <i class="fa-solid fa-paper-plane text-xs"></i>
+      </button>
+    </div>
+  </div>
+
+    <!-- Cursor Glow Tracker -->
+    <script>
+      (function() {
+        var glow = document.getElementById('cursor-glow');
+        if (!glow) return;
+        var mx = -200, my = -200, gx = -200, gy = -200;
+        var visible = false;
+        var raf;
+
+        document.addEventListener('mousemove', function(e) {
+          mx = e.clientX;
+          my = e.clientY;
+          if (!visible) {
+            visible = true;
+            glow.style.opacity = '1';
+          }
+        });
+
+        document.addEventListener('mouseleave', function() {
+          visible = false;
+          glow.style.opacity = '0';
+        });
+
+        function animate() {
+          gx += (mx - gx) * 0.12;
+          gy += (my - gy) * 0.12;
+          glow.style.transform = 'translate(' + gx + 'px, ' + gy + 'px) translate(-50%, -50%)';
+          raf = requestAnimationFrame(animate);
+        }
+        animate();
+      })();
+    </script>
 
     <!-- Scripts -->
     <script src="./js/three.min.js"></script>
     <script src="./js/app.js"></script>
+
+    <!-- Chatbot Interaction Logic -->
+    <script>
+      (function() {
+        var toggle = document.getElementById('chatbot-toggle');
+        var win = document.getElementById('chatbot-window');
+        var closeBtn = document.getElementById('chatbot-close');
+        var input = document.getElementById('chatbot-input');
+        var sendBtn = document.getElementById('chatbot-send');
+        var messages = document.getElementById('chatbot-messages');
+        var suggestionsPanel = document.getElementById('chatbot-suggestions');
+        var suggestToggle = document.getElementById('chatbot-suggestions-toggle');
+        var suggestIcon = document.getElementById('chatbot-suggestions-icon');
+        if (!toggle || !win) return;
+
+        var isOpen = false;
+
+        function openChat() {
+          isOpen = true;
+          win.classList.add('is-open');
+          win.setAttribute('aria-hidden', 'false');
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeChat() {
+          isOpen = false;
+          win.classList.remove('is-open');
+          win.setAttribute('aria-hidden', 'true');
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle.addEventListener('click', function() {
+          isOpen ? closeChat() : openChat();
+        });
+
+        if (closeBtn) closeBtn.addEventListener('click', closeChat);
+
+        // Suggestion chips
+        var suggestBtns = document.querySelectorAll('.chatbot-suggest-btn');
+        suggestBtns.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var q = btn.textContent.trim();
+            addUserMsg(q);
+            respondToQuery(q);
+          });
+        });
+
+        // Toggle suggestions panel
+        if (suggestToggle) {
+          suggestToggle.addEventListener('click', function() {
+            if (suggestionsPanel) {
+              var hidden = suggestionsPanel.style.display === 'none';
+              suggestionsPanel.style.display = hidden ? 'flex' : 'none';
+              if (suggestIcon) {
+                suggestIcon.className = hidden ? 'fa-solid fa-xmark text-xs' : 'fa-solid fa-list-ul text-xs';
+              }
+            }
+          });
+        }
+
+        // Send message
+        function handleSend() {
+          var q = input.value.trim();
+          if (!q) return;
+          addUserMsg(q);
+          input.value = '';
+          respondToQuery(q);
+        }
+
+        if (sendBtn) sendBtn.addEventListener('click', handleSend);
+        if (input) input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') handleSend();
+        });
+
+        function addUserMsg(text) {
+          var div = document.createElement('div');
+          div.className = 'flex gap-2 justify-end';
+          div.innerHTML = '<div class="bg-[#915eff]/20 p-3 rounded-2xl rounded-tr-none border border-purple-500/20 max-w-[80%] text-white leading-relaxed">' + escHtml(text) + '</div>';
+          messages.appendChild(div);
+          messages.scrollTop = messages.scrollHeight;
+          if (suggestionsPanel) suggestionsPanel.style.display = 'none';
+        }
+
+        function addBotMsg(text) {
+          var div = document.createElement('div');
+          div.className = 'flex gap-2';
+          div.innerHTML = '<div class="w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0"><i class="fa-solid fa-robot text-[10px]"></i></div>' +
+            '<div class="bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 max-w-[80%] text-zinc-300 leading-relaxed">' + text + '</div>';
+          messages.appendChild(div);
+          messages.scrollTop = messages.scrollHeight;
+        }
+
+        function escHtml(s) {
+          var d = document.createElement('div');
+          d.textContent = s;
+          return d.innerHTML;
+        }
+
+        // Keyword-based Q&A
+        var qa = [
+          { keys: ['giới thiệu','introduce','bản thân','about','who'], answer: 'Thanh Hiền là sinh viên CNTT tại Cao đẳng Công nghệ Thủ Đức (TDC), đam mê lập trình web với Laravel, thiết kế UI/UX premium và xây dựng hệ thống full-stack. Hiền luôn theo đuổi sự sáng tạo trong từng dòng code! 🚀' },
+          { keys: ['kỹ năng','skill','tech','công nghệ','stack'], answer: '⚡ <b>Frontend:</b> HTML/CSS, TailwindCSS, Bootstrap, JavaScript (ES6+)<br>⚡ <b>Backend:</b> PHP (OOP), Laravel, MySQL, Eloquent ORM<br>⚡ <b>Mobile:</b> Dart/Flutter, Riverpod<br>⚡ <b>Tools:</b> Git/GitHub, Docker, VS Code<br>⚡ <b>Bảo mật:</b> 2FA TOTP, Bcrypt, chống SQL Injection/XSS' },
+          { keys: ['dự án','project','sản phẩm','product','mission'], answer: '🎯 <b>SmartRoom & Renty:</b> Hệ thống quản lý nhà trọ + nền tảng tìm trọ thông minh (Laravel + Blade + PayOS).<br>🎯 <b>Portfolio 3D:</b> Website cá nhân với Three.js, hiệu ứng sci-fi và game 3D khám phá không gian.<br>🎯 <b>E-Commerce:</b> Sàn thương mại điện tử với thanh toán tự động qua VietQR.' },
+          { keys: ['liên hệ','contact','email','facebook','phone','gặp'], answer: '📧 Email: <b>thenghien2006@gmail.com</b><br>🌐 GitHub: <a href="https://github.com/eHin-cloud" target="_blank" class="text-[#06b6d4] underline">github.com/eHin-cloud</a><br>📱 Facebook: <a href="https://www.facebook.com/hien.nguyenthanh29" target="_blank" class="text-[#06b6d4] underline">Nguyễn Thanh Hiền</a>' },
+          { keys: ['học','education','trường','school','tdc'], answer: '🎓 Thanh Hiền đang học tại <b>Cao đẳng Công nghệ Thủ Đức (TDC)</b>, chuyên ngành Công nghệ Thông tin. Hiện đang ở năm 2 với lộ trình học tập từ nền tảng thuật toán đến phát triển full-stack và tích hợp AI.' },
+          { keys: ['kinh nghiệm','experience','thực tập','intern'], answer: '💼 Hiền có kinh nghiệm thực tế qua các dự án nhóm và cá nhân, bao gồm xây dựng hệ thống quản lý nhà trọ SmartRoom, nền tảng Renty, và các module tích hợp AI Gemini + thanh toán tự động PayOS/VietQR.' },
+        ];
+
+        function respondToQuery(q) {
+          // Show typing indicator
+          var typingDiv = document.createElement('div');
+          typingDiv.className = 'flex gap-2 chatbot-typing';
+          typingDiv.innerHTML = '<div class="w-6 h-6 rounded-md bg-[#915eff]/10 flex justify-center items-center text-[#915eff] flex-shrink-0"><i class="fa-solid fa-robot text-[10px]"></i></div>' +
+            '<div class="bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 text-zinc-500 text-[10px] font-mono animate-pulse">Đang phân tích...</div>';
+          messages.appendChild(typingDiv);
+          messages.scrollTop = messages.scrollHeight;
+
+          setTimeout(function() {
+            typingDiv.remove();
+            var lq = q.toLowerCase();
+            var matched = null;
+            for (var i = 0; i < qa.length; i++) {
+              for (var j = 0; j < qa[i].keys.length; j++) {
+                if (lq.indexOf(qa[i].keys[j]) !== -1) {
+                  matched = qa[i].answer;
+                  break;
+                }
+              }
+              if (matched) break;
+            }
+            if (!matched) {
+              matched = 'Cảm ơn bạn đã hỏi! Hiện tại tôi chỉ có thể trả lời về <b>giới thiệu bản thân</b>, <b>kỹ năng</b>, <b>dự án</b>, <b>học vấn</b>, <b>kinh nghiệm</b> và <b>liên hệ</b> của Thanh Hiền. Hãy thử hỏi một trong những chủ đề đó nhé! 😊';
+            }
+            addBotMsg(matched);
+          }, 800 + Math.random() * 600);
+        }
+      })();
+    </script>
 
 </body>
 
