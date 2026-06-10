@@ -6601,6 +6601,29 @@ function openGameModal(nodeDef) {
 
     if (nodeDef.targetId === "contact") {
       setupContactForm();
+      
+      // Hide the empty 3D Earth Globe Card inside the modal cloned content to fix the "lủng" (blank hole)
+      const clonedEarthContainer = content.querySelector("#contact-earth-card");
+      if (clonedEarthContainer) {
+        clonedEarthContainer.style.setProperty("display", "none", "important");
+      }
+      
+      // Adjust column layout of contact form in the modal to prevent vertical cutting-off/overflow
+      const contactFormCard = content.querySelector(".md\\:col-span-7");
+      if (contactFormCard) {
+        contactFormCard.classList.remove("md:col-span-7");
+        contactFormCard.classList.add("md:col-span-8");
+        
+        // Reduce double nested padding
+        contactFormCard.classList.remove("p-8", "md:p-12");
+        contactFormCard.classList.add("p-6", "md:p-8");
+      }
+      
+      const contactInfoCard = content.querySelector(".md\\:col-span-5");
+      if (contactInfoCard) {
+        contactInfoCard.classList.remove("md:col-span-5");
+        contactInfoCard.classList.add("md:col-span-4");
+      }
     }
 
     // Force active state on cloned timeline items inside modal
