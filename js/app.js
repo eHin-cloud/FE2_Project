@@ -21,12 +21,7 @@ let bgMusic = null;
 let isMusicMuted = false;
 
 function initBgMusic() {
-  if (!bgMusic) {
-    bgMusic = new Audio('./img/freefai1.mp3');
-    bgMusic.loop = true;
-    bgMusic.volume = 0.4;
-    bgMusic.muted = false;
-  }
+  // Background music is disabled
 }
 
 function initSciFiSfx() {
@@ -43,12 +38,7 @@ function initSciFiSfx() {
 }
 
 function playBgMusic() {
-  initBgMusic();
-  if (bgMusic) {
-    bgMusic.play().catch(err => {
-      console.warn("Background music autoplay was blocked:", err);
-    });
-  }
+  // Background music is disabled
 }
 
 function stopBgMusic() {
