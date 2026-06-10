@@ -6334,7 +6334,7 @@ function openGameModal(nodeDef) {
                   </ul>
                 ` : `
                   <p class="font-semibold text-pink-400">
-                    Welcome, Starfarer, to Nguyễn Thanh Hiền's Space Command Deck!
+                    Welcome, Starfarer, to Nguyen Thanh Hien's Space Command Deck!
                   </p>
                   <p>
                     You are piloting a stealth-tech recon starship orbiting in virtual space. Please read this manual carefully to navigate the station and unlock all information:
