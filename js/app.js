@@ -7647,6 +7647,25 @@ window.addEventListener("DOMContentLoaded", () => {
         : "Connection error with the station AI system: ") + message;
     }
 
+    function linkify(text) {
+      const escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      return escaped.replace(urlRegex, function(url) {
+        let cleanUrl = url;
+        let trailing = "";
+        if (/[.,;:?!]$/.test(cleanUrl)) {
+          trailing = cleanUrl.slice(-1);
+          cleanUrl = cleanUrl.slice(0, -1);
+        }
+        return `<a href="${cleanUrl}" target="_blank" class="text-cyan-400 hover:text-cyan-300 underline transition-colors break-all">${cleanUrl}</a>${trailing}`;
+      });
+    }
+
     function appendMessage(sender, text) {
       const msgDiv = document.createElement("div");
       msgDiv.className = "flex gap-2 " + (sender === "user" ? "justify-end" : "");
@@ -7663,7 +7682,12 @@ window.addEventListener("DOMContentLoaded", () => {
       bubble.className = sender === "user"
         ? "bg-purple-950/60 p-3 rounded-2xl rounded-tr-none border border-purple-500/20 max-w-[80%] text-zinc-300 leading-relaxed font-sans"
         : "bg-[#151030] p-3 rounded-2xl rounded-tl-none border border-white/5 max-w-[80%] text-zinc-300 leading-relaxed font-sans";
-      bubble.innerText = text;
+      
+      if (sender === "user") {
+        bubble.innerText = text;
+      } else {
+        bubble.innerHTML = linkify(text);
+      }
 
       msgDiv.appendChild(avatar);
       msgDiv.appendChild(bubble);
