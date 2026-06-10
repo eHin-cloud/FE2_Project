@@ -7413,7 +7413,6 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!chatbotToggle || !chatbotWindow || !chatbotClose || !chatbotInput || !chatbotSend || !chatbotMessages) return;
 
     let chatHistory = [];
-    let isWindowOpen = false;
     let isLoading = false;
 
     function setSuggestionsVisible(isVisible) {
@@ -7453,8 +7452,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // Toggle Chat Window
     chatbotToggle.addEventListener("click", () => {
-      isWindowOpen = !isWindowOpen;
-      if (isWindowOpen) {
+      const isOpen = chatbotWindow.classList.contains("is-open");
+      if (!isOpen) {
         chatbotWindow.classList.add("is-open");
         chatbotToggle.classList.add("is-open");
         chatbotWindow.setAttribute("aria-hidden", "false");
@@ -7479,7 +7478,6 @@ window.addEventListener("DOMContentLoaded", () => {
     // Close Chat Window
     chatbotClose.addEventListener("click", (e) => {
       e.stopPropagation();
-      isWindowOpen = false;
       chatbotWindow.classList.remove("is-open");
       chatbotToggle.classList.remove("is-open");
       chatbotWindow.setAttribute("aria-hidden", "true");
@@ -7521,6 +7519,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
       // Append user bubble
       appendMessage("user", query);
+      saveChatSession();
 
       // Scroll to bottom
       chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
@@ -7546,6 +7545,7 @@ window.addEventListener("DOMContentLoaded", () => {
         // Save history
         chatHistory.push({ role: "user", text: query });
         chatHistory.push({ role: "bot", text: responseText });
+        saveChatSession();
 
         // Play message received sound
         if (typeof playBeep === "function") {
@@ -7892,6 +7892,44 @@ LIÊN HỆ:
 
       return answer;
     }
+
+    // Session save/load functions
+    function saveChatSession() {
+      try {
+        const chatData = {
+          expiry: Date.now() + 10 * 60 * 1000, // 10 minutes from now
+          history: chatHistory,
+          html: chatbotMessages.innerHTML
+        };
+        localStorage.setItem("chatbot_session", JSON.stringify(chatData));
+      } catch (e) {
+        console.error("Failed to save chat session:", e);
+      }
+    }
+
+    function loadChatSession() {
+      try {
+        const savedData = localStorage.getItem("chatbot_session");
+        if (savedData) {
+          const parsed = JSON.parse(savedData);
+          if (parsed && parsed.expiry && Date.now() < parsed.expiry) {
+            chatHistory = parsed.history || [];
+            if (chatHistory.length > 0) {
+              chatbotMessages.innerHTML = parsed.html;
+              chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+              return true;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load chat session:", e);
+      }
+      localStorage.removeItem("chatbot_session");
+      return false;
+    }
+
+    // Load saved session on load
+    loadChatSession();
   }
 });
 
